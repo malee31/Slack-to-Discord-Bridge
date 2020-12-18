@@ -15,6 +15,9 @@ let botAuthData, loggingGuild;
 slackEvents.on("message", async event => {
 	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id) || (event.subtype && event.subtype === "bot_message")) return;
 
+	const embed = new Discord.MessageEmbed().setColor("#283747").setTitle("A Slack Message").setTimestamp(event.ts * 1000);
+	if(event.text) embed.setDescription(event.text);
+	await loggingGuild.channels.cache.get(process.env.DISCORD_LOG_CHANNEL_ID).send(embed);
 	if(event.files) {
 		let downloads = [];
 		console.log("ATTEMPTING FILE DOWNLOAD");
@@ -24,16 +27,9 @@ slackEvents.on("message", async event => {
 
 		downloads = await Promise.all(downloads);
 		downloads = downloads.map(val => val.path);
-		console.log({files: downloads});
 
-		if(event.text) {
-			await loggingGuild.channels.cache.get(process.env.DISCORD_LOG_CHANNEL_ID).send(event.text, {files: downloads});
-		} else {
-			await loggingGuild.channels.cache.get(process.env.DISCORD_LOG_CHANNEL_ID).send({files: downloads});
-		}
+		await loggingGuild.channels.cache.get(process.env.DISCORD_LOG_CHANNEL_ID).send({files: downloads});
 		await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath)));
-	} else if(event.text) {
-		await loggingGuild.channels.cache.get(process.env.DISCORD_LOG_CHANNEL_ID).send(event.text);
 	}
 });
 
@@ -42,7 +38,7 @@ client.on("ready", () => {
 	client.user.setPresence({
 		activity: {
 			type: "LISTENING",
-			name: "You While Being Updated"
+			name: "To Slack Messages"
 		},
 		status: "online",
 		afk: false
