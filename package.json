@@ -15,5 +15,14 @@
 		"discord.js": "^12.2.0",
 		"dotenv": "^8.2.0",
 		"http": "0.0.1-security"
-	}
+	},
+	"devDependencies": {},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/malee31/Slack-to-Discord-Bridge.git"
+	},
+	"bugs": {
+		"url": "https://github.com/malee31/Slack-to-Discord-Bridge/issues"
+	},
+	"homepage": "https://github.com/malee31/Slack-to-Discord-Bridge#readme"
 }

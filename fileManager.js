@@ -10,6 +10,7 @@ module.exports = {
 }
 
 let pendingDownloads = [];
+
 async function fileDownload(fileObj, fileName) {
 	fileName = fileName || fileObj.name;
 	let copyCount = 0;
@@ -22,7 +23,7 @@ async function fileDownload(fileObj, fileName) {
 			await fs.promises.access(testPath, fs.constants.F_OK);
 			console.log(`File: ${testPath} already exists.\nAppending number to path and trying again`);
 			copyCount++;
-		} catch (err) {
+		} catch(err) {
 			if(err.code === "ENOENT") {
 				if(pendingDownloads.includes(testPath)) {
 					console.log(`Download named ${testPath} is already pending.\nAppending number to path and trying again`);
@@ -77,6 +78,7 @@ async function fileDownload(fileObj, fileName) {
 }
 
 let pendingDeletions = [];
+
 async function fileDelete(fileName) {
 	let fileDeletePath = path.resolve(downloadsFolder, fileName);
 	if(pendingDeletions.includes(fileDeletePath)) return;
