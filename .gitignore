@@ -1,0 +1,12 @@
+# Node Dependencies
+node_modules/
+
+# IDE Settings
+.idea/
+
+# Config Files
+*.iml
+
+# Private Files
+downloads/
+.env

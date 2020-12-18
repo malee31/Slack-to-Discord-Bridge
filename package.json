@@ -1,0 +1,19 @@
+{
+	"name": "slack-to-discord-bridge",
+	"version": "1.0.0",
+	"description": "Repeats messages sent over Slack to a Discord Server",
+	"main": "run.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [],
+	"author": "Marvin Lee",
+	"license": "ISC",
+	"dependencies": {
+		"@slack/events-api": "^2.3.4",
+		"@slack/web-api": "^5.14.0",
+		"discord.js": "^12.2.0",
+		"dotenv": "^8.2.0",
+		"http": "0.0.1-security"
+	}
+}
