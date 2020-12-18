@@ -15,8 +15,13 @@ let botAuthData, loggingGuild;
 slackEvents.on("message", async event => {
 	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id) || (event.subtype && event.subtype === "bot_message")) return;
 
-	const embed = new Discord.MessageEmbed().setColor("#283747").setTitle("A Slack Message").setTimestamp(event.ts * 1000);
+	const embed = new Discord.MessageEmbed().setTitle("A Slack Message").setTimestamp(event.ts * 1000);
 	if(event.text) embed.setDescription(event.text);
+
+	const user = (await web.users.info({user: event.user})).user;
+	embed.setAuthor(`${user.real_name} [ID: <@${user.id}>]`, user.profile["image_512"]).setColor(`#${user.color}` || "#283747");
+	console.log(user);
+
 	await loggingGuild.channels.cache.get(process.env.DISCORD_LOG_CHANNEL_ID).send(embed);
 	if(event.files) {
 		let downloads = [];
