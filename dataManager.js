@@ -14,7 +14,7 @@ function save(retry = 0, successText, throwOnFail = false) {
 			if(typeof retry === "number" && retry > 0) {
 				save(retry - 1);
 			} else {
-				console.warn(`Data Dump: ${JSON.stringify(data)}`);
+				console.warn(`Data Dump:\n${saveThis}`);
 				if(throwOnFail) throw "Failed to Save Map";
 				else return;
 			}
