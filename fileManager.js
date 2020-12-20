@@ -21,12 +21,12 @@ async function fileDownload(fileObj, fileName) {
 		let testPath = path.resolve(downloadsFolder, testFileName);
 		try {
 			await fs.promises.access(testPath, fs.constants.F_OK);
-			console.log(`File: ${testPath} already exists.\nAppending number to path and trying again`);
+			// console.log(`File: ${testPath} already exists.\nAppending number to path and trying again`);
 			copyCount++;
 		} catch(err) {
 			if(err.code === "ENOENT") {
 				if(pendingDownloads.includes(testPath)) {
-					console.log(`Download named ${testPath} is already pending.\nAppending number to path and trying again`);
+					// console.log(`Download named ${testPath} is already pending.\nAppending number to path and trying again`);
 					copyCount++;
 					continue;
 				} else {
@@ -54,10 +54,10 @@ async function fileDownload(fileObj, fileName) {
 			response.pipe(file);
 			file.on('finish', async() => {
 				await file.close();
-				console.log(`Download Complete. Removing path from cache: ${finalDownloadPath}`);
-				console.log(pendingDownloads);
+				// console.log(`Download Complete. Removing path from cache: ${finalDownloadPath}`);
+				// console.log(pendingDownloads);
 				pendingDownloads.splice(pendingDownloads.indexOf(finalDownloadPath), 1);
-				console.log(pendingDownloads);
+				// console.log(pendingDownloads);
 				resolve({
 					name: fileObj.name,
 					title: fileObj.title,

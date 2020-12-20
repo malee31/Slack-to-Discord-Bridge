@@ -1,5 +1,6 @@
 require("dotenv").config();
 const {createEventAdapter} = require("@slack/events-api");
+const dataManager = require("./dataManager.js");
 const {WebClient} = require("@slack/web-api");
 const fileManager = require("./fileManager");
 const Discord = require("discord.js");
@@ -15,14 +16,30 @@ let botAuthData, loggingGuild;
 slackEvents.on("message", async event => {
 	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id) || (event.subtype && event.subtype === "bot_message")) return;
 
-	const embed = new Discord.MessageEmbed().setTitle("A Slack Message").setTimestamp(event.ts * 1000);
-	if(event.text) embed.setDescription(event.text);
-
 	const user = (await web.users.info({user: event.user})).user;
-	embed.setAuthor(`${user.real_name} [ID: <@${user.id}>]`, user.profile["image_512"]).setColor(`#${user.color}` || "#283747");
-	console.log(user);
 
-	await loggingGuild.channels.cache.get(process.env.DISCORD_LOG_CHANNEL_ID).send(embed);
+	const embed = new Discord.MessageEmbed()
+		// .setTitle("A Slack Message")
+		.setTimestamp(event.ts * 1000)
+		.setAuthor(`${user.real_name} [ID: @${user.id}]`, user.profile["image_512"])
+		.setColor(`#${user.color}` || "#283747");
+	if(event.text) embed.setDescription(event.text);
+	// console.log(user);
+
+	let loggingChannel = loggingGuild.channels.cache.get(dataManager.getChannel(event.channel));
+	// console.log(await web.conversations.list());
+	if(!loggingChannel) {
+		const channelInfo = await web.conversations.info({channel: event.channel});
+		// Quirk: First occurrence of channel with the same name on Discord is used. The second occurrence is ignored
+		loggingChannel = loggingGuild.channels.cache.find(channel => channel.type === "text" && channel.name === channelInfo.channel.name);
+		if(!loggingChannel) loggingChannel = await loggingGuild.channels.create(channelInfo.channel.name, {reason: `#${channelInfo.channel.name} created for new Slack Messages`});
+		if(!loggingChannel) {
+			// loggingChannel = loggingGuild.channels.cache.get(dataManager.getChannel(event.channel, true));
+			throw `Channel #${channelInfo.channel.name} could not be found or created.`;
+		}
+		dataManager.mapChannel(event.channel, loggingChannel.id);
+	}
+
 	if(event.files) {
 		let downloads = [];
 		console.log("ATTEMPTING FILE DOWNLOAD");
@@ -31,10 +48,21 @@ slackEvents.on("message", async event => {
 		}
 
 		downloads = await Promise.all(downloads);
-		downloads = downloads.map(val => val.path);
 
-		await loggingGuild.channels.cache.get(process.env.DISCORD_LOG_CHANNEL_ID).send({files: downloads});
-		await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath)));
+		embed.attachFiles({
+			attachment: downloads[0].path,
+			name: downloads[0].name
+		}).setImage(`attachment://${downloads[0].name}`);
+
+		if(downloads.length > 1) embed.setFooter(`↓ Message Includes ${downloads.length - 1} Additional Attachment${downloads.length === 2 ? "" : "s"} Below ↓`);
+		await loggingChannel.send(embed);
+
+		if(downloads.length > 1) await loggingChannel.send({files: downloads.slice(1).map(val => val.path)});
+
+		console.log(downloads);
+		await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
+	} else {
+		await loggingChannel.send(embed);
 	}
 });
 
@@ -48,9 +76,9 @@ client.on("ready", () => {
 		status: "online",
 		afk: false
 	})
-	.then(() => {
-		console.log("Successfully Set Presence");
-	}).catch(err => {
+		.then(() => {
+			console.log("Successfully Set Presence");
+		}).catch(err => {
 		console.warn("Failed to Set Presence");
 		console.error(err);
 	});
