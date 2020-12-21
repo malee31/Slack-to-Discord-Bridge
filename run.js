@@ -23,20 +23,7 @@ slackEvents.on("message", async event => {
 		.setTimestamp(event.ts * 1000)
 		.setAuthor(userIdentify(user), user.profile["image_512"])
 		.setColor(`#${user.color}` || "#283747");
-	if(event.text) {
-		let text = event.text;
-		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
-		let mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g);
-		if(mentions) {
-			let identify = mentions.filter((id, index) => mentions.indexOf(id) === index).map(id => {
-				return web.users.info({user: id});
-			});
-			(await Promise.all(identify)).forEach(userInfo => {
-				text = text.replace(new RegExp(`<@${userInfo.user.id}>`, 'g'), `[${userIdentify(userInfo.user)}]`);
-			});
-		}
-		embed.setDescription(text);
-	}
+	if(event.text) embed.setDescription(await slackTextParse(event.text));
 
 	let targetChannel = loggingGuild.channels.cache.get(dataManager.getChannel(event.channel));
 	if(!targetChannel) {
@@ -45,7 +32,7 @@ slackEvents.on("message", async event => {
 		targetChannel = loggingGuild.channels.cache.find(channel => channel.type === "text" && channel.name === channelInfo.channel.name);
 		if(!targetChannel) targetChannel = await loggingGuild.channels.create(channelInfo.channel.name, {reason: `#${channelInfo.channel.name} created for new Slack Messages`});
 		if(!targetChannel) {
-			// Use the line below instead of throwing if there is a default channel you would like to send to set in serverMap.json
+			// Use the line below instead of throwing if there is a default channel you would like to send to set in serverMap.
 			// loggingChannel = loggingGuild.channels.cache.get(dataManager.getChannel(event.channel, true));
 			throw `Channel #${channelInfo.channel.name} could not be found or created.`;
 		}
@@ -77,6 +64,31 @@ slackEvents.on("message", async event => {
 		await targetChannel.send(embed);
 	}
 });
+
+async function slackTextParse(text) {
+	// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
+	let mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g);
+	if(mentions) {
+		let identify = mentions.filter((id, index) => mentions.indexOf(id) === index).map(id => {
+			return web.users.info({user: id});
+		});
+		(await Promise.all(identify)).forEach(userInfo => {
+			text = text.replace(new RegExp(`<@${userInfo.user.id}>`, 'g'), `[${userIdentify(userInfo.user)}]`);
+		});
+	}
+
+	let urls = text.match(/(?<=<)https?:\/\/[\w@:%.\/+~#=]+(|.+?)?(?=>)/g);
+	if(urls) {
+		urls.map(link => {
+			let split = link.split("|");
+			text = text.replace(`<${link}>`, `[${split[1].trim().length > 0 ? split[1].trim() : split[0]}](${split[0]})`);
+		});
+	}
+
+	// console.log(text);
+
+	return text;
+}
 
 function userIdentify(user) {
 	return `${user.real_name}@${user.id}`;
