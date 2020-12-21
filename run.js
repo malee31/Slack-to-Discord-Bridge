@@ -85,9 +85,9 @@ async function slackTextParse(text) {
 		});
 	}
 
-	// console.log(text);
+	console.log(text);
 
-	return text;
+	return text.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
 }
 
 function userIdentify(user) {
