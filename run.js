@@ -67,6 +67,8 @@ slackEvents.on("message", async event => {
 
 async function slackTextParse(text) {
 	// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
+	// Known Bugs:
+	// * Slow. Each mention slows down parsing significantly
 	let mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g);
 	if(mentions) {
 		let identify = mentions.filter((id, index) => mentions.indexOf(id) === index).map(id => {
@@ -77,6 +79,10 @@ async function slackTextParse(text) {
 		});
 	}
 
+	// URL Slack to Discord Markdown Translation
+	// Known Bugs:
+	// * Including the character '>' in any part of the link's text will make the translation cut off early
+	// * Certain non-urls will not parse correctly for some odd reason. For example, Slack will try to auto-encode text into a URL if it is entered as one and that won't sit well with Discord
 	let urls = text.match(/(?<=<)https?:\/\/[\w@:%.\/+~#=]+(|.+?)?(?=>)/g);
 	if(urls) {
 		urls.map(link => {
@@ -85,9 +91,23 @@ async function slackTextParse(text) {
 		});
 	}
 
-	console.log(text);
+	// Strikethrough Slack to Discord Markdown Translation
+	// Known Bugs:
+	// * Using Ctrl + Z on Slack to undo ~strikethrough~ markdown results in that undo being ignored on Discord. Escaped markdown is parsed as if it was never escaped
+	text = text.replace(/~~/g, "\\~\\~").replace(/(?<=^|\s)(~(?=[^\s])[^~]+(?<=[^\s])~)(?=$|\s)/g, "~$1~");
 
-	return text.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+	// Unescaping HTML Escapes created by Slack's API
+	// Known Bugs:
+	// * Literally typing any of the following HTML escape codes normally will result in them being converted over to their unescaped form on Discord
+	// - Typing &gt; on Slack translates to > on Discord
+	// - Typing &lt; on Slack translates to < on Discord
+	// - Typing &amp; on Slack translates to &on Discord
+	text = text.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+
+	// Additional Known Bugs:
+	// * When using code blocks, if ```OneWord syntax is used on Slack, the first word is invisible when sent to Discord
+	console.log(text);
+	return text;
 }
 
 function userIdentify(user) {
