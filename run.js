@@ -14,20 +14,55 @@ const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 let botAuthData, loggingGuild;
 
 slackEvents.on("message", async event => {
-	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id) || (event.subtype && event.subtype === "bot_message")) return;
+	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
 
+	const targetChannel = await locateChannel(event.channel);
 	const user = (await web.users.info({user: event.user})).user;
-
-	const embed = new Discord.MessageEmbed()
+	const embeds = [new Discord.MessageEmbed()
 		// .setTitle("A Slack Message")
 		.setTimestamp(event.ts * 1000)
 		.setAuthor(userIdentify(user), user.profile["image_512"])
-		.setColor(`#${user.color}` || "#283747");
-	if(event.text) embed.setDescription(await slackTextParse(event.text));
+		.setColor(`#${user.color}` || "#283747")];
+	if(event.text) embeds[0].setDescription(await slackTextParse(event.text));
 
-	let targetChannel = loggingGuild.channels.cache.get(dataManager.getChannel(event.channel));
+	if(!event.files) {
+		await embedSender(targetChannel, embeds);
+		return;
+	}
+
+	let downloads = [];
+	console.log("ATTEMPTING FILE DOWNLOAD");
+	for(const fileObj of event.files) {
+		downloads.push(fileManager.fileDownload(fileObj));
+	}
+
+	downloads = await Promise.all(downloads);
+
+	embeds[0].attachFiles({
+		attachment: downloads[0].path,
+		name: downloads[0].name
+	}).setImage(`attachment://${downloads[0].name}`);
+
+	if(downloads.length > 1) {
+		embeds[0].setFooter(`↓ Message Includes ${downloads.length - 1} Additional Attachment${downloads.length === 2 ? "" : "s"} Below ↓`);
+		embeds.push({files: downloads.slice(1).map(val => val.path)});
+	}
+
+	await embedSender(targetChannel, embeds);
+
+	await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
+});
+
+async function embedSender(discordChannel, discordEmbeds) {
+	for(const discordEmbed of discordEmbeds) {
+		await discordChannel.send(discordEmbed);
+	}
+}
+
+async function locateChannel(slackChannelID) {
+	let targetChannel = loggingGuild.channels.cache.get(dataManager.getChannel(slackChannelID));
 	if(!targetChannel) {
-		const channelInfo = await web.conversations.info({channel: event.channel});
+		const channelInfo = await web.conversations.info({channel: slackChannelID});
 		// Quirk: First occurrence of channel with the same name on Discord is used. The second occurrence is ignored
 		targetChannel = loggingGuild.channels.cache.find(channel => channel.type === "text" && channel.name === channelInfo.channel.name);
 		if(!targetChannel) targetChannel = await loggingGuild.channels.create(channelInfo.channel.name, {reason: `#${channelInfo.channel.name} created for new Slack Messages`});
@@ -36,34 +71,10 @@ slackEvents.on("message", async event => {
 			// loggingChannel = loggingGuild.channels.cache.get(dataManager.getChannel(event.channel, true));
 			throw `Channel #${channelInfo.channel.name} could not be found or created.`;
 		}
-		dataManager.mapChannel(event.channel, targetChannel.id);
+		dataManager.mapChannel(slackChannelID, targetChannel.id);
 	}
-
-	if(event.files) {
-		let downloads = [];
-		console.log("ATTEMPTING FILE DOWNLOAD");
-		for(const fileObj of event.files) {
-			downloads.push(fileManager.fileDownload(fileObj));
-		}
-
-		downloads = await Promise.all(downloads);
-
-		embed.attachFiles({
-			attachment: downloads[0].path,
-			name: downloads[0].name
-		}).setImage(`attachment://${downloads[0].name}`);
-
-		if(downloads.length > 1) embed.setFooter(`↓ Message Includes ${downloads.length - 1} Additional Attachment${downloads.length === 2 ? "" : "s"} Below ↓`);
-		await targetChannel.send(embed);
-
-		if(downloads.length > 1) await targetChannel.send({files: downloads.slice(1).map(val => val.path)});
-
-		console.log(downloads);
-		await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
-	} else {
-		await targetChannel.send(embed);
-	}
-});
+	return targetChannel;
+}
 
 async function slackTextParse(text) {
 	// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
@@ -87,7 +98,7 @@ async function slackTextParse(text) {
 	if(urls) {
 		urls.map(link => {
 			let split = link.split("|");
-			text = text.replace(`<${link}>`, `[${split[1].trim().length > 0 ? split[1].trim() : split[0]}](${split[0]})`);
+			text = text.replace(`<${link}>`, `[${split[1] && split[1].trim().length > 0 ? split[1].trim() : split[0]}](${split[0]})`);
 		});
 	}
 
