@@ -15,6 +15,27 @@ let botAuthData, loggingGuild;
 
 slackEvents.on("message", async event => {
 	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
+	if(event.subtype && event.subtype !== "file_share") {
+		switch(event.subtype) {
+			case "bot_message":
+				console.log("BOT MESSAGE - ABORT");
+				return;
+			case "message_deleted":
+				console.log(`Message Deleted - ${event.hidden ? " - HIDDEN" : ""}`);
+				break;
+			case "message_changed":
+				console.log("Message Change");
+				for(const messageAttachment in event.message.attachments) {
+					await (await locateChannel(event.channel)).send(slackEmbedParse(event.message.attachments[0]));
+				}
+				return;
+			default:
+				console.warn(`Unknown Message Subtype ${event.subtype}`);
+		}
+		console.log(event);
+		console.log("====================\n");
+		return;
+	}
 
 	const targetChannel = await locateChannel(event.channel);
 	const user = (await web.users.info({user: event.user})).user;
@@ -74,6 +95,17 @@ async function locateChannel(slackChannelID) {
 		dataManager.mapChannel(slackChannelID, targetChannel.id);
 	}
 	return targetChannel;
+}
+
+function slackEmbedParse(embed) {
+	let discordEmbed = new Discord.MessageEmbed();
+	discordEmbed
+		.setTitle(embed.title)
+		.setURL(embed.title_link)
+		.setDescription(embed.text || embed.fallback)
+		.setImage(embed.image_url)
+		.setAuthor(embed["service_name"], embed["service_icon"], embed["original_url"]);
+	return discordEmbed;
 }
 
 async function slackTextParse(text) {
