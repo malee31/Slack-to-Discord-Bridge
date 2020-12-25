@@ -8,6 +8,7 @@ node_modules/
 *.iml
 
 # Private Files
-downloads/
+downloads/*
+database/*
 serverMap.json
 .env

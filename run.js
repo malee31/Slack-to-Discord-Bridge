@@ -2,6 +2,7 @@ require("dotenv").config();
 const {createEventAdapter} = require("@slack/events-api");
 const dataManager = require("./dataManager.js");
 const {WebClient} = require("@slack/web-api");
+const databaseManager = require("./database");
 const fileManager = require("./fileManager");
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -14,6 +15,10 @@ const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 let botAuthData, loggingGuild;
 
 slackEvents.on("message", async event => {
+	if(event.text === "SQL_Test") {
+		console.log("SQL TEST DETECTED");
+		databaseManager.dataDump();
+	}
 	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
 	if(event.subtype && event.subtype !== "file_share") {
 		switch(event.subtype) {
@@ -28,7 +33,7 @@ slackEvents.on("message", async event => {
 				for(const messageAttachment in event.message.attachments) {
 					await (await locateChannel(event.channel)).send(slackEmbedParse(event.message.attachments[0]));
 				}
-				return;
+				break;
 			default:
 				console.warn(`Unknown Message Subtype ${event.subtype}`);
 		}
@@ -47,7 +52,7 @@ slackEvents.on("message", async event => {
 	if(event.text) embeds[0].setDescription(await slackTextParse(event.text));
 
 	if(!event.files) {
-		await embedSender(targetChannel, embeds);
+		await embedSender(targetChannel, embeds, identify(event).uniqueId);
 		return;
 	}
 
@@ -69,14 +74,18 @@ slackEvents.on("message", async event => {
 		embeds.push({files: downloads.slice(1).map(val => val.path)});
 	}
 
-	await embedSender(targetChannel, embeds);
+	await embedSender(targetChannel, embeds, identify(event).uniqueId);
 
 	await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
 });
 
-async function embedSender(discordChannel, discordEmbeds) {
+async function embedSender(discordChannel, discordEmbeds, mapTo) {
 	for(const discordEmbed of discordEmbeds) {
-		await discordChannel.send(discordEmbed);
+		let sentMessage = await discordChannel.send(discordEmbed);
+		if(mapTo) databaseManager.messageMap(mapTo, sentMessage.id, err => {
+			if(err) console.log(`MAP ERROR:\n${err}`);
+			console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`);
+		});
 	}
 }
 
@@ -155,6 +164,17 @@ async function slackTextParse(text) {
 
 function userIdentify(user) {
 	return `${user.real_name}@${user.id}`;
+}
+
+// Use on a Slack event to generate an id for messages that SHOULD be unique (No official documentation found)
+function identify(slackObj) {
+	return {
+		uniqueId: `${slackObj.channel}/${slackObj.ts}`,
+		channel: slackObj.channel,
+		ts: slackObj.ts,
+		inThread: slackObj.thread_ts === undefined,
+		threadTs: slackObj.thread_ts
+	};
 }
 
 client.once("disconnect", () => {
