@@ -20,14 +20,19 @@ slackEvents.on("message", async event => {
 		databaseManager.dataDump();
 	}
 	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
+
+	const targetChannel = await locateChannel(event.channel);
 	if(event.subtype && event.subtype !== "file_share") {
 		switch(event.subtype) {
 			case "bot_message":
 				console.log("BOT MESSAGE - ABORT");
 				return;
 			case "message_deleted":
-				console.log(`Message Deleted - ${event.hidden ? " - HIDDEN" : ""}`);
-				break;
+				let DMIDs = await databaseManager.locateMaps(identify(event.previous_message, event.channel).uniqueId);
+				for(const res of DMIDs) {
+					await targetChannel.messages.cache.get(res.DiscordMessageID).delete();
+				}
+				return;
 			case "message_changed":
 				console.log("Message Change");
 				for(const messageAttachment in event.message.attachments) {
@@ -42,13 +47,8 @@ slackEvents.on("message", async event => {
 		return;
 	}
 
-	const targetChannel = await locateChannel(event.channel);
 	const user = (await web.users.info({user: event.user})).user;
-	const embeds = [new Discord.MessageEmbed()
-		// .setTitle("A Slack Message")
-		.setTimestamp(event.ts * 1000)
-		.setAuthor(userIdentify(user), user.profile["image_512"])
-		.setColor(`#${user.color}` || "#283747")];
+	const embeds = [userMessageEmbed(user, event.ts)];
 	if(event.text) embeds[0].setDescription(await slackTextParse(event.text));
 
 	if(!event.files) {
@@ -79,13 +79,25 @@ slackEvents.on("message", async event => {
 	await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
 });
 
-async function embedSender(discordChannel, discordEmbeds, mapTo) {
+function userMessageEmbed(user, time) {
+	const userEmbed = new Discord.MessageEmbed()
+		// .setTitle("A Slack Message")
+		.setAuthor(userIdentify(user), user.profile["image_512"])
+		.setColor(`#${user.color}` || "#283747");
+	if(time) userEmbed.setTimestamp(time * 1000);
+	return userEmbed;
+}
+
+async function embedSender(discordChannel, discordEmbeds, mapTo, pureText = true) {
 	for(const discordEmbed of discordEmbeds) {
 		let sentMessage = await discordChannel.send(discordEmbed);
-		if(mapTo) databaseManager.messageMap(mapTo, sentMessage.id, err => {
-			if(err) console.log(`MAP ERROR:\n${err}`);
-			console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`);
-		});
+		if(mapTo) {
+			databaseManager.messageMap(mapTo, sentMessage.id, pureText, err => {
+				if(err) console.log(`MAP ERROR:\n${err}`);
+				console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`);
+			});
+			pureText = false;
+		}
 	}
 }
 
@@ -167,10 +179,10 @@ function userIdentify(user) {
 }
 
 // Use on a Slack event to generate an id for messages that SHOULD be unique (No official documentation found)
-function identify(slackObj) {
+function identify(slackObj, channel) {
 	return {
-		uniqueId: `${slackObj.channel}/${slackObj.ts}`,
-		channel: slackObj.channel,
+		uniqueId: `${slackObj.channel || channel}/${slackObj.ts}`,
+		channel: slackObj.channel || channel,
 		ts: slackObj.ts,
 		inThread: slackObj.thread_ts === undefined,
 		threadTs: slackObj.thread_ts
