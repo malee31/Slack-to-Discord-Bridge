@@ -15,75 +15,78 @@ const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 let botAuthData, loggingGuild;
 
 slackEvents.on("message", async event => {
+	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
+
 	if(event.text === "SQL_Test") {
 		console.log("SQL TEST DETECTED");
 		databaseManager.dataDump();
 	}
-	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
 
 	const targetChannel = await locateChannel(event.channel);
-	if(event.subtype && event.subtype !== "file_share") {
-		switch(event.subtype) {
-			case "bot_message":
-				console.log("BOT MESSAGE - ABORT");
-				return;
-			case "message_deleted":
-				let DMIDs = await databaseManager.locateMaps(identify(event.previous_message, event.channel).uniqueId);
-				for(const res of DMIDs) {
-					await targetChannel.messages.cache.get(res.DiscordMessageID).delete();
-				}
-				return;
-			case "message_changed":
-				console.log("Message Change");
-				for(const messageAttachment in event.message.attachments) {
-					await (await locateChannel(event.channel)).send(slackEmbedParse(event.message.attachments[0]));
-				}
-				break;
-			default:
-				console.warn(`Unknown Message Subtype ${event.subtype}`);
-		}
-		console.log(event);
-		console.log("====================\n");
-		return;
-	}
-
-	const user = (await web.users.info({user: event.user})).user;
+	const user = (event.user ? (await web.users.info({user: event.user})).user : undefined);
 	const embeds = [userMessageEmbed(user, event.ts)];
+
+	// Default Text Assembly
 	if(event.text) embeds[0].setDescription(await slackTextParse(event.text));
 
-	if(!event.files) {
-		await embedSender(targetChannel, embeds, identify(event).uniqueId);
-		return;
-	}
+	switch(event.subtype) {
+		case "bot_message":
+			console.warn("BOT MESSAGE - ABORT");
+			return;
+		case "message_deleted":
+			await Promise.all((await databaseManager.locateMaps(identify(event.channel, event.previous_message.ts))).map(DMID => {
+				return targetChannel.messages.cache.get(DMID.DiscordMessageID).delete();
+			}));
+			return;
+		case "message_changed":
+			console.log("Message Change");
+			for(const messageAttachment in event.message.attachments) {
+				await targetChannel.send(slackEmbedParse(event.message.attachments[0]));
+			}
+			break;
+		case "file_share":
+			let downloads = await attachmentEmbeds(embeds, event.files);
 
+			await embedSender(targetChannel, embeds, identify(event.channel, event.ts));
+
+			await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
+			break;
+		case undefined:
+			// Standard Text Message Embed Already Handled Pre-Switch Statement
+			await embedSender(targetChannel, embeds, identify(event.channel, event.ts));
+			break;
+		default:
+			console.warn(`Unknown Message Subtype ${event.subtype}`);
+	}
+});
+
+async function attachmentEmbeds(embedArr, slackFiles) {
 	let downloads = [];
 	console.log("ATTEMPTING FILE DOWNLOAD");
-	for(const fileObj of event.files) {
+	for(const fileObj of slackFiles) {
 		downloads.push(fileManager.fileDownload(fileObj));
 	}
 
 	downloads = await Promise.all(downloads);
 
-	embeds[0].attachFiles({
+	embedArr[0].attachFiles({
 		attachment: downloads[0].path,
 		name: downloads[0].name
 	}).setImage(`attachment://${downloads[0].name}`);
 
 	if(downloads.length > 1) {
-		embeds[0].setFooter(`↓ Message Includes ${downloads.length - 1} Additional Attachment${downloads.length === 2 ? "" : "s"} Below ↓`);
-		embeds.push({files: downloads.slice(1).map(val => val.path)});
+		embedArr[0].setFooter(`↓ Message Includes ${downloads.length - 1} Additional Attachment${downloads.length === 2 ? "" : "s"} Below ↓`);
+		embedArr.push({files: downloads.slice(1).map(val => val.path)});
 	}
 
-	await embedSender(targetChannel, embeds, identify(event).uniqueId);
-
-	await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
-});
+	return downloads;
+}
 
 function userMessageEmbed(user, time) {
 	const userEmbed = new Discord.MessageEmbed()
 		// .setTitle("A Slack Message")
-		.setAuthor(userIdentify(user), user.profile["image_512"])
-		.setColor(`#${user.color}` || "#283747");
+		.setAuthor((user ? userIdentify(user) : "Unknown Pupper"), (user && user.profile && user.profile["image_512"] ? user.profile["image_512"] : "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif"))
+		.setColor(user && user.color ? `#${user.color}` : "#283747");
 	if(time) userEmbed.setTimestamp(time * 1000);
 	return userEmbed;
 }
@@ -179,14 +182,8 @@ function userIdentify(user) {
 }
 
 // Use on a Slack event to generate an id for messages that SHOULD be unique (No official documentation found)
-function identify(slackObj, channel) {
-	return {
-		uniqueId: `${slackObj.channel || channel}/${slackObj.ts}`,
-		channel: slackObj.channel || channel,
-		ts: slackObj.ts,
-		inThread: slackObj.thread_ts === undefined,
-		threadTs: slackObj.thread_ts
-	};
+function identify(channel, ts) {
+	return `${channel}/${ts}`;
 }
 
 client.once("disconnect", () => {
