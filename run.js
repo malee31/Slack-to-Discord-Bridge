@@ -35,7 +35,7 @@ slackEvents.on("message", async event => {
 			return;
 		case "message_deleted":
 			await Promise.all((await databaseManager.locateMaps(identify(event.channel, event.previous_message.ts))).map(DMID => {
-				return targetChannel.messages.cache.get(DMID.DiscordMessageID).delete();
+				return targetChannel.messages.fetch(DMID["DiscordMessageID"]).then(message => message.delete());
 			}));
 			return;
 		case "message_changed":
@@ -69,14 +69,34 @@ async function attachmentEmbeds(embedArr, slackFiles) {
 
 	downloads = await Promise.all(downloads);
 
-	embedArr[0].attachFiles({
-		attachment: downloads[0].path,
-		name: downloads[0].name
-	}).setImage(`attachment://${downloads[0].name}`);
+	let sliceNum = 1;
 
-	if(downloads.length > 1) {
-		embedArr[0].setFooter(`↓ Message Includes ${downloads.length - 1} Additional Attachment${downloads.length === 2 ? "" : "s"} Below ↓`);
-		embedArr.push({files: downloads.slice(1).map(val => val.path)});
+	switch(downloads[0].extension.toLowerCase().trim()) {
+		case "png":
+		case "jpg":
+		case "jpeg":
+		case "gif":
+		case "gifv":
+		case "webm":
+		case "mp3":
+		case "mp4":
+		case "ogg":
+		case "wav":
+		// Lacks support in some devices
+		// case "mov":
+		// case "flac":
+			embedArr[0].attachFiles({
+				attachment: downloads[0].path,
+				name: downloads[0].name
+			}).setImage(`attachment://${downloads[0].name}`);
+			break;
+		default:
+			sliceNum = 0;
+	}
+
+	if(downloads.length > sliceNum) {
+		embedArr[0].setFooter(`↓ Message Includes ${downloads.length - sliceNum} Additional Attachment${downloads.length === 2 ? "" : "s"} Below ↓`);
+		embedArr.push({files: downloads.slice(sliceNum).map(val => val.path)});
 	}
 
 	return downloads;

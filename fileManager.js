@@ -62,7 +62,8 @@ async function fileDownload(fileObj, fileName) {
 					name: fileObj.name,
 					title: fileObj.title,
 					storedAs: fileName,
-					path: file.path
+					path: file.path,
+					extension: fileFormat.extension
 				});
 			});
 		});
