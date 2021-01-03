@@ -18,7 +18,7 @@ function save() {
 	});
 }
 
-function getChannel(slackChannelID, sendDefault=false) {
+function getChannel(slackChannelID, sendDefault = false) {
 	return data.channelMap[slackChannelID] || (sendDefault ? data.channelMap.default : undefined);
 }
 

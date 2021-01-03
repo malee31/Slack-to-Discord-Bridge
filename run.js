@@ -60,6 +60,10 @@ slackEvents.on("message", async event => {
 	}
 });
 
+const attachableFormats = ["png", "jpg", "jpeg"];
+// Removed from attachable formats because audio formats auto-embed themselves (Wow flac files are huge!): ["mp3", "ogg", "wav", "flac"]
+// Removed from attachable formats because video formats auto-embed themselves then fail to load (Still available via "Open Original" download link): ["mov", "webm", "mp4"]
+// Do not work with embeds (Also, apparently "gifv" is not real): ["gif"]
 async function attachmentEmbeds(embedArr, slackFiles) {
 	let downloads = [];
 	console.log("ATTEMPTING FILE DOWNLOAD");
@@ -71,32 +75,43 @@ async function attachmentEmbeds(embedArr, slackFiles) {
 
 	let sliceNum = 1;
 
-	switch(downloads[0].extension.toLowerCase().trim()) {
-		case "png":
-		case "jpg":
-		case "jpeg":
-		case "gif":
-		case "gifv":
-		case "webm":
-		case "mp3":
-		case "mp4":
-		case "ogg":
-		case "wav":
-		// Lacks support in some devices
-		// case "mov":
-		// case "flac":
-			embedArr[0].attachFiles({
-				attachment: downloads[0].path,
-				name: downloads[0].name
-			}).setImage(`attachment://${downloads[0].name}`);
-			break;
-		default:
-			sliceNum = 0;
+	if(attachableFormats.includes(downloads[0].extension.toLowerCase().trim()) && await fileManager.fileSize(downloads[0].path) >= 8) {
+		embedArr[0].attachFiles({
+			attachment: downloads[0].path,
+			name: downloads[0].name
+		}).setImage(`attachment://${downloads[0].name}`);
+	} else {
+		sliceNum = 0;
 	}
 
 	if(downloads.length > sliceNum) {
 		embedArr[0].setFooter(`↓ Message Includes ${downloads.length - sliceNum} Additional Attachment${downloads.length === 2 ? "" : "s"} Below ↓`);
-		embedArr.push({files: downloads.slice(sliceNum).map(val => val.path)});
+		await Promise.all(downloads.slice(sliceNum).map(async file => {
+			let newFileEmbed = new Discord.MessageEmbed()
+				.setColor(embedArr[0].color)
+				.setTimestamp(embedArr[0].timestamp);
+
+			if(await fileManager.fileSize(file.path) < 8) {
+				if(attachableFormats.includes(file.extension.toLowerCase().trim())) {
+					newFileEmbed.attachFiles({
+						attachment: file.path,
+						name: file.name
+					}).setImage(`attachment://${file.name}`);
+				} else {
+					newFileEmbed = {
+						files: [{
+							attachment: file.path,
+							name: file.name
+						}]
+					};
+				}
+			} else {
+				newFileEmbed.setTitle(file.name);
+				newFileEmbed.setDescription(`[File Too Large to Send](${file.original.url_private})`);
+			}
+			embedArr.push(newFileEmbed);
+		}));
+		// embedArr.push({files: downloads.slice(sliceNum).map(val => val.path)});
 	}
 
 	return downloads;

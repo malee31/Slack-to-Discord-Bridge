@@ -6,10 +6,11 @@ const downloadsFolder = path.resolve(__dirname, "downloads");
 module.exports = {
 	downloadsFolder,
 	fileDownload,
-	fileDelete
+	fileDelete,
+	fileSize
 }
 
-let pendingDownloads = [];
+const pendingDownloads = [];
 
 async function fileDownload(fileObj, fileName) {
 	fileName = fileName || fileObj.name;
@@ -63,6 +64,7 @@ async function fileDownload(fileObj, fileName) {
 					title: fileObj.title,
 					storedAs: fileName,
 					path: file.path,
+					original: fileObj,
 					extension: fileFormat.extension
 				});
 			});
@@ -78,7 +80,7 @@ async function fileDownload(fileObj, fileName) {
 	});
 }
 
-let pendingDeletions = [];
+const pendingDeletions = [];
 
 async function fileDelete(fileName) {
 	let fileDeletePath = path.resolve(downloadsFolder, fileName);
@@ -86,4 +88,8 @@ async function fileDelete(fileName) {
 	pendingDeletions.push(fileDeletePath);
 
 	return fs.promises.unlink(fileDeletePath);
+}
+
+async function fileSize(filePath) {
+	return (await fs.promises.stat(filePath)).size / (1024 * 1024);
 }
