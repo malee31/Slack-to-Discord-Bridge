@@ -111,7 +111,6 @@ async function attachmentEmbeds(embedArr, slackFiles) {
 			}
 			embedArr.push(newFileEmbed);
 		}));
-		// embedArr.push({files: downloads.slice(sliceNum).map(val => val.path)});
 	}
 
 	return downloads;

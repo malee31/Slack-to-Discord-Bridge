@@ -17,7 +17,7 @@ function messageMap(SMID, DMID, textOnly = false, callback) {
 	db.run("INSERT INTO MessageMap VALUES (?, ?, ?)", SMID, DMID, textOnly, callback);
 }
 
-async function locateMaps(SMID) {
+function locateMaps(SMID) {
 	return new Promise((resolve, reject) => {
 		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SMID, (err, res) => {
 			if(err) reject(err);
