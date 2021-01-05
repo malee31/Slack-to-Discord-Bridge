@@ -1,27 +1,38 @@
-const fs = require('fs');
-const data = require("./database.json");
+const sqlite = require('sqlite3');
+const path = require("path");
+const db = new sqlite.Database(path.resolve(__dirname, "database/messageMap.sqlite3"));
 
 module.exports = {
-	getChannel,
-	mapChannel,
-	saveInterval: setInterval(save, 2500)
+	messageMap,
+	dataDump,
+	locateMaps
+};
+
+db.on("open", () => {
+	console.log("=========== Database Opened ===========");
+	db.run("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL, PurelyText BOOLEAN NOT NULL)");
+});
+
+function messageMap(SMID, DMID, textOnly = false, callback) {
+	db.run("INSERT INTO MessageMap VALUES (?, ?, ?)", SMID, DMID, textOnly, callback);
 }
 
-function save() {
-	let saveThis = JSON.stringify(data);
-	fs.writeFile(`${__dirname}/../saveData.json`, saveThis, (err) => {
-		if(err) {
-			console.warn(`ERROR! ${err}`);
-			console.warn(`Data Dump: ${JSON.stringify(data)}`);
-		}
-		//console.log('Data written to file');
+function locateMaps(SMID) {
+	return new Promise((resolve, reject) => {
+		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SMID, (err, res) => {
+			if(err) reject(err);
+			resolve(res);
+		});
 	});
 }
 
-function getChannel(slackChannelID, sendDefault = false) {
-	return data.channelMap[slackChannelID] || (sendDefault ? data.channelMap.default : undefined);
-}
-
-function mapChannel(slackChannelID, discordChannelID) {
-	data.channelMap[slackChannelID.toString()] = discordChannelID.toString();
+function dataDump() {
+	let index = 0;
+	db.each("SELECT * FROM MessageMap", (err, data) => {
+		if(index === 0) {
+			console.log("DUMPING!\nDATA:");
+		}
+		console.log(JSON.stringify(data));
+		index++;
+	});
 }
