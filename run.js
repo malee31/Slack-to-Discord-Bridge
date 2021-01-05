@@ -17,7 +17,7 @@ let botAuthData, loggingGuild;
 slackEvents.on("message", async event => {
 	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
 
-	if(event.text.toLowerCase() === "sql_test") {
+	if(event.text && event.text.toLowerCase() === "sql_test") {
 		console.log("SQL TEST DETECTED");
 		databaseManager.dataDump();
 	}
@@ -33,25 +33,65 @@ slackEvents.on("message", async event => {
 		case "bot_message":
 			console.warn("BOT MESSAGE - ABORT");
 			return;
+		case "message_replied":
+			console.log("God, replies! Thank god nearly no one uses it");
+			return;
 		case "message_deleted":
 			await Promise.all((await databaseManager.locateMaps(identify(event.channel, event.previous_message.ts))).map(DMID => {
 				return targetChannel.messages.fetch(DMID["DiscordMessageID"]).then(message => message.delete());
 			}));
 			return;
 		case "message_changed":
+			// TODO: Actually edit messages if the text changes
 			console.log("Message Change");
-			for(const messageAttachment in event.message.attachments) {
-				await targetChannel.send(slackEmbedParse(event.message.attachments[0]));
+			embeds.shift();
+			for(const messageAttachment of event.message.attachments) {
+				embeds.push(slackEmbedParse(messageAttachment));
 			}
+			await embedSender(targetChannel, embeds, identify(event.channel, event.ts));
 			break;
 		case "file_share":
 			let downloads = await attachmentEmbeds(embeds, event.files);
 			await embedSender(targetChannel, embeds, identify(event.channel, event.ts));
 			await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
 			break;
+		// Possible Bug: The <@U######|cal> format may bug out the user parsing code
+		case "pinned_item": // TODO: Pin it on Discord too
+			console.log("Pin!");
+		case "unpinned_item": // TODO: Unpin it on Discord too
+			console.log("Unpin!");
+		case "channel_join":
+		case "channel_leave":
+		case "channel_archive":
+		case "channel_unarchive":
+		case "channel_name":
+		case "channel_purpose":
+		case "channel_topic":
+		// TODO: Actually update the channel on Discord too
+		//  No need to rush on this task since it rarely happens and the channels will still be serverMapped
+		case "file_comment":
+		// No idea what that does
+		case "file_mention":
+		/*case "group_join":
+		case "group_leave":
+		case "group_archive":
+		case "group_unarchive":
+		case "group_name":
+		case "group_purpose":
+		case "group_topic":
+			// No support for groups yet*/
+		case "me_message": // It's just regular text in italics isn't it???
+		case "reply_broadcast": // Deprecated/Removed. It's the same as thread_broadcast
+		case "thread_broadcast": // Is a message AND a thread... Oh no...
 		case undefined:
 			// Standard Text Message Embed Already Handled Pre-Switch Statement
 			await embedSender(targetChannel, embeds, identify(event.channel, event.ts));
+			if(event.attachments) {
+				console.log(event.attachments);
+				for(const messageAttachment of event.attachments) {
+					await targetChannel.send(slackEmbedParse(messageAttachment));
+				}
+			}
 			break;
 		default:
 			console.warn(`Unknown Message Subtype ${event.subtype}`);
@@ -83,7 +123,6 @@ async function attachmentEmbeds(embedArr, slackFiles) {
 	}
 
 	if(downloads.length > sliceNum) {
-		embedArr[0].setFooter(`↓ Message Includes ${downloads.length - sliceNum} Additional Attachment${downloads.length === 2 ? "" : "s"} Below ↓`);
 		await Promise.all(downloads.slice(sliceNum).map(async file => {
 			let newFileEmbed = new Discord.MessageEmbed()
 				.setColor(embedArr[0].color)
@@ -124,15 +163,16 @@ function userMessageEmbed(user = {}, time) {
 	return userEmbed;
 }
 
-async function embedSender(discordChannel, discordEmbeds, mapTo, pureText = true) {
+async function embedSender(discordChannel, discordEmbeds, mapTo, canHaveText = true) {
+	if(discordEmbeds.length > 1) discordEmbeds[0].setDescription(`↓ Message Includes ${discordEmbeds.length - 1} Additional Attachment${discordEmbeds.length === 2 ? "" : "s"} Below ↓`);
 	for(const discordEmbed of discordEmbeds) {
 		let sentMessage = await discordChannel.send(discordEmbed);
 		if(mapTo) {
-			databaseManager.messageMap(mapTo, sentMessage.id, pureText, err => {
+			databaseManager.messageMap(mapTo, sentMessage.id, canHaveText, err => {
 				if(err) console.log(`MAP ERROR:\n${err}`);
 				console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`);
 			});
-			pureText = false;
+			canHaveText = false;
 		}
 	}
 }
@@ -154,14 +194,18 @@ async function locateChannel(slackChannelID) {
 	return targetChannel;
 }
 
-function slackEmbedParse(embed) {
+function slackEmbedParse(embed = {}) {
 	let discordEmbed = new Discord.MessageEmbed();
-	discordEmbed
+	if(embed.title) discordEmbed
 		.setTitle(embed.title)
-		.setURL(embed.title_link)
+		.setURL(embed.title_link);
+
+	discordEmbed
 		.setDescription(embed.text || embed.fallback)
 		.setImage(embed.image_url)
-		.setAuthor(embed["service_name"], embed["service_icon"], embed["original_url"]);
+		.setAuthor(embed["service_name"] || embed["author_name"] || "Unknown Pupper", embed["service_icon"] || embed["author_icon"], embed["original_url"] || embed["author_link"]);
+	if(embed.color) discordEmbed.setColor(`#${embed.color}`);
+	if(embed.footer) discordEmbed.setFooter(embed.footer);
 	return discordEmbed;
 }
 
@@ -201,7 +245,7 @@ async function slackTextParse(text) {
 	// * Literally typing any of the following HTML escape codes normally will result in them being converted over to their unescaped form on Discord
 	// - Typing &gt; on Slack translates to > on Discord
 	// - Typing &lt; on Slack translates to < on Discord
-	// - Typing &amp; on Slack translates to &on Discord
+	// - Typing &amp; on Slack translates to & on Discord
 	text = text.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
 
 	// Additional Known Bugs:
