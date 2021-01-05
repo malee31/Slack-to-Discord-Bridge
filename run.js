@@ -17,7 +17,7 @@ let botAuthData, loggingGuild;
 slackEvents.on("message", async event => {
 	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
 
-	if(event.text === "SQL_Test") {
+	if(event.text.toLowerCase() === "sql_test") {
 		console.log("SQL TEST DETECTED");
 		databaseManager.dataDump();
 	}
@@ -46,9 +46,7 @@ slackEvents.on("message", async event => {
 			break;
 		case "file_share":
 			let downloads = await attachmentEmbeds(embeds, event.files);
-
 			await embedSender(targetChannel, embeds, identify(event.channel, event.ts));
-
 			await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
 			break;
 		case undefined:
@@ -91,6 +89,8 @@ async function attachmentEmbeds(embedArr, slackFiles) {
 				.setColor(embedArr[0].color)
 				.setTimestamp(embedArr[0].timestamp);
 
+			// Discord File Upload Size Caps at 8MB Without Nitro Boost
+			// Increase Value if Logging Server is Boosted
 			if(await fileManager.fileSize(file.path) < 8) {
 				if(attachableFormats.includes(file.extension.toLowerCase().trim())) {
 					newFileEmbed.attachFiles({
@@ -116,11 +116,10 @@ async function attachmentEmbeds(embedArr, slackFiles) {
 	return downloads;
 }
 
-function userMessageEmbed(user, time) {
+function userMessageEmbed(user = {}, time) {
 	const userEmbed = new Discord.MessageEmbed()
-		// .setTitle("A Slack Message")
-		.setAuthor((user ? userIdentify(user) : "Unknown Pupper"), (user && user.profile && user.profile["image_512"] ? user.profile["image_512"] : "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif"))
-		.setColor(user && user.color ? `#${user.color}` : "#283747");
+		.setAuthor(userIdentify(user), (user.profile && user.profile["image_512"] ? user.profile["image_512"] : "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif"))
+		.setColor(`#${user.color || "283747"}`);
 	if(time) userEmbed.setTimestamp(time * 1000);
 	return userEmbed;
 }
@@ -206,12 +205,13 @@ async function slackTextParse(text) {
 	text = text.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
 
 	// Additional Known Bugs:
-	// * When using code blocks, if ```OneWord syntax is used on Slack, the first word is invisible when sent to Discord
+	// * When using code blocks, if ```OneWord syntax is used on Slack, the first word is invisible when sent to Discord since it is understood as a programming language instead
 	console.log(text);
 	return text;
 }
 
-function userIdentify(user) {
+function userIdentify(user = {}) {
+	if(!user.real_name || !user.id) return "Unknown Pupper";
 	return `${user.real_name}@${user.id}`;
 }
 
