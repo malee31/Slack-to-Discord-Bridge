@@ -11,8 +11,7 @@ const FILE_NAME_ITERATOR_LIMIT = 200;
 module.exports = {
 	downloadsFolder,
 	fileDownload,
-	fileDelete,
-	fileSize: async filePath => (await fs.promises.stat(filePath)).size / (1024 * 1024)
+	fileDelete
 }
 
 async function fileDownload(fileObj, fileName) {
@@ -28,12 +27,16 @@ async function fileDownload(fileObj, fileName) {
 		Authorization: `Bearer ${process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN}`
 	});
 
+	// TODO: There is probably a way to get it from the headers while downloading the file
+	const downloadSize = await fileSize(finalDownloadPath);
+
 	return {
 		name: fileObj.name,
 		title: fileObj.title,
 		path: finalDownloadPath,
 		storedAs: fileName,
 		extension: fileFormat.extension,
+		size: downloadSize,
 		original: fileObj
 	};
 }
@@ -84,6 +87,10 @@ function completeDownload(saveTo, downloadFromURL, headers = {}) {
 			reject(`Download Failed: ${err}`);
 		});
 	});
+}
+
+async function fileSize(filePath) {
+	return (await fs.promises.stat(filePath)).size / (1024 * 1024);
 }
 
 async function fileDelete(fileName) {

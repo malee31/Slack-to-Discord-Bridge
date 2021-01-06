@@ -1,16 +1,56 @@
 require("dotenv").config();
 const {createEventAdapter} = require("@slack/events-api");
 const databaseManager = require("./databaseManager.js");
-const discordManager = require("./discordManager.js");
+const discordManagerClass = require("./discordManager.js");
 const fileManager = require("./fileManager.js");
 const {WebClient} = require("@slack/web-api");
 const Discord = require("discord.js");
+const mime = require("mime-types");
 const http = require("http");
+const path = require("path");
+const fs = require("fs");
 
 // Initialize a server using the event adapter's request listener
 const slackEvents = createEventAdapter(process.env.SLACK_SIGNING_SECRET);
-const server = http.createServer(slackEvents.requestListener());
+const server = http.createServer((req, res) => {
+	if(req.url === "/slack/events") {
+		slackEvents.requestListener()(req, res);
+	} else {
+		const filePath = path.resolve(__dirname, "downloads", `.${req.url}`);
+		if(filePath === path.resolve(__dirname, "downloads")) {
+			fs.readdir(filePath, (err, files) => {
+				if(err) {
+					console.warn("Error Reading Downloads Folder");
+					res.writeHead(500, {"Content-Type": "text/plain"});
+					res.write(`Error Reading Downloads Folder: \n${err}`);
+					res.end();
+					return;
+				}
+				res.writeHead(200, {"Content-Type": "text/plain"});
+				res.write(`Download Folder Contents:\n`);
+				files.forEach(file => {
+					res.write(`${file}\n`);
+				});
+				res.end();
+			});
+			return;
+		}
+		fs.readFile(filePath, (err, data) => {
+			if(err) {
+				console.warn(`Error reading file from downloads: ${err}`);
+				res.writeHead(200, {"Content-Type": "text/plain"});
+				res.write(`Error reading file from downloads (${filePath}): \n${err}`);
+				res.end();
+				return;
+			}
+			const contentType = mime.lookup(filePath);
+			res.writeHead(200, {"Content-Type": contentType ? contentType : false});
+			res.end(data, "UTF-8");
+		});
+	}
+});
 const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
+const discordManager = new discordManagerClass(web);
 let botAuthData;
 
 slackEvents.on("message", async event => {
@@ -21,13 +61,14 @@ slackEvents.on("message", async event => {
 		databaseManager.dataDump();
 	}
 
-	const targetChannel = await discordManager.locateChannel(web, event.channel);
+	const targetChannel = await discordManager.locateChannel(event.channel);
 	const user = (event.user ? (await web.users.info({user: event.user})).user : undefined);
 	const embeds = [userMessageEmbed(user, event.ts)];
 
 	// Default Text Assembly
-	if(event.text) embeds[0].setDescription(await discordManager.slackTextParse(web, event.text));
+	if(event.text) embeds[0].setDescription(await discordManager.slackTextParse(event.text));
 
+	// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here
 	switch(event.subtype) {
 		case "bot_message":
 			console.warn("BOT MESSAGE - ABORT");
@@ -36,24 +77,33 @@ slackEvents.on("message", async event => {
 			console.log("God, replies! Thank god nearly no one uses it");
 			break;
 		case "message_deleted":
-			await Promise.all((await databaseManager.locateMaps(identify(event.channel, event.previous_message.ts))).map(async DMID => {
-				let message = await targetChannel.messages.fetch(DMID["DiscordMessageID"]);
-				await message.delete();
-			}));
+			await discordManager.delete(targetChannel, identify(event.channel, event.previous_message.ts))
 			break;
 		case "message_changed":
-			// TODO: Actually edit messages if the text changes
-			console.log("Message Change");
+			// Removes default main embed
 			embeds.shift();
-			for(const messageAttachment of event.message.attachments) {
-				embeds.push(slackEmbedParse(messageAttachment));
+
+			// Handles text content changes
+			if(event.message.text !== event.previous_message.text) {
+				await discordManager.textUpdate(targetChannel, identify(event.channel, event.previous_message.ts), event.message.text)
 			}
-			await discordManager.embedSender(targetChannel, embeds, identify(event.channel, event.ts));
+
+			// For when Slack Auto-Embeds URLs
+			if(Array.isArray(event.message.attachments) && !event.previous_message.attachments) {
+				for(const messageAttachment of event.message.attachments) {
+					embeds.push(slackEmbedParse(messageAttachment));
+				}
+			}
+			await discordManager.embedSender(targetChannel, embeds, identify(event.channel, event.ts), false);
 			break;
 		case "file_share":
-			let downloads = await attachmentEmbeds(embeds, event.files);
+			// Download the files, send the files (and the text), and then delete the files
+			let downloads = await discordManager.attachmentEmbeds(embeds, event.files);
 			await discordManager.embedSender(targetChannel, embeds, identify(event.channel, event.ts));
-			await Promise.all(downloads.map(downloadPath => fileManager.fileDelete(downloadPath.path)));
+			await Promise.all(downloads
+				.filter(download => download.size < 8)
+				.map(download => fileManager.fileDelete(download.path))
+			);
 			break;
 		// Possible Bug: The <@U######|cal> format may bug out the user parsing code
 		case "pinned_item": // TODO: Pin it on Discord too
@@ -79,81 +129,29 @@ slackEvents.on("message", async event => {
 		case "group_name":
 		case "group_purpose":
 		case "group_topic":
-			// No support for groups yet*/
-		case "me_message": // It's just regular text in italics isn't it???
+			// No support for groups*/
+		case "me_message": // It's just regular text in italics isn't it??? I'm not going to bother to italicize it
 		case "reply_broadcast": // Deprecated/Removed. It's the same as thread_broadcast
 		case "thread_broadcast": // Is a message AND a thread... Oh no...
 		case undefined:
 			// Standard Text Message Embed Already Handled Pre-Switch Statement
-			await discordManager.embedSender(targetChannel, embeds, identify(event.channel, event.ts));
 			if(event.attachments) {
 				console.log(event.attachments);
 				for(const messageAttachment of event.attachments) {
-					await targetChannel.send(slackEmbedParse(messageAttachment));
+					embeds.push(slackEmbedParse(messageAttachment));
 				}
 			}
+			await discordManager.embedSender(targetChannel, embeds, identify(event.channel, event.ts));
 			break;
 		default:
 			console.warn(`Unknown Message Subtype ${event.subtype}`);
 	}
 });
 
-const attachableFormats = ["png", "jpg", "jpeg"];
-// Removed from attachable formats because audio formats auto-embed themselves (Wow flac files are huge!): ["mp3", "ogg", "wav", "flac"]
-// Removed from attachable formats because video formats auto-embed themselves then fail to load (Still available via "Open Original" download link): ["mov", "webm", "mp4"]
-// Do not work with embeds (Also, apparently "gifv" is not real): ["gif"]
-async function attachmentEmbeds(embedArr, slackFiles) {
-	let downloads = [];
-	console.log("ATTEMPTING FILE DOWNLOAD");
-	for(const fileObj of slackFiles) {
-		downloads.push(fileManager.fileDownload(fileObj));
-	}
-
-	downloads = await Promise.all(downloads);
-
-	let sliceNum = 1;
-
-	if(attachableFormats.includes(downloads[0].extension.toLowerCase().trim()) && await fileManager.fileSize(downloads[0].path) >= 8) {
-		embedArr[0].attachFiles({
-			attachment: downloads[0].path,
-			name: downloads[0].name
-		}).setImage(`attachment://${downloads[0].name}`);
-	} else {
-		sliceNum = 0;
-	}
-
-	if(downloads.length > sliceNum) {
-		await Promise.all(downloads.slice(sliceNum).map(async file => {
-			let newFileEmbed = new Discord.MessageEmbed()
-				.setColor(embedArr[0].color)
-				.setTimestamp(embedArr[0].timestamp);
-
-			// Discord File Upload Size Caps at 8MB Without Nitro Boost
-			// Increase Value if Logging Server is Boosted
-			if(await fileManager.fileSize(file.path) < 8) {
-				if(attachableFormats.includes(file.extension.toLowerCase().trim())) {
-					newFileEmbed.attachFiles({
-						attachment: file.path,
-						name: file.name
-					}).setImage(`attachment://${file.name}`);
-				} else {
-					newFileEmbed = {
-						files: [{
-							attachment: file.path,
-							name: file.name
-						}]
-					};
-				}
-			} else {
-				newFileEmbed.setTitle(file.name);
-				newFileEmbed.setDescription(`[File Too Large to Send](${file.original.url_private})`);
-			}
-			embedArr.push(newFileEmbed);
-		}));
-	}
-
-	return downloads;
-}
+slackEvents.on("error", err => {
+	console.warn("Something went wrong with the Slack Web API");
+	console.error(err);
+});
 
 function userMessageEmbed(user = {}, time) {
 	const userEmbed = new Discord.MessageEmbed()
