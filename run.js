@@ -18,9 +18,9 @@ const server = http.createServer((req, res) => {
 		return;
 	}
 
-	const filePath = path.resolve(__dirname, "downloads", `.${decodeURIComponent(req.url)}`);
+	const filePath = path.resolve(fileManager.downloadsFolder, `.${decodeURIComponent(req.url)}`);
 	console.log(`Accessing ${filePath}`);
-	if(!filePath.startsWith(path.resolve(__dirname, "downloads"))) {
+	if(!filePath.startsWith(fileManager.downloadsFolder)) {
 		console.warn(`Attempt to access ${filePath} detected and denied`);
 		return;
 	}
@@ -31,7 +31,7 @@ const server = http.createServer((req, res) => {
 		res.end();
 		return;
 	}
-	if(filePath === path.resolve(__dirname, "downloads")) {
+	if(filePath === fileManager.downloadsFolder) {
 		fs.readdir(filePath, (err, files) => {
 			if(err) {
 				console.warn("Error Reading Downloads Folder");
@@ -202,6 +202,8 @@ function identify(channel, ts) {
 async function startUp() {
 	console.log("============= Starting Up =============");
 	const pendingPromises = [];
+
+	// Comment this chunk out if you would like to manually add the bot to channels instead. This makes the bot auto join ever public channel on start up
 	pendingPromises.push(await web.conversations.list().then(channelList => {
 		for(const channel of channelList.channels) {
 			if(channel["is_channel"] && !channel["is_member"]) pendingPromises.push(web.conversations.join({channel: channel.id}));
@@ -209,7 +211,7 @@ async function startUp() {
 		console.log("======== Slack Channels Joined ========");
 	}));
 
-	/*// Only needed if bot sends messages to Slack
+	/* // Only needed if bot sends messages to Slack
 	pendingPromises.push(web.auth.test().then(auth => {
 		botAuthData = auth;
 		console.log("======= Slack App Data Retrieved ======");
