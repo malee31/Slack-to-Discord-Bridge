@@ -10,7 +10,7 @@ forwards messages and files to a Discord server for archiving purposes or redund
 
 To set up the Slack App, first clone this repository and run `npm install` to install the dependencies required.<br>
 Next, go to create your own Slack App on the [Slack Developers page](https://api.slack.com/apps) <br>
-Rename `.env.txt` to `.env` and change the random strings of numbers to your Slack App's credentials instead. Install
+Configure the project by editing the `.env` file and adding your Slack App's credentials. Install
 your Slack App to your Slack Workspace and give it the scopes it will need to function (Most :read scopes, user.info,
 and more. Will update list later).<br>
 You will need to follow Slack's instructions to link up the Request URL on the Slack App page to the project. <br>
