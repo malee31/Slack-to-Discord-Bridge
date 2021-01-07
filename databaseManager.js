@@ -1,6 +1,6 @@
 const sqlite = require('sqlite3');
 const path = require("path");
-const db = new sqlite.Database(path.resolve(__dirname, "database/messageMap.sqlite3"));
+const db = new sqlite.Database(path.resolve(__dirname, "messageMap.sqlite3"));
 
 module.exports = {
 	messageMap,

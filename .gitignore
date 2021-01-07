@@ -9,6 +9,10 @@ node_modules/
 
 # Private Files
 downloads/*
-database/*
+*.sqlite3
 serverMap.json
 .env
+
+# Just in Case
+*.sql
+*.sqlite
