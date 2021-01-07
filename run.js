@@ -64,12 +64,12 @@ const server = http.createServer((req, res) => {
 });
 const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 const discordManager = new discordManagerClass(web);
-// Only needed if bot sends messages to Slack
-// let botAuthData;
+let botAuthData;
 
 slackEvents.on("message", async event => {
-	// Only needed if bot sends messages to Slack
-	// if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
+	if(!(process.env.DISABLE_BOT_INFO_LOOKUP && process.env.DISABLE_BOT_INFO_LOOKUP.trim().toLowerCase() !== "true")) {
+		if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
+	}
 
 	if(event.text && event.text.toLowerCase() === "sql_dump") {
 		databaseManager.dataDump();
@@ -203,19 +203,23 @@ async function startUp() {
 	console.log("============= Starting Up =============");
 	const pendingPromises = [];
 
-	// Comment this chunk out if you would like to manually add the bot to channels instead. This makes the bot auto join ever public channel on start up
-	pendingPromises.push(await web.conversations.list().then(channelList => {
-		for(const channel of channelList.channels) {
-			if(channel["is_channel"] && !channel["is_member"]) pendingPromises.push(web.conversations.join({channel: channel.id}));
-		}
-		console.log("======== Slack Channels Joined ========");
-	}));
+	// Can Disable With Environment Variable
+	if(!(process.env.DISABLE_CHANNEL_JOIN && process.env.DISABLE_CHANNEL_JOIN.trim().toLowerCase() === "true")) {
+		pendingPromises.push(await web.conversations.list().then(channelList => {
+			for(const channel of channelList.channels) {
+				if(channel["is_channel"] && !channel["is_member"]) pendingPromises.push(web.conversations.join({channel: channel.id}));
+			}
+			console.log("======== Slack Channels Joined ========");
+		}));
+	}
 
-	/* // Only needed if bot sends messages to Slack
-	pendingPromises.push(web.auth.test().then(auth => {
-		botAuthData = auth;
-		console.log("======= Slack App Data Retrieved ======");
-	}));*/
+	// Only needed if bot sends messages to Slack
+	if(!(process.env.DISABLE_BOT_INFO_LOOKUP && process.env.DISABLE_BOT_INFO_LOOKUP.trim().toLowerCase() === "true")) {
+		pendingPromises.push(web.auth.test().then(auth => {
+			botAuthData = auth;
+			console.log("======= Slack App Data Retrieved ======");
+		}));
+	}
 
 	server.listen(Number(process.env.PORT) || 3000, () => {
 		console.log(`========== Started Port ${server.address().port} ==========`);
