@@ -27,12 +27,8 @@ function locateMaps(SMID) {
 }
 
 function dataDump() {
-	let index = 0;
+	console.log("DUMPING DATABASE DATA:");
 	db.each("SELECT * FROM MessageMap", (err, data) => {
-		if(index === 0) {
-			console.log("DUMPING!\nDATA:");
-		}
 		console.log(JSON.stringify(data));
-		index++;
 	});
 }

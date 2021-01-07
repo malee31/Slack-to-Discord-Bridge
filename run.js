@@ -15,39 +15,52 @@ const slackEvents = createEventAdapter(process.env.SLACK_SIGNING_SECRET);
 const server = http.createServer((req, res) => {
 	if(req.url === "/slack/events") {
 		slackEvents.requestListener()(req, res);
-	} else {
-		const filePath = path.resolve(__dirname, "downloads", `.${req.url}`);
-		if(filePath === path.resolve(__dirname, "downloads")) {
-			fs.readdir(filePath, (err, files) => {
-				if(err) {
-					console.warn("Error Reading Downloads Folder");
-					res.writeHead(500, {"Content-Type": "text/plain"});
-					res.write(`Error Reading Downloads Folder: \n${err}`);
-					res.end();
-					return;
-				}
-				res.writeHead(200, {"Content-Type": "text/plain"});
-				res.write(`Download Folder Contents:\n`);
-				files.forEach(file => {
-					res.write(`${file}\n`);
-				});
-				res.end();
-			});
-			return;
-		}
-		fs.readFile(filePath, (err, data) => {
+		return;
+	}
+
+	const filePath = path.resolve(__dirname, "downloads", `.${decodeURIComponent(req.url)}`);
+	console.log(`Accessing ${filePath}`);
+	if(!filePath.startsWith(path.resolve(__dirname, "downloads"))) {
+		console.warn(`Attempt to access ${filePath} detected and denied`);
+		return;
+	}
+	if(process.env.DISABLE_FILE_SERVER && process.env.DISABLE_FILE_SERVER.trim().toLowerCase() === "true") {
+		console.warn(`File Server is Disabled. File Request Denied`);
+		res.writeHead(500, {"Content-Type": "text/plain"});
+		res.write(`The file server is set to private and disabled.\nYour files are most likely still stored on the server so ask the server owner for it if you need it!`);
+		res.end();
+		return;
+	}
+	if(filePath === path.resolve(__dirname, "downloads")) {
+		fs.readdir(filePath, (err, files) => {
 			if(err) {
-				console.warn(`Error reading file from downloads: ${err}`);
-				res.writeHead(200, {"Content-Type": "text/plain"});
-				res.write(`Error reading file from downloads (${filePath}): \n${err}`);
+				console.warn("Error Reading Downloads Folder");
+				res.writeHead(500, {"Content-Type": "text/plain"});
+				res.write(`Error Reading Downloads Folder: \n${err}`);
 				res.end();
 				return;
 			}
-			const contentType = mime.lookup(filePath);
-			res.writeHead(200, {"Content-Type": contentType ? contentType : false});
-			res.end(data, "UTF-8");
+			res.writeHead(200, {"Content-Type": "text/plain"});
+			res.write(`Download Folder Contents:\n`);
+			files.forEach(file => {
+				res.write(`${file}\n`);
+			});
+			res.end();
 		});
+		return;
 	}
+	fs.readFile(filePath, (err, data) => {
+		if(err) {
+			console.warn(`Error reading file from downloads: ${err}`);
+			res.writeHead(200, {"Content-Type": "text/plain"});
+			res.write(`Error reading file from downloads (${filePath}): \n${err}`);
+			res.end();
+			return;
+		}
+		const contentType = mime.lookup(filePath);
+		res.writeHead(200, {"Content-Type": contentType ? contentType : false});
+		res.end(data, "UTF-8");
+	});
 });
 const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 const discordManager = new discordManagerClass(web);
@@ -56,8 +69,7 @@ let botAuthData;
 slackEvents.on("message", async event => {
 	if((event["bot_id"] && event["bot_id"] === botAuthData["bot_id"]) || (event.user && event.user === botAuthData.user_id)) return;
 
-	if(event.text && event.text.toLowerCase() === "sql_test") {
-		console.log("SQL TEST DETECTED");
+	if(event.text && event.text.toLowerCase() === "sql_dump") {
 		databaseManager.dataDump();
 	}
 
@@ -67,6 +79,10 @@ slackEvents.on("message", async event => {
 
 	// Default Text Assembly
 	if(event.text) embeds[0].setDescription(await discordManager.slackTextParse(event.text));
+	if(event.thread_ts) {
+		let threadMainURL = `https://discord.com/channels/${discordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
+		embeds[0].setDescription(`[<Replied to This Message>](${threadMainURL})\n${embeds[0].description || ""}`);
+	}
 
 	// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here
 	switch(event.subtype) {

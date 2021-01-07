@@ -15,7 +15,7 @@ module.exports = {
 }
 
 async function fileDownload(fileObj, fileName) {
-	fileName = fileName || fileObj.name;
+	fileName = (fileName || fileObj.name).replace(/\//g, " - ");
 	let split = fileName.split(".");
 	let fileFormat = {extension: fileName.includes(".") ? split.pop() : "", name: split.join(".")};
 	fileName = await getValidFileName(downloadsFolder, fileFormat.name, fileFormat.extension);

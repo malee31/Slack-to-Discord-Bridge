@@ -124,7 +124,11 @@ class DiscordManager {
 					}
 				} else {
 					newFileEmbed.setTitle(file.name);
-					newFileEmbed.setDescription(`[File Too Large to Send](${file.original.url_private})\n[Server Path: /${file.storedAs}]`);
+					let serverURLText = `[Copy Saved on Server as: /${file.storedAs}]`;
+					if(process.env.SERVER_URL) {
+						serverURLText += `(${process.env.SERVER_URL}/${encodeURIComponent(file.storedAs)})`;
+					}
+					newFileEmbed.setDescription(`[File Too Large to Send](${file.original.url_private})\n${serverURLText}`);
 				}
 				embedArr.push(newFileEmbed);
 			}));
@@ -151,7 +155,7 @@ class DiscordManager {
 
 	// TODO: To make things easier, before sending the embeds, clone the timestamp and color onto the embeds from the main embed if they are not already set
 	async embedSender(discordChannel, discordEmbeds = [], mapTo, canHaveText = true) {
-		if(discordEmbeds.length > 1) discordEmbeds[0].setFooter(`↓ Message Includes ${discordEmbeds.length - 1} Additional Attachment${discordEmbeds.length === 2 ? "" : "s"} Below ↓`);
+		if(discordEmbeds.length > 1) discordEmbeds[0].setFooter(`${discordEmbeds[0].footer || ""}\n↓ Message Includes ${discordEmbeds.length - 1} Additional Attachment${discordEmbeds.length === 2 ? "" : "s"} Below ↓`);
 		for(const discordEmbed of discordEmbeds) {
 			let sentMessage = await discordChannel.send(discordEmbed);
 			if(mapTo) {
