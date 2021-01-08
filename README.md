@@ -10,6 +10,7 @@ forwards messages and files to a Discord server for archiving purposes or redund
 
 To set up the Slack App, first clone this repository and run `npm install` to install the dependencies required.<br>
 Next, go to create your own Slack App on the [Slack Developers page](https://api.slack.com/apps) <br>
+Before configuring the project, make a copy of `template.env` and name it `.env` <br>
 Configure the project by editing the `.env` file and adding your Slack App's credentials. Install
 your Slack App to your Slack Workspace and give it the scopes it will need to function (Most :read scopes, user.info,
 and more. Will update list later).<br>
@@ -21,15 +22,13 @@ Then run the script in `node_modules/.bin/slack-verify` and validate the url you
 # Discord Bot Set-Up
 
 Go to the [Discord Developers Portal](https://discord.com/developers/applications) and create a new bot<br>
-Find the `Client ID` in the `General Information` page and replace the braces in this url with it to invite it to the
-Discord Server you want to use with Admin permissions(
-Required): https://discord.com/oauth2/authorize?client_id={Client_ID_Goes_Here}&scope=bot&permissions=8 <br>
-Next, go to the `Bot` page and reveal the `TOKEN` for the bot. Copy it and paste it into the `DISCORD_TOKEN` field of
-the `.env` file<br>
-Fill out the remaining fields of the `.env` file and get ready to run it!
+Find the `Client ID` in the `General Information` page and replace the braces in this url with it to invite it to the Discord Server you want to use with Admin permissions(Required): https://discord.com/oauth2/authorize?client_id={Client_ID_Goes_Here}&scope=bot&permissions=8 <br>
+Next, go to the `Bot` page and reveal the `TOKEN` for the bot. <br>
+Copy it and paste it into the `DISCORD_TOKEN` field of the `.env` file <br>
+Fill out the remaining fields of the `.env` file from the Slack App Set-Up and get ready to run it! <br>
 Optional: Customize the bot by giving it a name, profile picture, and description on the `General Information` page<br>
 
-# Set-Up Complete
+# Set-Up Complete! Now let's run it
 
 At last, run `node .` and the Discord Bot and Slack App will both boot up.<br>
 Send a message in a Slack channel that the Slack App is able to read and watch as the message appears on Discord as

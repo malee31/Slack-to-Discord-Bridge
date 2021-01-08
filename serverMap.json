@@ -1,6 +1,0 @@
-{
-	"channelMapComment": "Channel map is in Key(Slack Channel): Value(Discord Channel) Pairs. Set a default channel to send to if you are using that feature",
-	"channelMap": {
-		"default": "none"
-	}
-}

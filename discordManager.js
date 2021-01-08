@@ -41,6 +41,10 @@ class DiscordManager {
 			process.exit(1);
 		}
 
+		console.log("===== Retrieving Saved Server Map =====");
+		await dataManager.load();
+		console.log("====== Saved Server Map Retrieved =====");
+
 		console.log("========== Discord Bot Ready ==========");
 	}
 
