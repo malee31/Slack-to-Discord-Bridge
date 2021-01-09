@@ -86,7 +86,7 @@ class DiscordManager {
 	// Do not work with embeds (Also, apparently "gifv" is not real): ["gif"]
 	async attachmentEmbeds(embedArr, slackFiles) {
 		let downloads = [];
-		console.log("ATTEMPTING FILE DOWNLOAD");
+		// console.log("ATTEMPTING FILE DOWNLOAD");
 		for(const fileObj of slackFiles) {
 			downloads.push(fileManager.fileDownload(fileObj));
 		}
@@ -165,7 +165,7 @@ class DiscordManager {
 			if(mapTo) {
 				databaseManager.messageMap(mapTo, sentMessage.id, canHaveText, err => {
 					if(err) console.log(`MAP ERROR:\n${err}`);
-					console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`);
+					// console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`);
 				});
 				canHaveText = false;
 			}
@@ -198,10 +198,16 @@ class DiscordManager {
 			});
 		}
 
-		// Strikethrough Slack to Discord Markdown Translation
+		// Simple Slack to Discord Markdown Translation
 		// Known Bugs:
-		// * Using Ctrl + Z on Slack to undo ~strikethrough~ markdown results in that undo being ignored on Discord. Escaped markdown is parsed as if it was never escaped
+		// * Using Ctrl + Z on Slack to undo any markdown results in that undo being ignored on Discord. Escaped markdown is parsed as if it was never escaped
+		// * Formatting markdown using the format buttons instead of actual markdown means that results may not reflect what is seen on Slack
+		// Strikethrough Translation
 		text = text.replace(/~~/g, "\\~\\~").replace(/(?<=^|\s)(~(?=[^\s])[^~]+(?<=[^\s])~)(?=$|\s)/g, "~$1~");
+		// Italic Translation (Untested)
+		text = text.replace(/(?<=^|\s)_((?=[^\s])[^_]+(?<=[^\s]))_(?=$|\s)/g, "*$1*");
+		// Bold Translation (Untested)
+		text = text.replace(/(?<=^|\s)(\*(?=[^\s])[^_]+(?<=[^\s])\*)(?=$|\s)/g, "*$1*");
 
 		// Unescaping HTML Escapes created by Slack's API
 		// Known Bugs:
@@ -212,8 +218,8 @@ class DiscordManager {
 		text = text.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
 
 		// Additional Known Bugs:
-		// * When using code blocks, if ```OneWord syntax is used on Slack, the first word is invisible when sent to Discord since it is understood as a programming language instead
-		console.log(text);
+		// * When using code blocks, the first word is invisible when sent to Discord if it is the only word on the line with the opening ``` since it is parsed as a programming language instead of text by Discord
+		// console.log(text);
 		return text;
 	}
 

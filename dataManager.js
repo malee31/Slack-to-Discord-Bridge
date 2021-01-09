@@ -52,5 +52,5 @@ function getChannel(slackChannelID, sendDefault = false) {
 
 function mapChannel(slackChannelID, discordChannelID) {
 	data.channelMap[slackChannelID.toString()] = discordChannelID.toString();
-	save(5, `Successfully Mapped ${slackChannelID} to ${discordChannelID}`);
+	save(5/*, `Successfully Mapped ${slackChannelID} to ${discordChannelID}`*/);
 }
