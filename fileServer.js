@@ -6,14 +6,14 @@ const fs = require("fs");
 module.exports = fsMake;
 
 function fsMake(slackEvents) {
-	http.createServer((req, res) => {
+	return http.createServer((req, res) => {
 		if(req.url === "/slack/events") {
 			slackEvents.requestListener()(req, res);
 			return;
 		}
 
-		const filePath = path.resolve(fileManager.downloadsFolder, `.${decodeURIComponent(req.url)}`);
-		console.log(`Accessing ${filePath}`);
+		const filePath = path.resolve(fileManager.downloadsFolder, `.${decodeURIComponent(req.url.split("?")[0])}`);
+		console.log(`Accessing ${filePath} from ${req.url}`);
 		if(!filePath.startsWith(fileManager.downloadsFolder)) {
 			console.warn(`Attempt to access ${filePath} detected and denied`);
 			return;
@@ -52,7 +52,10 @@ function fsMake(slackEvents) {
 				return;
 			}
 			const contentType = mime.lookup(filePath);
-			res.writeHead(200, {"Content-Type": contentType ? contentType : false});
+			res.writeHead(200, {
+				"Content-Type": contentType ?? false,
+				"Content-Disposition": req.url.toLowerCase().split("?")[1]?.includes("download") ? "attachment" : "inline"
+			});
 			res.end(data, "UTF-8");
 		});
 	});

@@ -8,7 +8,7 @@ const Discord = require("discord.js");
 
 // Initialize a server using the event adapter's request listener
 const slackEvents = createEventAdapter(process.env.SLACK_SIGNING_SECRET);
-const server = require("fileServer.js")(slackEvents);
+const server = require("./fileServer.js")(slackEvents);
 
 const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 
