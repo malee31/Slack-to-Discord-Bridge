@@ -21,13 +21,10 @@ slackEvents.on("error", err => {
 });
 
 function userMessageEmbed(user = {}, time) {
-	const userEmbed = new Discord.MessageEmbed()
-		.setAuthor(discordManager.userIdentify(user), user?.profile?.image_512 || "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif")
-		// TODO: See if I can send hex codes without the # so I can see if the line can be simplified
-		.setColor(`#${user.color || "283747"}`);
-	// TODO: See if I can setTimestamp(undefined or NaN) so I can remove the if(time) statement and chain it. If so, check the other embed constructions too
-	if(time) userEmbed.setTimestamp(time * 1000);
-	return userEmbed;
+	return new Discord.MessageEmbed()
+		.setAuthor(discordManager.userIdentify(user), user.profile?.image_512 || "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif")
+		.setColor(user.color ?? "#407ABA")
+		.setTimestamp(time * 1000);
 }
 
 function slackEmbedParse(embed = {}) {
@@ -39,9 +36,8 @@ function slackEmbedParse(embed = {}) {
 	discordEmbed
 		.setDescription(embed.text || embed.fallback)
 		.setImage(embed.image_url)
-		// TODO: Set a default for the link and icon because it's funny
-		.setAuthor(embed["service_name"] || embed["author_name"] || "Unknown Pupper", embed["service_icon"] || embed["author_icon"], embed["original_url"] || embed["author_link"]);
-	if(embed.color) discordEmbed.setColor(`#${embed.color}`);
+		.setAuthor(embed["service_name"] || embed["author_name"] || "Unknown Pupper", embed["service_icon"] || embed["author_icon"] || "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif", embed["original_url"] || embed["author_link"])
+		.setColor(embed.color ?? "#407ABA");
 	if(embed.footer) discordEmbed.setFooter(embed.footer);
 	return discordEmbed;
 }
