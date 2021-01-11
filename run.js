@@ -139,10 +139,6 @@ startUp().then(() => {
 				);
 				break;
 			// Possible Bug: The <@U######|cal> format may bug out the user parsing code
-			case "pinned_item": // TODO: Pin it on Discord too
-				console.log("Pin!");
-			case "unpinned_item": // TODO: Unpin it on Discord too
-				console.log("Unpin!");
 			case "channel_join":
 			case "channel_leave":
 			case "channel_archive":
@@ -179,6 +175,24 @@ startUp().then(() => {
 			default:
 				console.warn(`Unknown Message Subtype ${event.subtype}`);
 		}
+
+		slackEvents.on("pin_added", async event => {
+			const targetChannel = await discordManager.locateChannel(event.pinned_info.channel);
+			console.log("PINNY!", event);
+			const maps = await databaseManager.locateMaps(identify(event.item.channel, event.item.message.ts));
+			for(const map of maps) {
+				await (await targetChannel.messages.fetch(map["DiscordMessageID"])).pin({reason: `Pinned by ${event.user} at ${event.event_ts}`});
+			}
+		});
+
+		slackEvents.on("pin_removed", async event => {
+			console.log("UNPINNY!", event);
+			const targetChannel = await discordManager.locateChannel(event.pinned_info.channel);
+			const maps = await databaseManager.locateMaps(identify(event.item.channel, event.item.message.ts));
+			for(const map of maps) {
+				await (await targetChannel.messages.fetch(map["DiscordMessageID"])).unpin({reason: `Unpinned by ${event.user} at ${event.event_ts}`});
+			}
+		});
 	});
 }).catch(err => {
 	console.warn("⚠⚠ Failed Start-Up... Shutting Down ⚠⚠");
