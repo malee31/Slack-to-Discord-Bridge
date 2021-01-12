@@ -42,11 +42,6 @@ function slackEmbedParse(embed = {}) {
 	return discordEmbed;
 }
 
-// Use on a Slack event to generate an id for messages that SHOULD be unique (No official documentation found)
-function identify(channel, ts) {
-	return `${channel}/${ts}`;
-}
-
 async function startUp() {
 	console.log("============= Starting Up =============");
 	const pendingPromises = [];
@@ -96,7 +91,7 @@ startUp().then(() => {
 		}
 		// Get Link to First Message in Thread
 		if(event.thread_ts) {
-			let threadMainURL = `https://discord.com/channels/${discordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
+			let threadMainURL = `https://discord.com/channels/${discordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(discordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
 			embeds[0].setDescription(`[<Replied to This Message>](${threadMainURL})\n${embeds[0].description || ""}`);
 		}
 
@@ -109,7 +104,7 @@ startUp().then(() => {
 				console.log("God, replies! Thank god nearly no one uses it");
 				break;
 			case "message_deleted":
-				await discordManager.delete(targetChannel, identify(event.channel, event.previous_message.ts))
+				await discordManager.delete(targetChannel, discordManager.identify(event.channel, event.previous_message.ts))
 				break;
 			case "message_changed":
 				// Removes default main embed
@@ -117,7 +112,7 @@ startUp().then(() => {
 
 				// Handles text content changes
 				if(event.message.text !== event.previous_message.text) {
-					await discordManager.textUpdate(targetChannel, identify(event.channel, event.previous_message.ts), event.message.text)
+					await discordManager.textUpdate(targetChannel, discordManager.identify(event.channel, event.previous_message.ts), event.message.text)
 				}
 
 				// For when Slack Auto-Embeds URLs
@@ -126,12 +121,12 @@ startUp().then(() => {
 						embeds.push(slackEmbedParse(messageAttachment));
 					}
 				}
-				await discordManager.embedSender(targetChannel, embeds, identify(event.channel, event.ts), false);
+				await discordManager.embedSender(targetChannel, embeds, discordManager.identify(event.channel, event.ts), false);
 				break;
 			case "file_share":
 				// Download the files, send the files (with the text), and then delete the files that are sent. Keeps the ones that are too large to send
 				let downloads = await discordManager.attachmentEmbeds(embeds, event.files);
-				await discordManager.embedSender(targetChannel, embeds, identify(event.channel, event.ts));
+				await discordManager.embedSender(targetChannel, embeds, discordManager.identify(event.channel, event.ts));
 				await Promise.all(downloads
 					// Comment out the line below if you would not like to keep files 8MB or larger on your webserver
 					.filter(download => download.size < 8)
@@ -170,28 +165,18 @@ startUp().then(() => {
 						embeds.push(slackEmbedParse(messageAttachment));
 					}
 				}
-				await discordManager.embedSender(targetChannel, embeds, identify(event.channel, event.ts));
+				await discordManager.embedSender(targetChannel, embeds, discordManager.identify(event.channel, event.ts));
 				break;
 			default:
 				console.warn(`Unknown Message Subtype ${event.subtype}`);
 		}
 
 		slackEvents.on("pin_added", async event => {
-			const targetChannel = await discordManager.locateChannel(event.pinned_info.channel);
-			console.log("PINNY!", event);
-			const maps = await databaseManager.locateMaps(identify(event.item.channel, event.item.message.ts));
-			for(const map of maps) {
-				await (await targetChannel.messages.fetch(map["DiscordMessageID"])).pin({reason: `Pinned by ${event.user} at ${event.event_ts}`});
-			}
+			await discordManager.setPin(true, event.item.channel, event.user, event.item.message.ts);
 		});
 
 		slackEvents.on("pin_removed", async event => {
-			console.log("UNPINNY!", event);
-			const targetChannel = await discordManager.locateChannel(event.pinned_info.channel);
-			const maps = await databaseManager.locateMaps(identify(event.item.channel, event.item.message.ts));
-			for(const map of maps) {
-				await (await targetChannel.messages.fetch(map["DiscordMessageID"])).unpin({reason: `Unpinned by ${event.user} at ${event.event_ts}`});
-			}
+			await discordManager.setPin(false, event.item.channel, event.user, event.item.message.ts);
 		});
 	});
 }).catch(err => {

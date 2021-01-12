@@ -171,6 +171,25 @@ class DiscordManager {
 		}
 	}
 
+	async setPin(pin, slackChannelID, slackUserID, slackTs) {
+		const targetChannel = await this.locateChannel(slackChannelID);
+		const user = slackUserID ? (await this.slackClient.users.info({user: slackUserID})).user : undefined;
+		const maps = await databaseManager.locateMaps(this.identify(slackChannelID, slackTs));
+		for(const map of maps) {
+			const selectedMessage = await targetChannel.messages.fetch(map["DiscordMessageID"]);
+			if(pin) {
+				await selectedMessage.pin({reason: `${pin ? "P" : "Unp"}inned by ${this.userIdentify(user)} at ${slackTs * 1000} Epoch Time`});
+			} else {
+				await selectedMessage.unpin();
+			}
+		}
+	}
+
+	// Use on a Slack event to generate an id for messages that SHOULD be unique (No official documentation found)
+	identify(channel, ts) {
+		return `${channel}/${ts}`;
+	}
+
 	async slackTextParse(text) {
 		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
 		// Known Bugs:
