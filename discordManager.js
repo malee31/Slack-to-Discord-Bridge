@@ -159,16 +159,17 @@ class DiscordManager {
 
 	async embedSender(discordChannel, discordEmbeds = [], mapTo, canHaveText = true) {
 		if(discordEmbeds.length > 1) discordEmbeds[0].setFooter(`${discordEmbeds[0].footer || ""}\n↓ Message Includes ${discordEmbeds.length - 1} Additional Attachment${discordEmbeds.length === 2 ? "" : "s"} Below ↓`);
-		for(const discordEmbed of discordEmbeds) {
-			let sentMessage = await discordChannel.send(discordEmbed);
+		for(let embedNum = 0; embedNum < discordEmbeds.length; embedNum++) {
+			discordEmbeds[embedNum] = await discordChannel.send(discordEmbeds[embedNum]);
 			if(mapTo) {
-				databaseManager.messageMap(mapTo, sentMessage.id, canHaveText, err => {
+				databaseManager.messageMap(mapTo, discordEmbeds[embedNum].id, canHaveText, err => {
 					if(err) console.log(`MAP ERROR:\n${err}`);
 					// console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`);
 				});
 				canHaveText = false;
 			}
 		}
+		return discordEmbeds;
 	}
 
 	async setPin(pin, slackChannelID, slackUserID, slackTs) {

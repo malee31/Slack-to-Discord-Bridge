@@ -73,6 +73,16 @@ async function startUp() {
 	return Promise.all(pendingPromises);
 }
 
+async function standardOperations(targetChannel, embeds, attachments, slackChannelID, slackTs) {
+	if(attachments) {
+		// console.log(attachments);
+		for(const messageAttachment of attachments) {
+			embeds.push(slackEmbedParse(messageAttachment));
+		}
+	}
+	return await discordManager.embedSender(targetChannel, embeds, discordManager.identify(slackChannelID, slackTs));
+}
+
 startUp().then(() => {
 	console.log("========== Start Up Complete ==========");
 	slackEvents.on("message", async event => {
@@ -134,15 +144,6 @@ startUp().then(() => {
 				);
 				break;
 			// Possible Bug: The <@U######|cal> format may bug out the user parsing code
-			case "channel_join":
-			case "channel_leave":
-			case "channel_archive":
-			case "channel_unarchive":
-			case "channel_name":
-			case "channel_purpose":
-			case "channel_topic":
-			// TODO: Actually update the channel on Discord too
-			//  No need to rush on this task since it rarely happens and the channels will still be serverMapped
 			case "file_comment":
 			// No idea what that does
 			case "file_mention":
@@ -158,26 +159,38 @@ startUp().then(() => {
 			case "reply_broadcast": // Deprecated/Removed. It's the same as thread_broadcast
 			case "thread_broadcast": // Is a message AND a thread... Oh no...
 			case undefined:
-				// Standard Text Message Embed Already Handled Pre-Switch Statement
-				if(event.attachments) {
-					// console.log(event.attachments);
-					for(const messageAttachment of event.attachments) {
-						embeds.push(slackEmbedParse(messageAttachment));
-					}
-				}
-				await discordManager.embedSender(targetChannel, embeds, discordManager.identify(event.channel, event.ts));
+				await standardOperations(targetChannel, embeds, event.attachments, event.channel, event.ts);
+				break;
+			case "channel_topic":
+				await targetChannel.setTopic(event.topic);
+			case "channel_join":
+			case "channel_leave":
+			case "channel_archive":
+			case "channel_unarchive":
+			case "channel_purpose":
+				(await standardOperations(targetChannel, embeds, event.attachments, event.channel, event.ts)).forEach(message => {
+					message.pin({reason: "Channel Metadata Change"});
+				});
+				break;
+			case "channel_name":
+				(await standardOperations(targetChannel, embeds, event.attachments, event.channel, event.ts)).forEach(message => {
+					message.pin({reason: "Channel Metadata Change"});
+				});
+				console.log(`Renaming "#${event.old_name}" to "#${event.name}"`);
+				await targetChannel.setName(event.name, "Channel Metadata Change");
+				console.log(`Successfully Renamed "#${event.old_name}" to "#${event.name}"`);
 				break;
 			default:
 				console.warn(`Unknown Message Subtype ${event.subtype}`);
 		}
+	});
 
-		slackEvents.on("pin_added", async event => {
-			await discordManager.setPin(true, event.item.channel, event.user, event.item.message.ts);
-		});
+	slackEvents.on("pin_added", async event => {
+		await discordManager.setPin(true, event.item.channel, event.user, event.item.message.ts);
+	});
 
-		slackEvents.on("pin_removed", async event => {
-			await discordManager.setPin(false, event.item.channel, event.user, event.item.message.ts);
-		});
+	slackEvents.on("pin_removed", async event => {
+		await discordManager.setPin(false, event.item.channel, event.user, event.item.message.ts);
 	});
 }).catch(err => {
 	console.warn("⚠⚠ Failed Start-Up... Shutting Down ⚠⚠");
