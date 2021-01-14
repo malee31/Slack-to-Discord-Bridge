@@ -109,23 +109,28 @@ startUp().then(() => {
 		switch(event.subtype) {
 			case "bot_message":
 				console.warn("BOT MESSAGE - ABORT");
-				break;
-			case "message_replied":
-				console.log("God, replies! Thank god nearly no one uses it");
+				console.log(event);
 				break;
 			case "message_deleted":
 				await discordManager.delete(targetChannel, discordManager.identify(event.channel, event.previous_message.ts))
 				break;
 			case "message_changed":
+				// Known bugs:
+				// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
+				// * Attachments are only parsed again if there were no attachments before but there are now. This means that if an attachment is somehow added in an edit and there was already an attachment before, they are ignored.
+				//     * Situations in which this will happen have not been found yet
+				// * Attachments may break the order of the logged messages if they process themselves faster than the main embed
+				// * Changes that occur before the original message has had a chance to be bridged over may crash the program (It won't shutdown though, it'll just leave a messy error message)
+
 				// Removes default main embed
 				embeds.shift();
 
-				// Handles text content changes
+				// Handles changes in text content
 				if(event.message.text !== event.previous_message.text) {
 					await discordManager.textUpdate(targetChannel, discordManager.identify(event.channel, event.previous_message.ts), event.message.text)
 				}
 
-				// For when Slack Auto-Embeds URLs
+				// Deals with Slack URLs Unfurl Embeds (May cause bugs if other types of messages have attachments too)
 				if(Array.isArray(event.message.attachments) && !event.previous_message.attachments) {
 					for(const messageAttachment of event.message.attachments) {
 						embeds.push(slackEmbedParse(messageAttachment));
@@ -143,20 +148,17 @@ startUp().then(() => {
 					.map(download => fileManager.fileDelete(download.path))
 				);
 				break;
-			// Possible Bug: The <@U######|cal> format may bug out the user parsing code
-			case "file_comment":
-			// No idea what that does
-			case "file_mention":
-			/*case "group_join":
+			case "message_replied":
+				console.log("Received a 'message_replied' event. This is just a thread and it should be working fine.\nJust note that if you see this: There was a bug alert for this subtype that said to check for event.thread_ts instead of using event.subtype to tell if the message is part of a thread. If you see this, it means that it has since been patched and the code should be updated");
+			/* No Support Added for Groups. If a default channel is being used, there is a chance that the code will still work for groups to some degree if this is uncommented but there are no guarantees
+			case "group_join":
 			case "group_leave":
 			case "group_archive":
 			case "group_unarchive":
 			case "group_name":
 			case "group_purpose":
-			case "group_topic":
-				// No support for groups*/
+			case "group_topic": */
 			case "me_message": // It's just regular text in italics isn't it??? I'm not going to bother to italicize it
-			case "reply_broadcast": // Deprecated/Removed. It's the same as thread_broadcast
 			case "thread_broadcast": // Is a message AND a thread... Oh no...
 			case undefined:
 				await standardOperations(targetChannel, embeds, event.attachments, event.channel, event.ts);
