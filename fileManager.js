@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 
 const downloadsFolder = path.resolve(__dirname, "downloads");
-const pendingDownloads = [], pendingDeletions = [];
+const pendingDownloads = [];
 // Arbitrary. Used as the max number of attempts getValidFileName has for finding an available path to download a file to
 // If the program doesn't crash or reject in-between the download and the deletion, this will most likely never be reached if kept over 10
 const FILE_NAME_ITERATOR_LIMIT = 200;
@@ -62,6 +62,7 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
 }
 
 function completeDownload(saveTo, downloadFromURL, headers = {}) {
+	// console.log(`Sav: ${saveTo}`);
 	const saveFile = fs.createWriteStream(saveTo);
 	return new Promise((resolve, reject) => {
 		const request = https.get(downloadFromURL, {
@@ -95,8 +96,6 @@ async function fileSize(filePath) {
 
 async function fileDelete(fileName) {
 	let fileDeletePath = path.resolve(downloadsFolder, fileName);
-	if(!pendingDeletions.includes(fileDeletePath)) {
-		pendingDeletions.push(fileDeletePath);
-		return fs.promises.unlink(fileDeletePath);
-	}
+	// console.log(`Del: ${fileDeletePath}`);
+	return fs.promises.unlink(fileDeletePath);
 }
