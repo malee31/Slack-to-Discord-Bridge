@@ -4,7 +4,8 @@
 	"description": "Repeats messages sent over Slack to a Discord Server",
 	"main": "run.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"start": "node run.js",
+		"jsdoc": "npx jsdoc --configure ./jsdoc.json ."
 	},
 	"keywords": [],
 	"author": "Marvin Lee",

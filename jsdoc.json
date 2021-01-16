@@ -1,0 +1,16 @@
+{
+	"source": {
+		"include": [],
+		"exclude": [
+			".git",
+			"node_modules"
+		],
+		"includePattern": ".+\\.js(x|doc)?$"
+	},
+	"opts": {
+		"encoding": "utf8",
+		"template": "templates/default",
+		"destination": "./docs",
+		"recurse": true
+	}
+}
