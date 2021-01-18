@@ -7,6 +7,9 @@ node_modules/
 # Config Files
 *.iml
 
+# Documentation
+docs/
+
 # Private Files
 downloads/*
 *.sqlite3

@@ -3,6 +3,18 @@ const mime = require("mime-types");
 const http = require("http");
 const path = require("path");
 const fs = require("fs");
+
+/**
+ * An adapter for Slack’s Events API.
+ * @external SlackEventAdapter
+ * @see https://slack.dev/node-slack-sdk/reference/events-api
+ */
+
+/**
+ * Creates the simple file server for downloads and adds in the Slack events listener to the server
+ * @param {SlackEventAdapter} slackEvents The event adapter for Slack from {@link https://slack.dev/node-slack-sdk/reference/events-api|require("@slack/events-api").createEventAdapter}
+ * @module fileServer
+ */
 module.exports = fsMake;
 
 function fsMake(slackEvents) {
