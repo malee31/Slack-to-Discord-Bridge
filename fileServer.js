@@ -12,9 +12,9 @@ function fsMake(slackEvents) {
 			return;
 		}
 
-		const filePath = path.resolve(fileManager.downloadsFolder, `.${decodeURIComponent(req.url.split("?")[0])}`);
+		const filePath = path.resolve(fileManager.DOWNLOADS_FOLDER, `.${decodeURIComponent(req.url.split("?")[0])}`);
 		console.log(`[${new Date().toLocaleString()}] Accessing ${filePath} from ${req.url}`);
-		if(!filePath.startsWith(fileManager.downloadsFolder)) {
+		if(!filePath.startsWith(fileManager.DOWNLOADS_FOLDER)) {
 			console.warn(`Attempt to access ${filePath} detected and denied`);
 			return;
 		}
@@ -25,7 +25,7 @@ function fsMake(slackEvents) {
 			res.end();
 			return;
 		}
-		if(filePath === fileManager.downloadsFolder) {
+		if(filePath === fileManager.DOWNLOADS_FOLDER) {
 			if(process.env.DISABLE_FILE_SERVER_LIST?.trim().toLowerCase() !== "true") {
 				fs.readdir(filePath, (err, files) => {
 					if(err) {
