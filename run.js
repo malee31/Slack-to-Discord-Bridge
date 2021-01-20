@@ -1,3 +1,14 @@
+/**
+ * @file run.js is the root file that starts everything up and handles everything.
+ * See the{@link module:Start| run.js documentation} for more information. (It has been renamed the Start module for documentation purposes)
+ * @author Marvin Lee
+ */
+
+/**
+ * The root file for the project
+ * @module Start
+ */
+
 require("dotenv").config();
 const {createEventAdapter} = require("@slack/events-api");
 const databaseManager = require("./databaseManager.js");
@@ -15,11 +26,18 @@ const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 const discordManager = new discordManagerClass(web);
 let botAuthData;
 
+// Prevents script from stopping on errors
 slackEvents.on("error", err => {
 	console.warn("Something went wrong with the Slack Web API");
 	console.error(err);
 });
 
+/**
+ * Creates a basic embed template with the Slack user's profile picture, name, and message timestamp
+ * @param {Object} user User object obtained through Slack's users.info endpoint
+ * @param {number} time Timestamp from the Slack message. Can be obtained from event.ts
+ * @returns {MessageEmbed} Blank user embed template
+ */
 function userMessageEmbed(user = {}, time) {
 	return new Discord.MessageEmbed()
 		.setAuthor(discordManager.userIdentify(user), user.profile?.image_512 || "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif")
@@ -27,6 +45,11 @@ function userMessageEmbed(user = {}, time) {
 		.setTimestamp(time * 1000);
 }
 
+/**
+ * Converts some Slack auto-embeds into Discord embeds
+ * @param {Object} embed The Slack embed to parse
+ * @returns {MessageEmbed} The resulting Discord embed
+ */
 function slackEmbedParse(embed = {}) {
 	let discordEmbed = new Discord.MessageEmbed();
 	if(embed.title) discordEmbed
@@ -42,13 +65,17 @@ function slackEmbedParse(embed = {}) {
 	return discordEmbed;
 }
 
-async function startUp() {
+/**
+ * Starts up the script by initializing all the necessary variables in all the JS files and completing start-up tasks
+ * @returns {Promise<Array.<*>>} Returns a Promise.all with an array of all the setup and start-up functions' results (Usually undefined)
+ */
+function startUp() {
 	console.log("============= Starting Up =============");
 	const pendingPromises = [];
 
 	// Can Disable With Environment Variable
 	if(process.env.DISABLE_CHANNEL_JOIN?.trim().toUpperCase() !== "TRUE") {
-		pendingPromises.push(await web.conversations.list().then(channelList => {
+		pendingPromises.push(web.conversations.list().then(channelList => {
 			for(const channel of channelList.channels) {
 				if(channel["is_channel"] && !channel["is_member"]) pendingPromises.push(web.conversations.join({channel: channel.id}));
 			}
@@ -73,6 +100,16 @@ async function startUp() {
 	return Promise.all(pendingPromises);
 }
 
+/**
+ * The part of the logging process where the final attachments are parsed and embeds are sent out
+ * @async
+ * @param {TextChannel} targetChannel Discord channel to send the embeds to
+ * @param {MessageEmbed[]} embeds Array of parsed embeds to send to channel
+ * @param {Object[]} [attachments] Array of attachments from Slack. Can be obtained from event.attachments
+ * @param {string} slackChannelID The Slack channel ID that the messages originated from
+ * @param {string|number} slackTs Timestamp of the message from Slack
+ * @returns {Promise<Message[]>} Returns the array of resulting messages from sending the embeds to Discord
+ */
 async function standardOperations(targetChannel, embeds, attachments, slackChannelID, slackTs) {
 	if(attachments) {
 		// console.log(attachments);
@@ -83,8 +120,10 @@ async function standardOperations(targetChannel, embeds, attachments, slackChann
 	return await discordManager.embedSender(targetChannel, embeds, discordManager.identify(slackChannelID, slackTs));
 }
 
+// Starts up the logger
 startUp().then(() => {
 	console.log("========== Start Up Complete ==========");
+	// Attaches event listener that parses received messages
 	slackEvents.on("message", async event => {
 		if(process.env.DISABLE_BOT_INFO_LOOKUP?.trim().toUpperCase() !== "TRUE") {
 			if(event.bot_id === botAuthData.bot_id || event?.user === botAuthData.user_id) return;

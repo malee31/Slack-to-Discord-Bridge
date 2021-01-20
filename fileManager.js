@@ -55,7 +55,7 @@ module.exports = {
 	 * Deletes a file from the downloads folder specifically
 	 * @async
 	 * @param {string} fileName Name of file to delete from the downloads folder
-	 * @return {Promise<void>} Returns the promise from fs.promises.unlink
+	 * @returns {Promise<void>} Returns the promise from fs.promises.unlink
 	 */
 	fileDelete: async fileName => {
 		let fileDeletePath = path.resolve(DOWNLOADS_FOLDER, fileName);
@@ -72,7 +72,7 @@ module.exports = {
  * @param {string} rootPath The location of the folder to check (Absolute Path Only)
  * @param {string} fileName Name to give the file
  * @param {string} fileExtension File extension
- * @return {Promise<string>} Returns a file name that isn't already being used in the folder
+ * @returns {Promise<string>} Returns a file name that isn't already being used in the folder
  */
 async function getValidFileName(rootPath, fileName, fileExtension) {
 	let testFileName = `${fileName}.${fileExtension}`;

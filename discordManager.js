@@ -69,7 +69,7 @@ class DiscordManager {
 	 * @async
 	 * @memberOf module:discordManager.DiscordManager
 	 * @param {string} slackChannelID The Slack Channel id. Can be obtained through event.channel
-	 * @return {Promise<GuildChannel>}
+	 * @return {Promise<GuildChannel>} Returns the located Discord channel
 	 */
 	async locateChannel(slackChannelID) {
 		let targetChannel = this.loggingGuild.channels.cache.get(dataManager.getChannel(slackChannelID));
@@ -115,7 +115,7 @@ class DiscordManager {
 	 * @memberOf module:discordManager.DiscordManager
 	 * @param {MessageEmbed[]} embedArr Array to add file embeds onto. Assumed to have at least 1 embed inside it before the function is called
 	 * @param {Object[]} slackFiles Array of Objects from a Slack message event that includes their download URLs. Passed to fileManager.fileDownload. Can be obtained through event.files
-	 * @return {Promise<Object[]>} Array of objects containing details on where the file is, what is is called, the original Slack file object, and more. Originates from resolving fileManager.fileDownload on all files
+	 * @returns {Promise<Object[]>} Array of objects containing details on where the file is, what is is called, the original Slack file object, and more. Originates from resolving fileManager.fileDownload on all files
 	 */
 	async attachmentEmbeds(embedArr, slackFiles) {
 		let downloads = [];
@@ -213,7 +213,7 @@ class DiscordManager {
 	 * @param {MessageEmbed[]} discordEmbeds Array of Discord embeds to send out
 	 * @param {string} [mapTo] The ID used for the Slack message associated with the Discord messages. Use if the message ids should be kept in the database for future edits and deletions
 	 * @param {boolean} canHaveText Whether or not to mark the first embed as the embed to edit if text changes. Assumes first embed in array is the one with text from the Slack message
-	 * @return {Promise<Message[]>} Array of the Discord messages sent to the channel and their details. Originates from TextChannel.send
+	 * @returns {Promise<Message[]>} Array of the Discord messages sent to the channel and their details. Originates from TextChannel.send
 	 */
 	async embedSender(discordChannel, discordEmbeds = [], mapTo, canHaveText = true) {
 		if(discordEmbeds.length > 1) discordEmbeds[0].setFooter(`${discordEmbeds[0].footer || ""}\n↓ Message Includes ${discordEmbeds.length - 1} Additional Attachment${discordEmbeds.length === 2 ? "" : "s"} Below ↓`);
@@ -267,7 +267,7 @@ class DiscordManager {
 	 * Creates a more readable name for each user than their user ID
 	 * @memberOf module:discordManager.DiscordManager
 	 * @param {Object} user User object obtained through the Slack users.info endpoint
-	 * @return {string} String to use as their username when logging messages
+	 * @returns {string} String to use as their username when logging messages
 	 */
 	userIdentify(user = {}) {
 		if(!user.real_name || !user.id) return "Unknown Pupper";
@@ -278,7 +278,7 @@ class DiscordManager {
 	 * Converts Slack markdown to Discord markdown. Has some acceptable edge cases
 	 * @memberOf module:discordManager.DiscordManager
 	 * @param {string} text Slack text to convert
-	 * @return {Promise<string>} Resulting text with Discord markdown
+	 * @returns {Promise<string>} Resulting text with Discord markdown
 	 */
 	async slackTextParse(text) {
 		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json

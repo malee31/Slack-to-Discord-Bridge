@@ -19,7 +19,7 @@ module.exports = {
 	 * Locate the Discord Channel ID associated with a given Slack Channel ID from serverMap.json
 	 * @param {string} slackChannelID The Slack Channel id. Can be obtained through event.channel
 	 * @param {boolean} [sendDefault = false] Whether or not to lookup the default logging channel set up in serverMap.json if the searched channel is not found. May cause silent problems if serverMap.channelMap.default is not set up properly
-	 * @return {string|undefined} Returns the Discord Channel ID associated with the Slack Channel. If that is not found, the default channel ID is returned if it is being used or nothing at all
+	 * @returns {string|undefined} Returns the Discord Channel ID associated with the Slack Channel. If that is not found, the default channel ID is returned if it is being used or nothing at all
 	 */
 	getChannel,
 	/**
