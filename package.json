@@ -5,7 +5,8 @@
 	"main": "run.js",
 	"scripts": {
 		"start": "node run.js",
-		"jsdoc": "npx jsdoc --configure ./jsdoc.json ."
+		"jsdoc": "npx jsdoc --configure ./jsdoc.json .",
+		"jsdoc-serve": "npx http-server -c-1 ./docs"
 	},
 	"keywords": [],
 	"author": "Marvin Lee",
