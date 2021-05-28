@@ -30,7 +30,7 @@ module.exports = {
 		let fileFormat = {extension: fileName.includes(".") ? split.pop() : "", name: split.join(".")};
 		fileName = await getValidFileName(DOWNLOADS_FOLDER, fileFormat.name, fileFormat.extension);
 
-		let finalDownloadPath = path.resolve(DOWNLOADS_FOLDER, fileName)
+		let finalDownloadPath = path.resolve(DOWNLOADS_FOLDER, fileName);
 		pendingDownloads.push(finalDownloadPath);
 
 		await completeDownload(finalDownloadPath, fileObj["url_private_download"], {
@@ -108,6 +108,11 @@ function completeDownload(saveTo, downloadFromURL, headers = {}) {
 		const request = https.get(downloadFromURL, {
 			headers: headers
 		}, response => {
+			if(response.statusCode >= 300 && response.statusCode < 400) {
+				console.log(`[${response.statusCode}] Following redirect URL to file: ${response.req.protocol}//${response.req.host}${response.headers.location}`);
+				return completeDownload(saveTo, `${response.req.protocol}//${response.req.host}${response.headers.location}`, headers);
+			} else if(response.statusCode !== 200) console.log(`File has a non-200 status code: [${response.statusCode}] ${response.statusMessage}`);
+			console.log(`Saving File to ${saveTo}`);
 			response.pipe(saveFile);
 			saveFile.on('finish', async() => {
 				await saveFile.close();
