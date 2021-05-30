@@ -96,49 +96,68 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
 
 /**
  * Downloads a file from a given URL and save it to a given location
+ * @async
  * @param {string} saveTo File save location (Absolute Path Only)
  * @param {string} downloadFromURL The URL to download from
  * @param {Object} [headers = {}] Optional http request headers
  * @returns {Promise<string>} Returns the path where the file was saved if successful
  */
-function completeDownload(saveTo, downloadFromURL, headers = {}) {
-	// console.log(`Sav: ${saveTo}`);
-	const saveFile = fs.createWriteStream(saveTo);
-	return new Promise((resolve, reject) => {
-		const request = https.get(downloadFromURL, {
-			headers: headers
-		}, response => {
-			if(response.statusCode >= 300 && response.statusCode < 400) {
-				const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
-				console.log(`[${response.statusCode}] Following redirect URL to file: ${redirectURL}\nNote that if this happens a lot and fails, the token may be invalid`);
-				return completeDownload(saveTo, `${redirectURL}`, headers);
-			} else if(response.statusCode !== 200) console.log(`File has a non-200 status code: [${response.statusCode}] ${response.statusMessage}`);
-			console.log(`Saving File to ${saveTo}`);
-			response.pipe(saveFile);
-			saveFile.on('finish', async() => {
-				await saveFile.close();
-				pendingDownloads.splice(pendingDownloads.indexOf(saveTo), 1);
-				resolve(saveTo);
-			});
-		});
-
-		request.on("error", async err => {
-			// Delete the file asynchronously on fail. Doesn't check the result
-			try {
-				await fs.promises.unlink(saveTo)
-			} catch(unlinkErr) {
-				reject(`Download Failed and Unlink Failed: ${unlinkErr}`);
+async function completeDownload(saveTo, downloadFromURL, headers = {}) {
+	https.get(downloadFromURL, {
+		headers: headers
+	}, response => {
+		if(response.statusCode >= 300 && response.statusCode < 400) {
+			// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
+			const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
+			console.warn(`[HTTP ${response.statusCode}] Following Redirect to File at [${redirectURL}]\nNote that if this happens and fails a lot, the token may be invalid`);
+			return completeDownload(saveTo, `${redirectURL}`, headers);
+		} else {
+			if(response.statusCode !== 200) {
+				console.warn(`[HTTP ${response.statusCode}] <${response.statusMessage}> from [${downloadFromURL}]\n↑ ↑ ↑ Request Returned a Non-200 Status Code. Proceeding Anyways...`);
 			}
-			reject(`Download Failed: ${err}`);
-		});
-	});
+
+			console.log(`Saving a File to ${saveTo}`);
+			const saveFile = fs.createWriteStream(saveTo);
+
+			return new Promise((resolve, reject) => {
+				response.pipe(saveFile).on("error", err => {
+					console.warn(`Unable to Pipe File Contents into File: ${err}`);
+					saveFile.end();
+					reject(completeDownloadErrorHandler(err, saveTo));
+				});
+
+				saveFile.on('finish', () => {
+					saveFile.end();
+					pendingDownloads.splice(pendingDownloads.indexOf(saveTo), 1);
+					resolve(saveTo);
+				}).on("error", err => completeDownloadErrorHandler(err, saveTo));
+			});
+		}
+	}).on("error", err => completeDownloadErrorHandler(err, saveTo));
+}
+
+/**
+ * Error handler for completeDownload. Tries to delete file on a failed download
+ * @async
+ * @param {Error} err Error from completeDownload
+ * @param {string} unlinkLocation Path of intended file to unlink
+ * @return {Promise} Throws errors through the Promise
+ */
+async function completeDownloadErrorHandler(err, unlinkLocation) {
+	// Delete the file asynchronously on fail. Doesn't check the result
+	try {
+		await fs.promises.unlink(unlinkLocation);
+	} catch(unlinkErr) {
+		throw new Error(`Download Failed and Unlink Failed: ${unlinkErr}`);
+	}
+	throw new Error(`Download Failed: ${err}`);
 }
 
 /**
  * Returns the size of a file in megabytes
  * @async
  * @param {string} filePath Absolute path to file to check the size of
- * @returns {Promise<number>} Size in megabytes
+ * @returns {Promise<number>} Size in megabytes (Includes decimals)
  */
 async function fileSize(filePath) {
 	return (await fs.promises.stat(filePath)).size / (1024 * 1024);
