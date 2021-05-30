@@ -79,15 +79,15 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
 	for(let copyCount = 1; copyCount <= FILE_NAME_ITERATOR_LIMIT; copyCount++) {
 		let testPath = path.resolve(rootPath, testFileName);
 		try {
+			// console.log(`Testing ${testPath}`);
 			await fs.promises.access(testPath, fs.constants.F_OK);
 			// console.log(`File: ${testPath} already exists.\nAppending number to path and trying again`);
 		} catch(err) {
-			if(pendingDownloads.includes(testPath)) {
-				// console.log(`Download named ${testPath} is already pending.\nAppending number to path and trying again`);
-				continue;
+			if(!pendingDownloads.includes(testPath)) {
+				if(err.code === "ENOENT") return testFileName;
+				else console.warn("Unknown error while looking for a path to store download: ", err);
 			}
-			if(err.code === "ENOENT") return testFileName;
-			else console.warn("Unknown error while looking for a path to store download: ", err);
+			// if(pendingDownloads.includes(testPath)) console.log(`Download named ${testPath} is already pending.\nAppending number to path and trying again`);
 		}
 		testFileName = `${fileName} (${copyCount}).${fileExtension}`;
 	}
@@ -103,23 +103,23 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
  * @returns {Promise<string>} Returns the path where the file was saved if successful
  */
 async function completeDownload(saveTo, downloadFromURL, headers = {}) {
-	https.get(downloadFromURL, {
-		headers: headers
-	}, response => {
-		if(response.statusCode >= 300 && response.statusCode < 400) {
-			// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
-			const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
-			console.warn(`[HTTP ${response.statusCode}] Following Redirect to File at [${redirectURL}]\nNote that if this happens and fails a lot, the token may be invalid`);
-			return completeDownload(saveTo, `${redirectURL}`, headers);
-		} else {
-			if(response.statusCode !== 200) {
-				console.warn(`[HTTP ${response.statusCode}] <${response.statusMessage}> from [${downloadFromURL}]\n↑ ↑ ↑ Request Returned a Non-200 Status Code. Proceeding Anyways...`);
-			}
+	return new Promise((resolve, reject) => {
+		https.get(downloadFromURL, {
+			headers: headers
+		}, response => {
+			if(response.statusCode >= 300 && response.statusCode < 400) {
+				// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
+				const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
+				console.warn(`[HTTP ${response.statusCode}] Following Redirect to File at [${redirectURL}]\nNote that if this happens and fails a lot, the token may be invalid`);
+				return completeDownload(saveTo, `${redirectURL}`, headers);
+			} else {
+				if(response.statusCode !== 200) {
+					console.warn(`[HTTP ${response.statusCode}] <${response.statusMessage}> from [${downloadFromURL}]\n↑ ↑ ↑ Request Returned a Non-200 Status Code. Proceeding Anyways...`);
+				}
 
-			console.log(`Saving a File to ${saveTo}`);
-			const saveFile = fs.createWriteStream(saveTo);
+				console.log(`Saving a File to ${saveTo}`);
+				const saveFile = fs.createWriteStream(saveTo);
 
-			return new Promise((resolve, reject) => {
 				response.pipe(saveFile).on("error", err => {
 					console.warn(`Unable to Pipe File Contents into File: ${err}`);
 					saveFile.end();
@@ -131,9 +131,9 @@ async function completeDownload(saveTo, downloadFromURL, headers = {}) {
 					pendingDownloads.splice(pendingDownloads.indexOf(saveTo), 1);
 					resolve(saveTo);
 				}).on("error", err => completeDownloadErrorHandler(err, saveTo));
-			});
-		}
-	}).on("error", err => completeDownloadErrorHandler(err, saveTo));
+			}
+		}).on("error", err => completeDownloadErrorHandler(err, saveTo));
+	});
 }
 
 /**
