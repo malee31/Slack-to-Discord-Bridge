@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 
 const DOWNLOADS_FOLDER = path.resolve(__dirname, "downloads");
+const FAILED_DOWNLOAD_IMAGE_PATH = path.resolve(__dirname, "placeholders", "ERROR.png");
 // Arbitrary. Used as the max number of attempts getValidFileName has for finding an available path to download a file to
 // If the program doesn't crash or reject in-between the download and the deletion, this will most likely never be reached if kept over 10
 const FILE_NAME_ITERATOR_LIMIT = 200;
@@ -33,9 +34,14 @@ module.exports = {
 		let finalDownloadPath = path.resolve(DOWNLOADS_FOLDER, fileName);
 		pendingDownloads.push(finalDownloadPath);
 
-		await completeDownload(finalDownloadPath, fileObj["url_private_download"], {
-			Authorization: `Bearer ${process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN}`
-		});
+		try {
+			await completeDownload(finalDownloadPath, fileObj["url_private_download"], {
+				Authorization: `Bearer ${process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN}`
+			}, true);
+		} catch (err) {
+			console.error(`Failed to Download File. Using Default File as Attachment. Reason: ${err}`);
+			finalDownloadPath = FAILED_DOWNLOAD_IMAGE_PATH;
+		}
 
 		// TODO: There is probably a way to get it from the headers while downloading the file
 		const downloadSize = await fileSize(finalDownloadPath);
@@ -108,6 +114,7 @@ async function completeDownload(saveTo, downloadFromURL, headers = {}, rejectOnR
 		https.get(downloadFromURL, {
 			headers: headers
 		}).on("response", response => {
+			return reject("Oops");
 			if(response.statusCode >= 300 && response.statusCode < 400) {
 				// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
 				const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
