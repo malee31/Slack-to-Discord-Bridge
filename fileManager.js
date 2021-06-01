@@ -36,7 +36,7 @@ module.exports = {
 
 		try {
 			await completeDownload(finalDownloadPath, fileObj["url_private_download"], {
-				Authorization: `Bearer ${process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN}`
+				Authorization: `Bearer ${process.env.SLACK_USER_OAUTH_ACCESS_TOKEN}`
 			}, true);
 		} catch (err) {
 			console.error(`Failed to Download File. Using Default File as Attachment. Reason: ${err}`);
