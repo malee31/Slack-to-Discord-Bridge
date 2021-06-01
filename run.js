@@ -183,7 +183,7 @@ startUp().then(() => {
 				await discordManager.embedSender(targetChannel, embeds, discordManager.identify(event.channel, event.ts));
 				await Promise.all(downloads
 					// Comment out the line below if you would not like to keep files 8MB or larger on your webserver
-					.filter(download => download.size < 8)
+					.filter(download => download.path !== fileManager.FAILED_DOWNLOAD_IMAGE_PATH && download.size < 8)
 					.map(download => fileManager.fileDelete(download.path))
 				);
 				break;
