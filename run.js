@@ -71,6 +71,14 @@ function slackEmbedParse(embed = {}) {
  */
 function startUp() {
 	console.log("============= Starting Up =============");
+	console.log("============ Checking .env ============");
+	if(process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_BOT_USER_OAUTH_ACCESS_TOKEN" && process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_USER_OAUTH_ACCESS_TOKEN") {
+		console.log("============== Bad .env ===============");
+		console.error(`SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE not set to either SLACK_BOT_USER_OAUTH_ACCESS_TOKEN or SLACK_USER_OAUTH_ACCESS_TOKEN\nPlease set it properly and try again\nCurrent Value: ${process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE}`);
+		process.exit(1);
+	}
+	console.log("============ Checked  .env ============");
+
 	const pendingPromises = [];
 
 	// Can Disable With Environment Variable
