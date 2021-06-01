@@ -188,7 +188,7 @@ startUp().then(() => {
 				);
 				break;
 			case "message_replied":
-				console.log("Received a 'message_replied' event. This is just a thread and it should be working fine.\nJust note that if you see this: There was a bug alert for this subtype that said to check for event.thread_ts instead of using event.subtype to tell if the message is part of a thread. If you see this, it means that it has since been patched and the code should be updated");
+				console.warn("Received a 'message_replied' event. This is just a thread and it should be working fine.\nJust note that if you see this: There was a bug alert for this subtype that said to check for event.thread_ts instead of using event.subtype to tell if the message is part of a thread. If you see this, it means that it has since been patched and the code should be updated");
 			/* No Support Added for Groups. If a default channel is being used, there is a chance that the code will still work for groups to some degree if this is uncommented but there are no guarantees
 			case "group_join":
 			case "group_leave":

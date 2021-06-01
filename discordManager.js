@@ -37,7 +37,7 @@ class DiscordManager {
 			await this.client.user.setPresence({
 				activity: {
 					type: "LISTENING",
-					name: "To Slack Messages"
+					name: "Slack Messages"
 				},
 				status: "online",
 				afk: false

@@ -111,12 +111,10 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
  * @returns {Promise<string>} Returns the path where the file was saved if successful
  */
 async function completeDownload(saveTo, downloadFromURL, headers = {}, rejectOnRedirect = false) {
-	downloadFromURL = "https://httpstat.us/302/cors";
 	return new Promise((resolve, reject) => {
 		https.get(downloadFromURL, {
 			headers: headers
 		}).on("response", response => {
-			return reject("Oops");
 			if(response.statusCode >= 300 && response.statusCode < 400) {
 				// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
 				const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
