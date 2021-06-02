@@ -18,9 +18,9 @@
 		"dotenv": "^8.2.0",
 		"http": "0.0.1-security",
 		"mime-types": "^2.1.28",
+		"prompts": "^2.4.1",
 		"sqlite3": "^5.0.0"
 	},
-	"devDependencies": {},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/malee31/Slack-to-Discord-Bridge.git"
