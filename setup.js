@@ -45,6 +45,36 @@ async function setup() {
 
 	const selectedServer = client.guilds.cache.get(envConfig["DISCORD_GUILD_ID"]);
 	console.log("Testing Permissions on Server");
+	if(!selectedServer.me.hasPermission("ADMINISTRATOR")) await singlePromptUntilValid("The Bot Does Not Have ADMINISTRATOR Permissions.\nPlease Grant The Bot ADMINISTRATOR Permissions For A Less Painful Experience\nThen Press Any Key To Continue");
+	await singlePromptUntilValid("Press Any Key To Check Permissions", () => {
+		if(!selectedServer.me.hasPermission("ADMINISTRATOR")) {
+			console.log("Admin Permissions Detected. Proceeding Without Additional Tests");
+			return true;
+		}
+		console.log("ADMINISTRATOR Permissions Not Detected. Manually Checking Specific Permissions Instead");
+		const failedPerms = checkPerms(selectedServer.me, [
+			"SEND_MESSAGES",
+			"MANAGE_MESSAGES",
+			"MANAGE_CHANNELS",
+			"VIEW_CHANNEL",
+			"ATTACH_FILES",
+			"READ_MESSAGE_HISTORY"
+		]);
+		if(failedPerms.length !== 0) {
+			console.log(`Bot Is Missing The Following Permissions On The Server:${failedPerms.reduce((acc, val) => acc + `\n${val}`, "")}`);
+			return false;
+		}
+		console.log("The Bot Has The Minimum Required Permissions To Run");
+		return true;
+	});
+}
+
+function checkPerms(clientUserMe, permList = []) {
+	const failedPerms = [];
+	for(const perm of permList) {
+		if(!clientUserMe.hasPermission(perm)) failedPerms.push(perm);
+	}
+	return failedPerms;
 }
 
 async function singlePromptUntilValid(promptMessage, validityFilter, promptObj = {}) {
