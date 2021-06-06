@@ -5,7 +5,8 @@
 	"main": "run.js",
 	"scripts": {
 		"start": "node run.js",
-		"jsdoc": "npx jsdoc --configure ./jsdoc.json .",
+		"setup": "node setup/setup.js",
+		"jsdoc": "npx jsdoc --configure jsdoc.json .",
 		"jsdoc-serve": "npx http-server -c-1 ./docs"
 	},
 	"keywords": [],
@@ -17,6 +18,7 @@
 		"discord.js": "^12.2.0",
 		"dotenv": "^8.2.0",
 		"http": "0.0.1-security",
+		"kleur": "^3.0.3",
 		"mime-types": "^2.1.28",
 		"prompts": "^2.4.1",
 		"sqlite3": "^5.0.0"
