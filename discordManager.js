@@ -76,13 +76,13 @@ class DiscordManager {
 		if(!targetChannel) {
 			let channelInfo;
 			try {
-				channelInfo = await this.slackClient.conversations.info({channel: slackChannelID});
+				channelInfo = await this.slackClient.conversations.info({ channel: slackChannelID });
 			} catch(channelInfoErr) {
 				throw `Slack conversations.info error:\n${channelInfoErr}`;
 			}
 			if(!channelInfo.channel) {
 				console.warn("No channelInfo.channel found: ", channelInfo);
-				channelInfo.channel = {name: "unknown_channel_name"};
+				channelInfo.channel = { name: "unknown_channel_name" };
 			}
 			if(!channelInfo.channel.name) {
 				console.warn("No channelInfo.channel.name found: ", channelInfo.channel);
@@ -92,7 +92,7 @@ class DiscordManager {
 			targetChannel = await this.loggingGuild.channels.cache.find(channel => channel.type === "text" && channel.name === channelInfo.channel.name);
 			if(!targetChannel) {
 				try {
-					targetChannel = await this.loggingGuild.channels.create(channelInfo.channel.name, {reason: `#${channelInfo.channel.name} created for new Slack Messages`});
+					targetChannel = await this.loggingGuild.channels.create(channelInfo.channel.name, { reason: `#${channelInfo.channel.name} created for new Slack Messages` });
 				} catch(channelMakeErr) {
 					// Use the line below instead of throwing if there is a default channel listed in serverMap.json you would like to send to instead of throwing
 					// return this.loggingGuild.channels.cache.get(dataManager.getChannel(event.channel, true));
@@ -241,12 +241,12 @@ class DiscordManager {
 	 */
 	async setPin(pin = false, slackChannelID, slackUserID, slackTs) {
 		const targetChannel = await this.locateChannel(slackChannelID);
-		const user = slackUserID ? (await this.slackClient.users.info({user: slackUserID})).user : undefined;
+		const user = slackUserID ? (await this.slackClient.users.info({ user: slackUserID })).user : undefined;
 		const maps = await databaseManager.locateMaps(this.identify(slackChannelID, slackTs));
 		for(const map of maps) {
 			const selectedMessage = await targetChannel.messages.fetch(map["DiscordMessageID"]);
 			if(pin) {
-				await selectedMessage.pin({reason: `Pinned by ${this.userIdentify(user)} at ${slackTs * 1000} Epoch Time`});
+				await selectedMessage.pin({ reason: `Pinned by ${this.userIdentify(user)} at ${slackTs * 1000} Epoch Time` });
 			} else {
 				await selectedMessage.unpin();
 			}
@@ -258,7 +258,7 @@ class DiscordManager {
 	 * @memberOf module:discordManager.DiscordManager
 	 * @param {string} channel The Slack Channel id. Can be obtained through event.channel
 	 * @param {number} ts The timestamp of the Slack message
- 	 */
+	 */
 	identify(channel, ts) {
 		return `${channel}/${ts}`;
 	}
@@ -287,7 +287,7 @@ class DiscordManager {
 		let mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g);
 		if(mentions) {
 			let identify = mentions.filter((id, index) => mentions.indexOf(id) === index).map(id => {
-				return this.slackClient.users.info({user: id});
+				return this.slackClient.users.info({ user: id });
 			});
 			(await Promise.all(identify)).forEach(userInfo => {
 				text = text.replace(new RegExp(`<@${userInfo.user.id}>`, 'g'), `[${this.userIdentify(userInfo.user)}]`);

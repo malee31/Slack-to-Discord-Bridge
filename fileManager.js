@@ -38,7 +38,7 @@ module.exports = {
 			await completeDownload(finalDownloadPath, fileObj["url_private_download"], {
 				Authorization: `Bearer ${process.env[process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE]}`
 			}, true);
-		} catch (err) {
+		} catch(err) {
 			console.error(`Failed to Download File. Using Default File as Attachment. Reason: ${err}`);
 			finalDownloadPath = FAILED_DOWNLOAD_IMAGE_PATH;
 		}

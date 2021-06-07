@@ -39,6 +39,30 @@ async function setup() {
 
 
 	// Slack Setup Prompts
+	progressLog("Go to the Slack Developer page for the Slack App");
+	envConfig.SLACK_SIGNING_SECRET = await namelessPrompt({
+		type: "text",
+		message: "Enter In The Signing Secret (Found on the main page): ",
+		validate: promptResult => /[\da-fA-F]+/.test(promptResult) || "The Signing Secret Must Only Contain Letters And Numbers"
+	});
+	envConfig.SLACK_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
+		type: "text",
+		message: "Enter In The Slack User OAuth Access Token: ",
+		hint: "The token begins with 'xoxp-'",
+		initial: "xoxp-",
+		validate: promptResult => /xoxp-[\da-fA-F-]+/.test(promptResult) || "The Token Must Start With 'xoxp-' And Be Followed By Letters, Numbers, Or Dashes"
+	});
+	envConfig.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
+		type: "text",
+		message: "Enter In The Slack Bot User OAuth Access Token: ",
+		hint: "The token begins with 'xoxb-'",
+		initial: "xoxb-",
+		validate: promptResult => /xoxb-[\da-fA-F-]+/.test(promptResult) || "The Token Must Start With 'xoxb-' And Be Followed By Letters, Numbers, Or Dashes"
+	});
+
+
+	// End Messages
+	warningLog("Note: Database functions have not been tested. Assume the database to be fine if the first message sends successfully")
 }
 
 function namelessPrompt(promptObj, options) {

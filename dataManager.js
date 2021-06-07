@@ -37,7 +37,7 @@ module.exports = {
 
 async function load() {
 	try {
-		await fs.promises.writeFile(serverMapPath, JSON.stringify(data), {flag: "wx"});
+		await fs.promises.writeFile(serverMapPath, JSON.stringify(data), { flag: "wx" });
 		console.log(`Created Server Map at ${serverMapPath}`);
 	} catch(loadErr) {
 		if(loadErr.code === 'EEXIST') {

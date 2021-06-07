@@ -32,7 +32,7 @@ function fsMake(slackEvents) {
 		}
 		if(process.env.DISABLE_FILE_SERVER?.trim().toLowerCase() === "true") {
 			console.warn(`File Server is Disabled. File Request Denied`);
-			res.writeHead(500, {"Content-Type": "text/plain"});
+			res.writeHead(500, { "Content-Type": "text/plain" });
 			res.write(`The file server is set to private and disabled.\nYour files are most likely still stored on the server so ask the server owner for it if you need it!`);
 			res.end();
 			return;
@@ -42,12 +42,12 @@ function fsMake(slackEvents) {
 				fs.readdir(filePath, (err, files) => {
 					if(err) {
 						console.warn("Error Reading Downloads Folder");
-						res.writeHead(500, {"Content-Type": "text/plain"});
+						res.writeHead(500, { "Content-Type": "text/plain" });
 						res.write(`Error Reading Downloads Folder: \n${err}`);
 						res.end();
 						return;
 					}
-					res.writeHead(200, {"Content-Type": "text/plain"});
+					res.writeHead(200, { "Content-Type": "text/plain" });
 					res.write(`Download Folder Contents:\n`);
 					files.forEach(file => {
 						res.write(`${file}\n`);
@@ -55,7 +55,7 @@ function fsMake(slackEvents) {
 					res.end();
 				});
 			} else {
-				res.writeHead(200, {"Content-Type": "text/plain"});
+				res.writeHead(200, { "Content-Type": "text/plain" });
 				res.write("List of files stored on the server will not be listed because DISABLE_FILE_SERVER_LIST is set to TRUE.\nEach specific file is still accessible through their respective urls");
 				res.end();
 			}
@@ -64,7 +64,7 @@ function fsMake(slackEvents) {
 		fs.readFile(filePath, (err, data) => {
 			if(err) {
 				console.warn(`Error reading file from downloads: ${err}`);
-				res.writeHead(200, {"Content-Type": "text/plain"});
+				res.writeHead(200, { "Content-Type": "text/plain" });
 				res.write(`Error reading file from downloads (${filePath}): \n${err}`);
 				res.end();
 				return;

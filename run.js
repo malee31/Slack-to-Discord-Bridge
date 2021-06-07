@@ -10,11 +10,11 @@
  */
 
 require("dotenv").config();
-const {createEventAdapter} = require("@slack/events-api");
+const { createEventAdapter } = require("@slack/events-api");
 const databaseManager = require("./databaseManager.js");
 const discordManagerClass = require("./discordManager.js");
 const fileManager = require("./fileManager.js");
-const {WebClient} = require("@slack/web-api");
+const { WebClient } = require("@slack/web-api");
 const Discord = require("discord.js");
 
 // Initialize a server using the event adapter's request listener
@@ -85,7 +85,7 @@ function startUp() {
 	if(process.env.DISABLE_CHANNEL_JOIN?.trim().toUpperCase() !== "TRUE") {
 		pendingPromises.push(web.conversations.list().then(channelList => {
 			for(const channel of channelList.channels) {
-				if(channel["is_channel"] && !channel["is_member"]) pendingPromises.push(web.conversations.join({channel: channel.id}));
+				if(channel["is_channel"] && !channel["is_member"]) pendingPromises.push(web.conversations.join({ channel: channel.id }));
 			}
 			console.log("======== Slack Channels Joined ========");
 		}));
@@ -138,7 +138,7 @@ startUp().then(() => {
 		}
 
 		const targetChannel = await discordManager.locateChannel(event.channel);
-		const user = event.user ? (await web.users.info({user: event.user})).user : undefined;
+		const user = event.user ? (await web.users.info({ user: event.user })).user : undefined;
 		const embeds = [userMessageEmbed(user, event.ts)];
 
 		// Default Text Assembly
@@ -218,12 +218,12 @@ startUp().then(() => {
 			case "channel_unarchive":
 			case "channel_purpose":
 				(await standardOperations(targetChannel, embeds, event.attachments, event.channel, event.ts)).forEach(message => {
-					message.pin({reason: "Channel Metadata Change"});
+					message.pin({ reason: "Channel Metadata Change" });
 				});
 				break;
 			case "channel_name":
 				(await standardOperations(targetChannel, embeds, event.attachments, event.channel, event.ts)).forEach(message => {
-					message.pin({reason: "Channel Metadata Change"});
+					message.pin({ reason: "Channel Metadata Change" });
 				});
 				console.log(`Renaming "#${event.old_name}" to "#${event.name}"`);
 				await targetChannel.setName(event.name, "Channel Metadata Change");
