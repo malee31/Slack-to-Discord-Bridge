@@ -149,7 +149,7 @@ startUp().then(() => {
 		// Get Link to First Message in Thread
 		if(event.thread_ts) {
 			let threadMainURL = `https://discord.com/channels/${discordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(discordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
-			embeds[0].setDescription(`[<Replied to This Message>](${threadMainURL})\n${embeds[0].description || ""}`);
+			embeds[0].setDescription(`[｢Replied to This Message｣](${threadMainURL})\n${embeds[0].description || ""}`);
 		}
 
 		// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here

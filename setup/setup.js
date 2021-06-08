@@ -2,6 +2,8 @@ require("dotenv").config();
 const prompts = require("prompts");
 const { progressLog, warningLog } = require("./logger.js");
 const DiscordSetup = require("./discordSetup");
+const { spawn } = require("child_process");
+const path = require("path");
 const envConfig = {};
 
 async function setup() {
@@ -11,8 +13,8 @@ async function setup() {
 	progressLog("Testing Discord Token and Permissions");
 	envConfig.DISCORD_TOKEN = await namelessPrompt({
 		type: "text",
-		message: "Enter In Your Discord Bot Token: ",
-		hint: "You can find this in the Discord Developer Portal",
+		message: "Enter In Your Discord Bot Token (You can find this in the Discord Developer Portal): ",
+		hint: "",
 		validate: DiscordSetup.testToken
 	});
 	progressLog("Discord Bot Token Valid");
@@ -47,18 +49,41 @@ async function setup() {
 	});
 	envConfig.SLACK_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
 		type: "text",
-		message: "Enter In The Slack User OAuth Access Token: ",
-		hint: "The token begins with 'xoxp-'",
+		message: "Enter In The Slack User OAuth Access Token (Starts with 'xoxp-'): ",
 		initial: "xoxp-",
 		validate: promptResult => /xoxp-[\da-fA-F-]+/.test(promptResult) || "The Token Must Start With 'xoxp-' And Be Followed By Letters, Numbers, Or Dashes"
 	});
 	envConfig.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
 		type: "text",
-		message: "Enter In The Slack Bot User OAuth Access Token: ",
-		hint: "The token begins with 'xoxb-'",
+		message: "Enter In The Slack Bot User OAuth Access Token (Starts with 'xoxb-'): ",
 		initial: "xoxb-",
 		validate: promptResult => /xoxb-[\da-fA-F-]+/.test(promptResult) || "The Token Must Start With 'xoxb-' And Be Followed By Letters, Numbers, Or Dashes"
 	});
+
+	progressLog("Now Configuring File Server Preferences");
+	warningLog("Files too large to send to Discord are saved on this device.\nEnabling File Server allows the files to be shared using a link instead but anyone who guesses the link will be able to view them too.\n(Note: Files uploaded to Discord are all technically public too but have longer and more specific URLs that make it harder to guess)");
+	envConfig.DISABLE_FILE_SERVER = await namelessPrompt({
+		type: "confirm",
+		message: "Enable File Server: ",
+		initial: true
+	}) ? "FALSE" : "TRUE";
+
+	if(envConfig.DISABLE_FILE_SERVER === "FALSE") {
+		warningLog("Enabling File List will show the links to every file saved on the file server, making it easily accessible and PUBLIC to EVERYONE including random people");
+		envConfig.DISABLE_FILE_SERVER_LIST = await namelessPrompt({
+			type: "confirm",
+			message: "Enable File List On File Server: ",
+			initial: true
+		}) ? "FALSE" : "TRUE";
+
+		envConfig.SERVER_URL = await namelessPrompt({
+			type: "text",
+			message: "Server URL: ",
+			hint: "argsdagds",
+			initial: "http",
+			validate: promptResult => /https?:\/\/.+/.test(promptResult) || "Server URL must start with http:// or https://"
+		});
+	}
 
 
 	// End Messages
