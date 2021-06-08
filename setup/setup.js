@@ -14,7 +14,6 @@ async function setup() {
 	envConfig.DISCORD_TOKEN = await namelessPrompt({
 		type: "text",
 		message: "Enter In Your Discord Bot Token (You can find this in the Discord Developer Portal): ",
-		hint: "",
 		validate: DiscordSetup.testToken
 	});
 	progressLog("Discord Bot Token Valid");
@@ -50,13 +49,11 @@ async function setup() {
 	envConfig.SLACK_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
 		type: "text",
 		message: "Enter In The Slack User OAuth Access Token (Starts with 'xoxp-'): ",
-		initial: "xoxp-",
 		validate: promptResult => /xoxp-[\da-fA-F-]+/.test(promptResult) || "The Token Must Start With 'xoxp-' And Be Followed By Letters, Numbers, Or Dashes"
 	});
 	envConfig.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
 		type: "text",
 		message: "Enter In The Slack Bot User OAuth Access Token (Starts with 'xoxb-'): ",
-		initial: "xoxb-",
 		validate: promptResult => /xoxb-[\da-fA-F-]+/.test(promptResult) || "The Token Must Start With 'xoxb-' And Be Followed By Letters, Numbers, Or Dashes"
 	});
 
@@ -79,9 +76,7 @@ async function setup() {
 		envConfig.SERVER_URL = await namelessPrompt({
 			type: "text",
 			message: "Server URL: ",
-			hint: "argsdagds",
-			initial: "http",
-			validate: promptResult => /https?:\/\/.+/.test(promptResult) || "Server URL must start with http:// or https://"
+			validate: promptResult => /https?:\/\/.+[^\/]$/.test(promptResult) || "Server URL must start with http:// or https://. Do not end the URL with a /"
 		});
 	}
 
