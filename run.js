@@ -91,13 +91,11 @@ function startUp() {
 		}));
 	}
 
-	// Only needed if bot sends messages to Slack
-	if(process.env.DISABLE_BOT_INFO_LOOKUP?.trim().toUpperCase() !== "TRUE") {
-		pendingPromises.push(web.auth.test().then(auth => {
-			botAuthData = auth;
-			console.log("======= Slack App Data Retrieved ======");
-		}));
-	}
+	// Gets information about the bot and its scopes/permissions
+	pendingPromises.push(web.auth.test().then(auth => {
+		botAuthData = auth;
+		console.log("======= Slack App Data Retrieved ======");
+	}));
 
 	server.listen(Number(process.env.PORT) || 3000, () => {
 		console.log(`========== Started Port ${server.address().port} ==========`);
@@ -133,9 +131,7 @@ startUp().then(() => {
 	console.log("========== Start Up Complete ==========");
 	// Attaches event listener that parses received messages
 	slackEvents.on("message", async event => {
-		if(process.env.DISABLE_BOT_INFO_LOOKUP?.trim().toUpperCase() !== "TRUE") {
-			if(event.bot_id === botAuthData.bot_id || event?.user === botAuthData.user_id) return;
-		}
+		if(event.bot_id === botAuthData.bot_id || event?.user === botAuthData.user_id) return;
 
 		const targetChannel = await discordManager.locateChannel(event.channel);
 		const user = event.user ? (await web.users.info({ user: event.user })).user : undefined;
