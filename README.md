@@ -28,3 +28,13 @@ Send a message in a Slack channel that the Slack App is able to read and watch a
 # Documentation
 First complete all the steps listed above to set up the app.<br>
 Generate the documentation for the project code by running `npm run jsdoc` then view them by running `npm run jsdoc-serve` and going to the printed link while the http-server is running.
+
+# Steps to Create a New Slack App
+Go to the [Slack Developers page](https://api.slack.com/apps), log into the workspace you want to install your app, and click on `Create New App > From scratch`.<br>
+Give the app any name and select the workspace you would like to the app to run on.<br>
+On the `Basic Information` page, go to `Add features and functionality > Event Subscriptions`<br>
+`Enable Events` and verify the `Request URL` (the device you're running this bot on's URL or ip-address) with the `node_modules/.bin/slack-verify` script from Slack.<br>
+Go to the `Subscribe to bot events` section and add the following scopes: `file_created`, `file_shared`, `message.channels`, `pin_added`, and `pin_removed`.<br>
+In `Basic Information > Add features and functionality > Permissions` you will find OAuth tokens later. Go to `Scopes` and add the following: For Bot Token Scopes - `channels:all scopes`, `chat:all scopes`, `emoji:read`, `pins:read`, `team:read`, `reactions:read`, `users:all scopes`. And for User Token Scopes: `channels:read`<br>
+`Note: More scopes than necessary were added in these lists. Scope list will be reduced down to the bare minimum in the future`
+Go back to `Basic Information > Install your app` and add you bot to your workspace!
