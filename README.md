@@ -31,10 +31,17 @@ Generate the documentation for the project code by running `npm run jsdoc` then 
 
 # Steps to Create a New Slack App
 Go to the [Slack Developers page](https://api.slack.com/apps), log into the workspace you want to install your app, and click on `Create New App > From scratch`.<br>
-Give the app any name and select the workspace you would like to the app to run on.<br>
+Give the app a name and select a workspace to run the app on.<br>
 On the `Basic Information` page, go to `Add features and functionality > Event Subscriptions`<br>
-`Enable Events` and verify the `Request URL` (the device you're running this bot on's URL or ip-address) with the `node_modules/.bin/slack-verify` script from Slack.<br>
-Go to the `Subscribe to bot events` section and add the following scopes: `file_created`, `file_shared`, `message.channels`, `pin_added`, and `pin_removed`.<br>
-In `Basic Information > Add features and functionality > Permissions` you will find OAuth tokens later. Go to `Scopes` and add the following: For Bot Token Scopes - `channels:all scopes`, `chat:all scopes`, `emoji:read`, `pins:read`, `team:read`, `reactions:read`, `users:all scopes`. And for User Token Scopes: `channels:read`<br>
-`Note: More scopes than necessary were added in these lists. Scope list will be reduced down to the bare minimum in the future`
-Go back to `Basic Information > Install your app` and add you bot to your workspace!
+`Enable Events` and verify the `Request URL` (the URL or IP address of the device this program runs on) with the `node_modules/.bin/slack-verify` script from Slack. [How To](https://github.com/slackapi/node-slack-sdk#listening-for-an-event-with-the-events-api)<br>
+In the `Subscribe to bot events` section, subscribe the bot to the following events: `message.channel` and `file_shared`<br>
+In `Basic Information > Add features and functionality > Permissions` you will find OAuth tokens after installation. Scroll to `Scopes` and add `channels:read` for the `User Token Scopes` section.<br>
+For the `Bot Token Scopes` section, see the list below in [Bot Scope List and Usages](#bot-scope-list-and-usages)<br>
+Go back to `Basic Information > Install your app` and add your bot to your workspace!
+
+# Bot Scope List and Usages
+* Obtaining A List Of Channels To Join:`channels:read` 
+* Joining Channels From A List: `channels:join`
+* Receiving Messages from Slack: `channels:history`
+* Receiving And Copying Files From Slack: `files:read`
+* Listening To Pins And Unpins: `pins:read`
