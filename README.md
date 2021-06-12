@@ -35,13 +35,14 @@ Give the app a name and select a workspace to run the app on.<br>
 On the `Basic Information` page, go to `Add features and functionality > Event Subscriptions`<br>
 `Enable Events` and verify the `Request URL` (the URL or IP address of the device this program runs on) with the `node_modules/.bin/slack-verify` script from Slack. [How To](https://github.com/slackapi/node-slack-sdk#listening-for-an-event-with-the-events-api)<br>
 In the `Subscribe to bot events` section, subscribe the bot to the following events: `message.channel` and `file_shared`<br>
-In `Basic Information > Add features and functionality > Permissions` you will find OAuth tokens after installation. Scroll to `Scopes` and add `channels:read` for the `User Token Scopes` section.<br>
-For the `Bot Token Scopes` section, see the list below in [Bot Scope List and Usages](#bot-scope-list-and-usages)<br>
-Go back to `Basic Information > Install your app` and add your bot to your workspace!
+In `Basic Information > Add features and functionality > Permissions > Scopes`, add `channels:read` for the `User Token Scopes` section.<br>
+For the `Bot Token Scopes` section (same page), add the scopes listed below in [Bot Scope List and Usages](#bot-scope-list-and-usages)<br>
+Scroll to the top or go back to `Basic Information > Install your app` and add your bot to your workspace!<br>
+You should now go to `Basic Information > Add features and functionality > Permissions` and see your OAuth tokens at the very top. You will need this to continue setting up the program later.
 
 # Bot Scope List and Usages
 * Obtaining A List Of Channels To Join:`channels:read` 
 * Joining Channels From A List: `channels:join`
-* Receiving Messages from Slack: `channels:history`
+* Receiving Messages From Slack: `channels:history`
 * Receiving And Copying Files From Slack: `files:read`
 * Listening To Pins And Unpins: `pins:read`
