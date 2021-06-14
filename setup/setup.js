@@ -4,6 +4,7 @@ const { progressLog, warningLog } = require("./logger.js");
 const DiscordSetup = require("./discordSetup");
 const { spawn } = require("child_process");
 const path = require("path");
+const fs = require("fs");
 const envConfig = {};
 
 async function setup() {
@@ -83,6 +84,9 @@ async function setup() {
 
 	// End Messages
 	warningLog("Note: Database functions have not been tested. Assume the database to be fine if the first message sends successfully")
+	progressLog("Saving Data To .env File");
+	saveEnv();
+	progressLog("Successfully Saved!");
 }
 
 function namelessPrompt(promptObj, options) {
@@ -99,8 +103,23 @@ function anyKeyPrompt(message, validate) {
 	});
 }
 
+function saveEnv() {
+	let content = "";
+	for(const key in envConfig) {
+		if(content !== "") content += "\n";
+		content += `${key}=${envConfig[key].includes(" ") ? `"${envConfig[key]}"` : envConfig[key]}`;
+	}
+	try {
+		fs.writeFileSync(path.resolve(__dirname, "../.env"), content);
+	} catch (e) {
+		console.error(`Unable to Save to File ${e}`);
+		process.exit(1);
+	}
+}
+
 setup().then(() => {
 	console.log("Successfully Set Up!");
+	process.exit(0);
 }).catch(err => {
 	console.error(`Everything has gone wrong\n${err}`);
 	process.exit(1);
