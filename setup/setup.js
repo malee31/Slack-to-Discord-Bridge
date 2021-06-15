@@ -3,6 +3,7 @@ const prompts = require("prompts");
 const { progressLog, warningLog } = require("./logger.js");
 const DiscordSetup = require("./discordSetup");
 const { spawn } = require("child_process");
+const { createEventAdapter } = require("@slack/events-api");
 const path = require("path");
 const fs = require("fs");
 const envConfig = {};
@@ -81,6 +82,11 @@ async function setup() {
 		});
 	}
 
+	progressLog("Now Connecting To Slack\nAttempting To Listen To Messages");
+	const slackEvents = createEventAdapter(envConfig.SLACK_SIGNING_SECRET);
+	slackEvents.on("message", event => {
+		// TODO: Test file downloading and message reading
+	});
 
 	// End Messages
 	warningLog("Note: Database functions have not been tested. Assume the database to be fine if the first message sends successfully")
