@@ -117,8 +117,8 @@ function saveEnv() {
 	}
 	try {
 		fs.writeFileSync(path.resolve(__dirname, "../.env"), content);
-	} catch (e) {
-		console.error(`Unable to Save to File ${e}`);
+	} catch(e) {
+		console.error(`Unable to Save to File: ${e}`);
 		process.exit(1);
 	}
 }
@@ -127,6 +127,6 @@ setup().then(() => {
 	console.log("Successfully Set Up!");
 	process.exit(0);
 }).catch(err => {
-	console.error(`Everything has gone wrong\n${err}`);
+	console.error(`Everything has gone wrong\nSetup incomplete, please find the problem and try again\n${err}`);
 	process.exit(1);
 });
