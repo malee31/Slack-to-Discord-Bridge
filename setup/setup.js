@@ -1,9 +1,9 @@
 require("dotenv").config();
 const prompts = require("prompts");
 const { progressLog, warningLog } = require("./logger.js");
-const DiscordSetup = require("./discordSetup");
+const DiscordSetup = require("./discordSetup.js");
+const SlackSetup = require("./slackSetup.js");
 const { spawn } = require("child_process");
-const { createEventAdapter } = require("@slack/events-api");
 const path = require("path");
 const fs = require("fs");
 const envConfig = {};
@@ -51,13 +51,17 @@ async function setup() {
 	envConfig.SLACK_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
 		type: "text",
 		message: "Enter In The Slack User OAuth Access Token (Starts with 'xoxp-'): ",
-		validate: promptResult => /xoxp-[\da-fA-F-]+/.test(promptResult) || "The Token Must Start With 'xoxp-' And Be Followed By Letters, Numbers, Or Dashes"
+		validate: promptResult => SlackSetup.testOAuthToken(promptResult, false)
 	});
+	progressLog(`Using User OAuth Token from [${SlackSetup.getAuth().user}] for Workspace [${SlackSetup.getAuth().team}]`);
+	// const team = { name: SlackSetup.getAuth().team, id: SlackSetup.getAuth().team_id };
 	envConfig.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
 		type: "text",
 		message: "Enter In The Slack Bot User OAuth Access Token (Starts with 'xoxb-'): ",
-		validate: promptResult => /xoxb-[\da-fA-F-]+/.test(promptResult) || "The Token Must Start With 'xoxb-' And Be Followed By Letters, Numbers, Or Dashes"
+		validate: promptResult => SlackSetup.testOAuthToken(promptResult, true)
 	});
+	progressLog(`Using Bot User OAuth Token from [${SlackSetup.getAuth().user}] for Workspace [${SlackSetup.getAuth().team}]`);
+	if(SlackSetup.getAuth().team_id !== team.id) warningLog(`WARNING: Workspaces Don't Match!\nThe User OAuth Token Is For [${team.name}] While The Bot User OAuth Token Is For [${SlackSetup.getAuth().team}]\nFix this in the .env file later. As long as the Bot User OAuth token is correct, there is a chance that this will not affect the code (Worst case: Files will not be downloaded from Slack and the default png will be shown instead)`);
 
 	progressLog("Now Configuring File Server Preferences");
 	warningLog("Files too large to send to Discord are saved on this device.\nEnabling File Server allows the files to be shared using a link instead but anyone who guesses the link will be able to view them too.\n(Note: Files uploaded to Discord are all technically public too but have longer and more specific URLs that make it harder to guess)");
@@ -83,10 +87,7 @@ async function setup() {
 	}
 
 	progressLog("Now Connecting To Slack\nAttempting To Listen To Messages");
-	const slackEvents = createEventAdapter(envConfig.SLACK_SIGNING_SECRET);
-	slackEvents.on("message", event => {
-		// TODO: Test file downloading and message reading
-	});
+	// TODO: Test file downloading and message reading
 
 	// End Messages
 	warningLog("Note: Database functions have not been tested. Assume the database to be fine if the first message sends successfully")
