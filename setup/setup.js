@@ -3,7 +3,7 @@ const prompts = require("prompts");
 const { progressLog, warningLog } = require("./logger.js");
 const DiscordSetup = require("./discordSetup.js");
 const SlackSetup = require("./slackSetup.js");
-const { spawn } = require("child_process");
+// const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 const envConfig = {};
@@ -14,7 +14,6 @@ async function setup() {
 	// Discord Setup Prompts
 	progressLog("Testing Discord Token and Permissions");
 	envConfig.DISCORD_TOKEN = await namelessPrompt({
-		type: "text",
 		message: "Enter In Your Discord Bot Token (You can find this in the Discord Developer Portal): ",
 		validate: DiscordSetup.testToken
 	});
@@ -44,19 +43,16 @@ async function setup() {
 	// Slack Setup Prompts
 	progressLog("Go to the Slack Developer page for the Slack App");
 	envConfig.SLACK_SIGNING_SECRET = await namelessPrompt({
-		type: "text",
 		message: "Enter In The Signing Secret (Found on the main page): ",
 		validate: promptResult => /[\da-fA-F]+/.test(promptResult) || "The Signing Secret Must Only Contain Letters And Numbers"
 	});
 	envConfig.SLACK_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
-		type: "text",
 		message: "Enter In The Slack User OAuth Access Token (Starts with 'xoxp-'): ",
 		validate: promptResult => SlackSetup.testOAuthToken(promptResult, false)
 	});
 	progressLog(`Using User OAuth Token from [${SlackSetup.getAuth().user}] for Workspace [${SlackSetup.getAuth().team}]`);
 	// const team = { name: SlackSetup.getAuth().team, id: SlackSetup.getAuth().team_id };
 	envConfig.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN = await namelessPrompt({
-		type: "text",
 		message: "Enter In The Slack Bot User OAuth Access Token (Starts with 'xoxb-'): ",
 		validate: promptResult => SlackSetup.testOAuthToken(promptResult, true)
 	});
@@ -80,7 +76,6 @@ async function setup() {
 		}) ? "FALSE" : "TRUE";
 
 		envConfig.SERVER_URL = await namelessPrompt({
-			type: "text",
 			message: "Server URL: ",
 			validate: promptResult => /https?:\/\/.+[^\/]$/.test(promptResult) || "Server URL must start with http:// or https://. Do not end the URL with a /"
 		});
@@ -98,6 +93,7 @@ async function setup() {
 
 function namelessPrompt(promptObj, options) {
 	promptObj.name = "none";
+	promptObj.type = promptObj.type || "text";
 	return prompts(promptObj, options).then(result => result["none"]);
 }
 
