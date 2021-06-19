@@ -139,7 +139,7 @@ startUp().then(() => {
 
 		// Default Text Assembly
 		if(event.text) {
-			if(event.text.toUpperCase() === "SQL_DUMP") databaseManager.dataDump();
+			// if(event.text.toUpperCase() === "SQL_DUMP") databaseManager.dataDump();
 			embeds[0].setDescription(await discordManager.slackTextParse(event.text));
 		}
 		// Get Link to First Message in Thread

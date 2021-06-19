@@ -1,11 +1,12 @@
 const { createEventAdapter } = require("@slack/events-api");
 const { WebClient } = require("@slack/web-api");
-let web, auth;
+let web, auth, slackEvents;
 
 module.exports = {
 	getWeb,
-	getAuth,
+	// getAuth,
 	testOAuthToken,
+	testMessaging
 };
 
 /**
@@ -50,5 +51,20 @@ function testOAuthToken(promptResult, bot = true) {
 	}).catch(err => {
 		if(err.data.error === "invalid_auth") return "The Token Is Invalid. Double Check And Try Again";
 		return `Unknown Error Encountered. Token May Be Invalid:\n${err}`;
+	});
+}
+
+function testMessaging(signingSecret) {
+	slackEvents = createEventAdapter(signingSecret);
+	return new Promise((resolve, reject) => {
+		console.log("Send a message to a Slack channel to continue. Will timeout in 30 seconds");
+		let resolved = false;
+		setInterval(() => {if(!resolved) resolve("Timed out. No message was received from Slack")},30000)
+		slackEvents.on("message", event => {
+			if(resolved) return;
+			console.log(`Message Received: ${event.text}`);
+			resolved = true;
+			resolve(true);
+		});
 	});
 }
