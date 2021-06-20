@@ -4,7 +4,7 @@ let web, auth, slackEvents;
 
 module.exports = {
 	getWeb,
-	// getAuth,
+	getAuth,
 	testOAuthToken,
 	testMessaging
 };
