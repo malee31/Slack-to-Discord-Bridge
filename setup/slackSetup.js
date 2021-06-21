@@ -1,6 +1,7 @@
 const { createEventAdapter } = require("@slack/events-api");
 const { WebClient } = require("@slack/web-api");
-let web, auth, slackEvents;
+const fsMake = require("../fileServer.js");
+let web, auth, slackEvents, server;
 
 module.exports = {
 	getWeb,
@@ -56,15 +57,19 @@ function testOAuthToken(promptResult, bot = true) {
 
 function testMessaging(signingSecret) {
 	slackEvents = createEventAdapter(signingSecret);
+	server = fsMake(slackEvents);
 	return new Promise((resolve, reject) => {
 		console.log("Send a message to a Slack channel to continue. Will timeout in 30 seconds");
 		let resolved = false;
-		setInterval(() => {if(!resolved) resolve("Timed out. No message was received from Slack")},30000)
+		setInterval(() => {
+			if(!resolved) reject("Timed out. No message was received from Slack");
+		},30000);
 		slackEvents.on("message", event => {
 			if(resolved) return;
 			console.log(`Message Received: ${event.text}`);
 			resolved = true;
 			resolve(true);
 		});
+		server.listen(3000);
 	});
 }

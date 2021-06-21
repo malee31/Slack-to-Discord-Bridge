@@ -15,6 +15,7 @@ async function setup() {
 	await fsSetup();
 	progressLog("Now Connecting To Slack\nAttempting To Listen To Messages");
 	// TODO: Test file downloading and message reading
+	await SlackSetup.testMessaging(envConfig.SLACK_SIGNING_SECRET);
 
 	// End Messages
 	warningLog("Note: Database functions have not been tested. Assume the database to be fine if the first message sends successfully")
