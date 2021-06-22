@@ -56,11 +56,16 @@ function testOAuthToken(promptResult, bot = true) {
 }
 
 function testMessaging(signingSecret) {
+	if(!/[\da-fA-F]+/.test(signingSecret)) return Promise.resolve("The Signing Secret Must Only Contain Letters And Numbers");
+	console.log(`Signed with ${signingSecret}`);
 	slackEvents = createEventAdapter(signingSecret);
 	server = fsMake(slackEvents);
 	console.log("Send a message to a Slack channel to continue. Will timeout in 30 seconds");
-	return new Promise((resolve, reject) => {
-		setInterval(() => {reject("Timed out. No message was received from Slack")}, 30000);
+	return new Promise(resolve => {
+		setInterval(() => {
+			resolve("Timed out. No message was received from Slack");
+		}, 30000);
+
 		slackEvents.once("message", event => {
 			console.log(`Message Received: ${event.text}`);
 			resolve(true);

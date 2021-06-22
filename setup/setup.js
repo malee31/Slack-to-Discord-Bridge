@@ -14,6 +14,11 @@ const envConfig = {};
  */
 async function setup() {
 	progressLog("Beginning Setup Process");
+	envConfig.SLACK_SIGNING_SECRET = await ask({
+		message: "Enter In The Signing Secret (Found on the main page): ",
+		validate: SlackSetup.testMessaging
+	});
+	console.log("Success")
 	await fsSetup();
 	await discordSetup();
 	await slackSetup();
@@ -32,12 +37,12 @@ async function setup() {
  * Wrapper function for prompts that sets some defaults for the prompt object and only returns the response instead of an object
  * @param {Object} promptObj Object passed to the prompts function
  * @param {Object} [options] Options passed to the prompts function
- * @return {Promise<string|string[]>} Prompt response in the form of a string or array of strings
+ * @return {Promise<string|string[]>} Prompt response in the form of a string or array of strings depending on the prompt type
  */
 function ask(promptObj, options) {
 	promptObj.name = "none";
 	promptObj.type = promptObj.type || "text";
-	return prompts(promptObj, options).then(result => result["none"]).then(result => Array.isArray(result) ? result : result.toString());
+	return prompts(promptObj, options).then(result => result["none"]);
 }
 
 /**
@@ -126,10 +131,6 @@ async function slackSetup() {
 	console.clear()
 	progressLog("Now Setting Up Slack App Portion");
 	progressLog("Go to the Slack Developer page for the Slack App");
-	envConfig.SLACK_SIGNING_SECRET = await ask({
-		message: "Enter In The Signing Secret (Found on the main page): ",
-		validate: promptResult => /[\da-fA-F]+/.test(promptResult) || "The Signing Secret Must Only Contain Letters And Numbers"
-	});
 	envConfig.SLACK_USER_OAUTH_ACCESS_TOKEN = await ask({
 		message: "Enter In The Slack User OAuth Access Token (Starts with 'xoxp-'): ",
 		validate: promptResult => SlackSetup.testOAuthToken(promptResult, false)
@@ -142,8 +143,18 @@ async function slackSetup() {
 	});
 	progressLog(`Using Bot User OAuth Token from [${SlackSetup.getAuth().user}] for Workspace [${SlackSetup.getAuth().team}]`);
 	if(SlackSetup.getAuth().team_id !== team.id) warningLog(`WARNING: Workspaces Don't Match!\nThe User OAuth Token Is For [${team.name}] While The Bot User OAuth Token Is For [${SlackSetup.getAuth().team}]\nFix this in the .env file later. As long as the Bot User OAuth token is correct, there is a chance that this will not affect the code (Worst case: Files will not be downloaded from Slack and the default png will be shown instead)`);
+
+	envConfig.SLACK_SIGNING_SECRET = await ask({
+		message: "Enter In The Signing Secret (Found on the main page): ",
+		validate: SlackSetup.testMessaging
+	});
 }
 
+/**
+ * Serializes environment variables to the .env file
+ * Will overwrite pre-existing .env files
+ * Is synchronous
+ */
 function saveEnv() {
 	let content = "";
 	for(const key in envConfig) {
