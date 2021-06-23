@@ -14,17 +14,11 @@ const envConfig = {};
  */
 async function setup() {
 	progressLog("Beginning Setup Process");
-	envConfig.SLACK_SIGNING_SECRET = await ask({
-		message: "Enter In The Signing Secret (Found on the main page): ",
-		validate: SlackSetup.testMessaging
-	});
-	console.log("Success")
 	await fsSetup();
 	await discordSetup();
 	await slackSetup();
 	progressLog("Now Connecting To Slack\nAttempting To Listen To Messages");
 	// TODO: Test file downloading and message reading
-	await SlackSetup.testMessaging(envConfig.SLACK_SIGNING_SECRET);
 
 	// End Messages
 	warningLog("Note: Database functions have not been tested. Assume the database to be fine if the first message sends successfully")
@@ -144,10 +138,16 @@ async function slackSetup() {
 	progressLog(`Using Bot User OAuth Token from [${SlackSetup.getAuth().user}] for Workspace [${SlackSetup.getAuth().team}]`);
 	if(SlackSetup.getAuth().team_id !== team.id) warningLog(`WARNING: Workspaces Don't Match!\nThe User OAuth Token Is For [${team.name}] While The Bot User OAuth Token Is For [${SlackSetup.getAuth().team}]\nFix this in the .env file later. As long as the Bot User OAuth token is correct, there is a chance that this will not affect the code (Worst case: Files will not be downloaded from Slack and the default png will be shown instead)`);
 
-	envConfig.SLACK_SIGNING_SECRET = await ask({
-		message: "Enter In The Signing Secret (Found on the main page): ",
-		validate: SlackSetup.testMessaging
-	});
+	let validSigningSecret = false;
+	while(validSigningSecret !== true) {
+		if(typeof validSigningSecret === "string") warningLog(validSigningSecret);
+		envConfig.SLACK_SIGNING_SECRET = await ask({
+			message: "Enter In The Signing Secret (Found on the main page): ",
+			validate: promptResult => /[\da-fA-F]+/.test(promptResult) || "The Signing Secret Must Only Contain Letters And Numbers"
+		});
+		progressLog(`Signing with ${envConfig.SLACK_SIGNING_SECRET}\nSend a message to a Slack channel to continue...\n(Time Limit: 30 Seconds)`);
+		validSigningSecret = await SlackSetup.testMessaging(envConfig.SLACK_SIGNING_SECRET);
+	}
 }
 
 /**

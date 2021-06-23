@@ -55,21 +55,29 @@ function testOAuthToken(promptResult, bot = true) {
 	});
 }
 
-function testMessaging(signingSecret) {
-	if(!/[\da-fA-F]+/.test(signingSecret)) return Promise.resolve("The Signing Secret Must Only Contain Letters And Numbers");
-	console.log(`Signed with ${signingSecret}`);
+async function testMessaging(signingSecret) {
 	slackEvents = createEventAdapter(signingSecret);
-	server = fsMake(slackEvents);
-	console.log("Send a message to a Slack channel to continue. Will timeout in 30 seconds");
-	return new Promise(resolve => {
-		setInterval(() => {
-			resolve("Timed out. No message was received from Slack");
+	return await new Promise(resolve => {
+		server = fsMake(slackEvents);
+		setTimeout(async () => {
+			await serverClose();
+			resolve("Timed out. No message was received from Slack.\nPlease Try Again");
 		}, 30000);
 
-		slackEvents.once("message", event => {
-			console.log(`Message Received: ${event.text}`);
+		slackEvents.once("message", () => {
 			resolve(true);
 		});
 		server.listen(3000);
+	});
+}
+
+function serverClose() {
+	return new Promise(resolve => {
+		if(server) {
+			server.close(() => {
+				resolve();
+			});
+		}
+		else resolve();
 	});
 }
