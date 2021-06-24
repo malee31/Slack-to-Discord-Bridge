@@ -1,23 +1,15 @@
 const { createEventAdapter } = require("@slack/events-api");
 const { WebClient } = require("@slack/web-api");
+const fileManager = require("../fileManager.js");
 const fsMake = require("../fileServer.js");
 let web, auth, slackEvents, server;
 
 module.exports = {
-	getWeb,
 	getAuth,
 	testOAuthToken,
-	testMessaging
+	testMessaging,
+	testDownload
 };
-
-/**
- * Returns the WebClient object currently in use
- * Note: Returns undefined if no token has been provided to testOAuthToken() yet
- * @return {WebClient} WebClient currently in use by the slackSetup.js script
- */
-function getWeb() {
-	return web;
-}
 
 /**
  * Returns the auth data from the WebClient object currently in use
@@ -68,6 +60,26 @@ async function testMessaging(signingSecret) {
 			resolve(true);
 		});
 		server.listen(3000);
+	});
+}
+
+function testDownload(auth) {
+	return new Promise(resolve => {
+		const fileHandler = async event => {
+			console.log(`Received: ${event.subtype}`);
+			if(event.subtype === "file_share") {
+				let downloaded;
+				try {
+					downloaded = await fileManager.fileDownload(event.files[0], undefined, auth);
+					console.log(`Downloaded file successfully from Slack: ${downloaded.storedAs}\nDouble Check It At ${downloaded.path} `);
+					slackEvents.removeListener(fileHandler);
+					resolve(true);
+				} catch (err) {
+					resolve(`Unable to Download File\nReason: ${err}`);
+				}
+			}
+		}
+		slackEvents.on("message", fileHandler);
 	});
 }
 

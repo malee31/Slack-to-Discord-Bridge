@@ -23,9 +23,10 @@ module.exports = {
 	 * @async
 	 * @param {Object} fileObj Slack file details object (Found in event.files[])
 	 * @param {string} [fileName] Name for file (Defaults to the name provided by Slack)
+	 * @param {string} [auth] Alternative token to use (in place of the environment variables)
 	 * @returns {Promise<{path: string, extension: (string|*), original: ({name}|*), size: *, name, title, storedAs: string}>} An object containing details on where the file is, what is is called, the original Slack file object, and more
 	 */
-	fileDownload: async(fileObj, fileName) => {
+	fileDownload: async(fileObj, fileName, auth) => {
 		fileName = (fileName || fileObj.name).replace(/\//g, " - ");
 		let split = fileName.split(".");
 		let fileFormat = { extension: fileName.includes(".") ? split.pop() : "", name: split.join(".") };
@@ -36,7 +37,7 @@ module.exports = {
 
 		try {
 			await completeDownload(finalDownloadPath, fileObj["url_private_download"], {
-				Authorization: `Bearer ${process.env[process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE]}`
+				Authorization: `Bearer ${auth || process.env[process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE]}`
 			}, true);
 		} catch(err) {
 			console.error(`Failed to Download File. Using Default File as Attachment. Reason: ${err}`);

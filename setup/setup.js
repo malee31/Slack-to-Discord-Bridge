@@ -122,7 +122,9 @@ async function discordSetup() {
  * @async
  */
 async function slackSetup() {
-	console.clear()
+	console.clear();
+	// Default
+	envConfig.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE = "SLACK_BOT_USER_OAUTH_ACCESS_TOKEN";
 	progressLog("Now Setting Up Slack App Portion");
 	progressLog("Go to the Slack Developer page for the Slack App");
 	envConfig.SLACK_USER_OAUTH_ACCESS_TOKEN = await ask({
@@ -148,6 +150,9 @@ async function slackSetup() {
 		progressLog(`Signing with ${envConfig.SLACK_SIGNING_SECRET}\nSend a message to a Slack channel to continue...\n(Time Limit: 30 Seconds)`);
 		validSigningSecret = await SlackSetup.testMessaging(envConfig.SLACK_SIGNING_SECRET);
 	}
+	progressLog("Will Now Attempt To Download A File From Slack With Bot Token. Send Any Image To Slack To Continue...");
+	await SlackSetup.testDownload(envConfig.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
+	await anyKey("Double Check And Press Any Key To Finish Setup");
 }
 
 /**
