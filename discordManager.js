@@ -9,29 +9,25 @@ const Discord = require("discord.js");
  * @see https://slack.dev/node-slack-sdk/web-api
  */
 class DiscordManager {
-	/**
-	 * A class that manages parsing from Slack to Discord formats and sending out to channels
-	 * @constructor
-	 * @memberOf module:discordManager
-	 * @param {WebClient} SlackWebAPIClient The Slack web client that allows interaction with their api
-	 */
-	constructor(SlackWebAPIClient) {
-		this.slackClient = SlackWebAPIClient;
-		this.client = new Discord.Client();
-		this.client.once("disconnect", () => {
-			console.log("======= Disconnecting. Goodbye! =======");
-			process.exit(1);
-		});
-		this.attachableFormats = ["png", "jpg", "jpeg"];
-	}
+	static attachableFormats = ["png", "jpg", "jpeg"];
+	static client = new Discord.Client();
+	static SlackClient;
+	static LoggingGuild;
 
 	/**
 	 * Starts up the Discord Bot responsible for logging messages, locates the logging guild, and loads the serverMap.json to (dataManager.js).load()
 	 * @async
+	 * @param {WebClient} SlackWebAPIClient The Slack web client that allows interaction with their API
+	 * @param {string} [token] Optional Discord Token. Will use the DISCORD_TOKEN environment variable if not provided
 	 * @memberOf module:discordManager.DiscordManager
 	 */
-	async start() {
-		await this.client.login(process.env.DISCORD_TOKEN);
+	static async start(SlackWebAPIClient, token) {
+		DiscordManager.SlackClient = SlackWebAPIClient;
+		await DiscordManager.client.login(token || process.env.DISCORD_TOKEN);
+		DiscordManager.client.once("disconnect", () => {
+			console.log("======= Disconnecting. Goodbye! =======");
+			process.exit(1);
+		});
 		console.log(`===== Logged in as ${this.client.user.tag} ====`);
 		try {
 			await this.client.user.setPresence({
@@ -50,7 +46,7 @@ class DiscordManager {
 
 		try {
 			console.log("======= Locating Logging Server =======");
-			this.loggingGuild = await this.client.guilds.fetch(process.env.DISCORD_GUILD_ID);
+			DiscordManager.LoggingGuild = await this.client.guilds.fetch(process.env.DISCORD_GUILD_ID);
 		} catch(locateError) {
 			console.warn("⚠⚠ Failed to Locate Logging Server ⚠⚠");
 			console.error(locateError);
@@ -69,14 +65,14 @@ class DiscordManager {
 	 * @async
 	 * @memberOf module:discordManager.DiscordManager
 	 * @param {string} slackChannelID The Slack Channel id. Can be obtained through event.channel
-	 * @return {Promise<GuildChannel>} Returns the located Discord channel
+	 * @return {GuildChannel} Returns the located Discord channel
 	 */
-	async locateChannel(slackChannelID) {
-		let targetChannel = this.loggingGuild.channels.cache.get(dataManager.getChannel(slackChannelID));
+	static async locateChannel(slackChannelID) {
+		let targetChannel = DiscordManager.LoggingGuild.channels.cache.get(dataManager.getChannel(slackChannelID));
 		if(!targetChannel) {
 			let channelInfo;
 			try {
-				channelInfo = await this.slackClient.conversations.info({ channel: slackChannelID });
+				channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: slackChannelID });
 			} catch(channelInfoErr) {
 				throw `Slack conversations.info error:\n${channelInfoErr}`;
 			}
@@ -89,13 +85,13 @@ class DiscordManager {
 				channelInfo.channel.name = "unknown_channel_name";
 			}
 			// Quirk: First occurrence of channel with the same name on Discord is used. The second occurrence is ignored
-			targetChannel = await this.loggingGuild.channels.cache.find(channel => channel.type === "text" && channel.name === channelInfo.channel.name);
+			targetChannel = await DiscordManager.LoggingGuild.channels.cache.find(channel => channel.type === "text" && channel.name === channelInfo.channel.name);
 			if(!targetChannel) {
 				try {
-					targetChannel = await this.loggingGuild.channels.create(channelInfo.channel.name, { reason: `#${channelInfo.channel.name} created for new Slack Messages` });
+					targetChannel = await DiscordManager.LoggingGuild.channels.create(channelInfo.channel.name, { reason: `#${channelInfo.channel.name} created for new Slack Messages` });
 				} catch(channelMakeErr) {
 					// Use the line below instead of throwing if there is a default channel listed in serverMap.json you would like to send to instead of throwing
-					// return this.loggingGuild.channels.cache.get(dataManager.getChannel(event.channel, true));
+					// return DiscordManager.LoggingGuild.channels.cache.get(dataManager.getChannel(event.channel, true));
 					throw `Channel #${channelInfo.channel.name} could not be found or created.\n${channelMakeErr}`;
 				}
 			}
@@ -115,9 +111,9 @@ class DiscordManager {
 	 * @memberOf module:discordManager.DiscordManager
 	 * @param {MessageEmbed[]} embedArr Array to add file embeds onto. Assumed to have at least 1 embed inside it before the function is called
 	 * @param {Object[]} slackFiles Array of Objects from a Slack message event that includes their download URLs. Passed to fileManager.fileDownload. Can be obtained through event.files
-	 * @returns {Promise<Object[]>} Array of objects containing details on where the file is, what is is called, the original Slack file object, and more. Originates from resolving fileManager.fileDownload on all files
+	 * @returns {Object[]} Array of objects containing details on where the file is, what is is called, the original Slack file object, and more. Originates from resolving fileManager.fileDownload on all files
 	 */
-	async attachmentEmbeds(embedArr, slackFiles) {
+	static async attachmentEmbeds(embedArr, slackFiles) {
 		let downloads = [];
 		// console.log("ATTEMPTING FILE DOWNLOAD");
 		for(const fileObj of slackFiles) {
@@ -128,7 +124,7 @@ class DiscordManager {
 
 		let sliceNum = 1;
 
-		if(this.attachableFormats.includes(downloads[0].extension.toLowerCase().trim()) && downloads[0].size < 8) {
+		if(DiscordManager.attachableFormats.includes(downloads[0].extension.toLowerCase().trim()) && downloads[0].size < 8) {
 			embedArr[0].attachFiles({
 				attachment: downloads[0].path,
 				name: downloads[0].name
@@ -146,7 +142,7 @@ class DiscordManager {
 				// Discord File Upload Size Caps at 8MB Without Nitro Boost
 				// Increase Value if Logging Server is Boosted
 				if(file.size < 8) {
-					if(this.attachableFormats.includes(file.extension.toLowerCase().trim())) {
+					if(DiscordManager.attachableFormats.includes(file.extension.toLowerCase().trim())) {
 						newFileEmbed.attachFiles({
 							attachment: file.path,
 							name: file.name
@@ -182,7 +178,7 @@ class DiscordManager {
 	 * @param {string} slackIdentifier The ID used for the Slack message associated with the Discord message
 	 * @param {string} newText What to change the text to
 	 */
-	async textUpdate(channel, slackIdentifier, newText) {
+	static async textUpdate(channel, slackIdentifier, newText) {
 		let oldMessage = (await databaseManager.locateMaps(slackIdentifier))
 			.filter(async rowResult => rowResult["PurelyText"]);
 		if(!oldMessage) console.warn(`Old Message Not Found For ${slackIdentifier}`);
@@ -213,9 +209,9 @@ class DiscordManager {
 	 * @param {MessageEmbed[]} discordEmbeds Array of Discord embeds to send out
 	 * @param {string} [mapTo] The ID used for the Slack message associated with the Discord messages. Use if the message ids should be kept in the database for future edits and deletions
 	 * @param {boolean} canHaveText Whether or not to mark the first embed as the embed to edit if text changes. Assumes first embed in array is the one with text from the Slack message
-	 * @returns {Promise<Message[]>} Array of the Discord messages sent to the channel and their details. Originates from TextChannel.send
+	 * @returns {Message[]} Array of the Discord messages sent to the channel and their details. Originates from TextChannel.send
 	 */
-	async embedSender(discordChannel, discordEmbeds = [], mapTo, canHaveText = true) {
+	static async embedSender(discordChannel, discordEmbeds = [], mapTo, canHaveText = true) {
 		if(discordEmbeds.length > 1) discordEmbeds[0].setFooter(`${discordEmbeds[0].footer || ""}\n↓ Message Includes ${discordEmbeds.length - 1} Additional Attachment${discordEmbeds.length === 2 ? "" : "s"} Below ↓`);
 		for(let embedNum = 0; embedNum < discordEmbeds.length; embedNum++) {
 			discordEmbeds[embedNum] = await discordChannel.send(discordEmbeds[embedNum]);
@@ -239,9 +235,9 @@ class DiscordManager {
 	 * @param {string} slackUserID The Slack user ID of the person pinning the message on Slack
 	 * @param {number} slackTs The timestamp of the pinned Slack message. Used with the channel ID to identify the message and find it
 	 */
-	async setPin(pin = false, slackChannelID, slackUserID, slackTs) {
+	static async setPin(pin = false, slackChannelID, slackUserID, slackTs) {
 		const targetChannel = await this.locateChannel(slackChannelID);
-		const user = slackUserID ? (await this.slackClient.users.info({ user: slackUserID })).user : undefined;
+		const user = slackUserID ? (await DiscordManager.SlackClient.users.info({ user: slackUserID })).user : undefined;
 		const maps = await databaseManager.locateMaps(this.identify(slackChannelID, slackTs));
 		for(const map of maps) {
 			const selectedMessage = await targetChannel.messages.fetch(map["DiscordMessageID"]);
@@ -259,7 +255,7 @@ class DiscordManager {
 	 * @param {string} channel The Slack Channel id. Can be obtained through event.channel
 	 * @param {number} ts The timestamp of the Slack message
 	 */
-	identify(channel, ts) {
+	static identify(channel, ts) {
 		return `${channel}/${ts}`;
 	}
 
@@ -269,7 +265,7 @@ class DiscordManager {
 	 * @param {Object} user User object obtained through the Slack users.info endpoint
 	 * @returns {string} String to use as their username when logging messages
 	 */
-	userIdentify(user = {}) {
+	static userIdentify(user = {}) {
 		if(!user.real_name || !user.id) return "Unknown Pupper";
 		return `${user.real_name}@${user.id}`;
 	}
@@ -280,14 +276,14 @@ class DiscordManager {
 	 * @param {string} text Slack text to convert
 	 * @returns {Promise<string>} Resulting text with Discord markdown
 	 */
-	async slackTextParse(text) {
+	static async slackTextParse(text) {
 		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
 		// Known Bugs:
 		// * Slow. Each mention slows down parsing significantly
 		let mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g);
 		if(mentions) {
 			let identify = mentions.filter((id, index) => mentions.indexOf(id) === index).map(id => {
-				return this.slackClient.users.info({ user: id });
+				return DiscordManager.SlackClient.users.info({ user: id });
 			});
 			(await Promise.all(identify)).forEach(userInfo => {
 				text = text.replace(new RegExp(`<@${userInfo.user.id}>`, 'g'), `[${this.userIdentify(userInfo.user)}]`);

@@ -12,7 +12,7 @@
 require("dotenv").config();
 const { createEventAdapter } = require("@slack/events-api");
 const databaseManager = require("./databaseManager.js");
-const discordManagerClass = require("./discordManager.js");
+const DiscordManager = require("./discordManager.js");
 const fileManager = require("./fileManager.js");
 const { WebClient } = require("@slack/web-api");
 const Discord = require("discord.js");
@@ -23,7 +23,6 @@ const server = require("./fileServer.js")(slackEvents);
 
 const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 
-const discordManager = new discordManagerClass(web);
 let botAuthData;
 
 // Prevents script from stopping on errors
@@ -40,7 +39,7 @@ slackEvents.on("error", err => {
  */
 function userMessageEmbed(user = {}, time) {
 	return new Discord.MessageEmbed()
-		.setAuthor(discordManager.userIdentify(user), user.profile?.image_512 || "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif")
+		.setAuthor(DiscordManager.userIdentify(user), user.profile?.image_512 || "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif")
 		.setColor(user.color ?? "#407ABA")
 		.setTimestamp(time * 1000);
 }
@@ -101,7 +100,7 @@ function startUp() {
 		console.log(`========== Started Port ${server.address().port} ==========`);
 	});
 
-	pendingPromises.push(discordManager.start());
+	pendingPromises.push(DiscordManager.start(web));
 
 	return Promise.all(pendingPromises);
 }
@@ -123,7 +122,7 @@ async function standardOperations(targetChannel, embeds, attachments, slackChann
 			embeds.push(slackEmbedParse(messageAttachment));
 		}
 	}
-	return await discordManager.embedSender(targetChannel, embeds, discordManager.identify(slackChannelID, slackTs));
+	return DiscordManager.embedSender(targetChannel, embeds, DiscordManager.identify(slackChannelID, slackTs));
 }
 
 // Starts up the logger
@@ -133,18 +132,18 @@ startUp().then(() => {
 	slackEvents.on("message", async event => {
 		if(event.bot_id === botAuthData.bot_id || event?.user === botAuthData.user_id) return;
 
-		const targetChannel = await discordManager.locateChannel(event.channel);
+		const targetChannel = await DiscordManager.locateChannel(event.channel);
 		const user = event.user ? (await web.users.info({ user: event.user })).user : undefined;
 		const embeds = [userMessageEmbed(user, event.ts)];
 
 		// Default Text Assembly
 		if(event.text) {
 			// if(event.text.toUpperCase() === "SQL_DUMP") databaseManager.dataDump();
-			embeds[0].setDescription(await discordManager.slackTextParse(event.text));
+			embeds[0].setDescription(await DiscordManager.slackTextParse(event.text));
 		}
 		// Get Link to First Message in Thread
 		if(event.thread_ts) {
-			let threadMainURL = `https://discord.com/channels/${discordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(discordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
+			let threadMainURL = `https://discord.com/channels/${DiscordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(DiscordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
 			embeds[0].setDescription(`[｢Replied to This Message｣](${threadMainURL})\n${embeds[0].description || ""}`);
 		}
 
@@ -155,7 +154,7 @@ startUp().then(() => {
 				console.log(event);
 				break;
 			case "message_deleted":
-				await discordManager.delete(targetChannel, discordManager.identify(event.channel, event.previous_message.ts))
+				await DiscordManager.delete(targetChannel, DiscordManager.identify(event.channel, event.previous_message.ts))
 				break;
 			case "message_changed":
 				// Known bugs:
@@ -170,7 +169,7 @@ startUp().then(() => {
 
 				// Handles changes in text content
 				if(event.message.text !== event.previous_message.text) {
-					await discordManager.textUpdate(targetChannel, discordManager.identify(event.channel, event.previous_message.ts), event.message.text)
+					await DiscordManager.textUpdate(targetChannel, DiscordManager.identify(event.channel, event.previous_message.ts), event.message.text)
 				}
 
 				// Deals with Slack URLs Unfurl Embeds (May cause bugs if other types of messages have attachments too)
@@ -179,12 +178,12 @@ startUp().then(() => {
 						embeds.push(slackEmbedParse(messageAttachment));
 					}
 				}
-				await discordManager.embedSender(targetChannel, embeds, discordManager.identify(event.channel, event.ts), false);
+				await DiscordManager.embedSender(targetChannel, embeds, DiscordManager.identify(event.channel, event.ts), false);
 				break;
 			case "file_share":
 				// Download the files, send the files (with the text), and then delete the files that are sent. Keeps the ones that are too large to send
-				let downloads = await discordManager.attachmentEmbeds(embeds, event.files);
-				await discordManager.embedSender(targetChannel, embeds, discordManager.identify(event.channel, event.ts));
+				let downloads = await DiscordManager.attachmentEmbeds(embeds, event.files);
+				await DiscordManager.embedSender(targetChannel, embeds, DiscordManager.identify(event.channel, event.ts));
 				await Promise.all(downloads
 					// Comment out the line below if you would not like to keep files 8MB or larger on your webserver
 					.filter(download => download.path !== fileManager.FAILED_DOWNLOAD_IMAGE_PATH && download.size < 8)
@@ -231,11 +230,11 @@ startUp().then(() => {
 	});
 
 	slackEvents.on("pin_added", async event => {
-		await discordManager.setPin(true, event.item.channel, event.user, event.item.message.ts);
+		await DiscordManager.setPin(true, event.item.channel, event.user, event.item.message.ts);
 	});
 
 	slackEvents.on("pin_removed", async event => {
-		await discordManager.setPin(false, event.item.channel, event.user, event.item.message.ts);
+		await DiscordManager.setPin(false, event.item.channel, event.user, event.item.message.ts);
 	});
 }).catch(err => {
 	console.warn("⚠⚠ Failed Start-Up... Shutting Down ⚠⚠");
