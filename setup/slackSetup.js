@@ -51,7 +51,7 @@ async function testMessaging(signingSecret) {
 	slackEvents = createEventAdapter(signingSecret);
 	return await new Promise(resolve => {
 		server = fsMake(slackEvents);
-		setTimeout(async () => {
+		setTimeout(async() => {
 			await serverClose();
 			resolve("Timed out. No message was received from Slack.\nPlease Try Again");
 		}, 30000);
@@ -74,7 +74,7 @@ function testDownload(auth) {
 					console.log(`Downloaded file successfully from Slack: ${downloaded.storedAs}\nDouble Check It At ${downloaded.path} `);
 					slackEvents.removeListener(fileHandler);
 					resolve(true);
-				} catch (err) {
+				} catch(err) {
 					resolve(`Unable to Download File\nReason: ${err}`);
 				}
 			}
@@ -89,7 +89,6 @@ function serverClose() {
 			server.close(() => {
 				resolve();
 			});
-		}
-		else resolve();
+		} else resolve();
 	});
 }

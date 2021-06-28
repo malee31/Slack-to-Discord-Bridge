@@ -188,20 +188,6 @@ class DiscordManager {
 	}
 
 	/**
-	 * Deletes messages associated with a given Slack message ID
-	 * @async
-	 * @memberOf module:discordManager.DiscordManager
-	 * @param {TextChannel} channel The Discord text channel where the message-to-be-deleted is
-	 * @param {string} slackIdentifier The ID used for the Slack message associated with the Discord message
-	 */
-	async delete(channel, slackIdentifier) {
-		await Promise.all((await databaseManager.locateMaps(slackIdentifier)).map(async DMID => {
-			let message = await channel.messages.fetch(DMID["DiscordMessageID"]);
-			await message.delete();
-		}));
-	}
-
-	/**
 	 * Handles sending out all the embeds into a Discord channel and storing their IDs in the SQLite database
 	 * @async
 	 * @memberOf module:discordManager.DiscordManager
@@ -325,6 +311,20 @@ class DiscordManager {
 		// * When using code blocks, the first word is invisible when sent to Discord if it is the only word on the line with the opening ``` since it is parsed as a programming language instead of text by Discord
 		// console.log(text);
 		return text;
+	}
+
+	/**
+	 * Deletes messages associated with a given Slack message ID
+	 * @async
+	 * @memberOf module:discordManager.DiscordManager
+	 * @param {TextChannel} channel The Discord text channel where the message-to-be-deleted is
+	 * @param {string} slackIdentifier The ID used for the Slack message associated with the Discord message
+	 */
+	async delete(channel, slackIdentifier) {
+		await Promise.all((await databaseManager.locateMaps(slackIdentifier)).map(async DMID => {
+			let message = await channel.messages.fetch(DMID["DiscordMessageID"]);
+			await message.delete();
+		}));
 	}
 }
 
