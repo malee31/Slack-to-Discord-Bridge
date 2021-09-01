@@ -109,20 +109,20 @@ function startUp() {
  * The part of the logging process where the final attachments are parsed and embeds are sent out
  * @async
  * @param {TextChannel} targetChannel Discord channel to send the embeds to
- * @param {MessageEmbed[]} embeds Array of parsed embeds to send to channel
+ * @param {MessageOptions[]} payloads Array of parsed embeds to send to channel
  * @param {Object[]} [attachments] Array of attachments from Slack. Can be obtained from event.attachments
  * @param {string} slackChannelID The Slack channel ID that the messages originated from
  * @param {string|number} slackTs Timestamp of the message from Slack
  * @returns {Promise<Message[]>} Returns the array of resulting messages from sending the embeds to Discord
  */
-async function standardOperations(targetChannel, embeds, attachments, slackChannelID, slackTs) {
+async function standardOperations(targetChannel, payloads, attachments, slackChannelID, slackTs) {
 	if(attachments) {
 		// console.log(attachments);
 		for(const messageAttachment of attachments) {
-			embeds.push(slackEmbedParse(messageAttachment));
+			payloads.push({ embeds: [slackEmbedParse(messageAttachment)], files: [] });
 		}
 	}
-	return DiscordManager.embedSender(targetChannel, embeds, DiscordManager.identify(slackChannelID, slackTs));
+	return DiscordManager.embedSender(targetChannel, payloads, DiscordManager.identify(slackChannelID, slackTs));
 }
 
 // Starts up the logger
@@ -134,12 +134,12 @@ startUp().then(() => {
 
 		let targetChannel = await DiscordManager.locateChannel(event.channel);
 		const user = event.user ? (await web.users.info({ user: event.user })).user : undefined;
-		const embeds = [userMessageEmbed(user, event.ts)];
+		const payloads = [{ embeds: [userMessageEmbed(user, event.ts)], files: [] }];
 
 		// Default Text Assembly
 		if(event.text) {
 			// if(event.text.toUpperCase() === "SQL_DUMP") databaseManager.dataDump();
-			embeds[0].setDescription(await DiscordManager.slackTextParse(event.text));
+			payloads[0].embeds[0].setDescription(await DiscordManager.slackTextParse(event.text));
 		}
 		// Locate a thread channel for threads instead of sending to the main channel
 		if(event.thread_ts) {
@@ -153,7 +153,7 @@ startUp().then(() => {
 			});
 			else targetChannel = originalDiscordMessage.thread;
 			// let threadMainURL = `https://discord.com/channels/${DiscordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(DiscordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
-			// embeds[0].setDescription(`[｢Replied to This Message｣](${threadMainURL})\n${embeds[0].description || ""}`);
+			// payload[0].embeds[0].setDescription(`[｢Replied to This Message｣](${threadMainURL})\n${payload.embeds[0].description || ""}`);
 		}
 
 		// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here
@@ -163,6 +163,7 @@ startUp().then(() => {
 				console.log(event);
 				break;
 			case "message_deleted":
+				console.log(targetChannel.name);
 				await DiscordManager.delete(targetChannel, DiscordManager.identify(event.channel, event.previous_message.ts))
 				break;
 			case "message_changed":
@@ -174,7 +175,7 @@ startUp().then(() => {
 				// * Changes that occur before the original message has had a chance to be bridged over may crash the program (It won't shutdown though, it'll just leave a messy error message)
 
 				// Removes default main embed
-				embeds.shift();
+				payloads.shift();
 
 				// Handles changes in text content
 				if(event.message.text !== event.previous_message.text) {
@@ -184,15 +185,15 @@ startUp().then(() => {
 				// Deals with Slack URLs Unfurl Embeds (May cause bugs if other types of messages have attachments too)
 				if(Array.isArray(event.message.attachments) && !event.previous_message.attachments) {
 					for(const messageAttachment of event.message.attachments) {
-						embeds.push(slackEmbedParse(messageAttachment));
+						payloads.push({ embeds: slackEmbedParse(messageAttachment), files: [] });
 					}
 				}
-				await DiscordManager.embedSender(targetChannel, embeds, DiscordManager.identify(event.channel, event.ts), false);
+				await DiscordManager.embedSender(targetChannel, payloads, DiscordManager.identify(event.channel, event.ts), false);
 				break;
 			case "file_share":
 				// Download the files, send the files (with the text), and then delete the files that are sent. Keeps the ones that are too large to send
-				let downloads = await DiscordManager.attachmentEmbeds(embeds, event.files);
-				await DiscordManager.embedSender(targetChannel, embeds, DiscordManager.identify(event.channel, event.ts));
+				let downloads = await DiscordManager.attachmentEmbeds(payloads, event.files);
+				await DiscordManager.embedSender(targetChannel, payloads, DiscordManager.identify(event.channel, event.ts));
 				await Promise.all(downloads
 					// Comment out the line below if you would not like to keep files 8MB or larger on your webserver
 					.filter(download => download.path !== fileManager.FAILED_DOWNLOAD_IMAGE_PATH && download.size < 8)
@@ -212,7 +213,7 @@ startUp().then(() => {
 			case "me_message": // It's just regular text in italics isn't it??? I'm not going to bother to italicize it
 			case "thread_broadcast": // Is a message AND a thread... Oh no...
 			case undefined:
-				await standardOperations(targetChannel, embeds, event.attachments, event.channel, event.ts);
+				await standardOperations(targetChannel, payloads, event.attachments, event.channel, event.ts);
 				break;
 			case "channel_topic":
 				await targetChannel.setTopic(event.topic);
@@ -221,12 +222,12 @@ startUp().then(() => {
 			case "channel_archive":
 			case "channel_unarchive":
 			case "channel_purpose":
-				(await standardOperations(targetChannel, embeds, event.attachments, event.channel, event.ts)).forEach(message => {
+				(await standardOperations(targetChannel, payloads, event.attachments, event.channel, event.ts)).forEach(message => {
 					message.pin({ reason: "Channel Metadata Change" });
 				});
 				break;
 			case "channel_name":
-				(await standardOperations(targetChannel, embeds, event.attachments, event.channel, event.ts)).forEach(message => {
+				(await standardOperations(targetChannel, payloads, event.attachments, event.channel, event.ts)).forEach(message => {
 					message.pin({ reason: "Channel Metadata Change" });
 				});
 				console.log(`Renaming "#${event.old_name}" to "#${event.name}"`);
