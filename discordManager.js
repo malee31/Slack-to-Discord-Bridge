@@ -10,7 +10,7 @@ const Discord = require("discord.js");
  */
 class DiscordManager {
 	static attachableFormats = ["png", "jpg", "jpeg"];
-	static client = new Discord.Client();
+	static client = new Discord.Client({ intents: require("./Intents.js") });
 	static SlackClient;
 	static LoggingGuild;
 
@@ -200,7 +200,7 @@ class DiscordManager {
 	static async embedSender(discordChannel, discordEmbeds = [], mapTo, canHaveText = true) {
 		if(discordEmbeds.length > 1) discordEmbeds[0].setFooter(`${discordEmbeds[0].footer || ""}\n↓ Message Includes ${discordEmbeds.length - 1} Additional Attachment${discordEmbeds.length === 2 ? "" : "s"} Below ↓`);
 		for(let embedNum = 0; embedNum < discordEmbeds.length; embedNum++) {
-			discordEmbeds[embedNum] = await discordChannel.send(discordEmbeds[embedNum]);
+			discordEmbeds[embedNum] = await discordChannel.send({embeds: [discordEmbeds[embedNum]]});
 			if(mapTo) {
 				databaseManager.messageMap(mapTo, discordEmbeds[embedNum].id, canHaveText, err => {
 					if(err) console.log(`MAP ERROR:\n${err}`);

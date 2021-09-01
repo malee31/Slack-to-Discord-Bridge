@@ -15,13 +15,13 @@
 	"dependencies": {
 		"@slack/events-api": "^2.3.4",
 		"@slack/web-api": "^5.15.0",
-		"discord.js": "^12.2.0",
+		"discord.js": "^13.1.0",
 		"dotenv": "^8.2.0",
-		"http": "0.0.1-security",
+		"http": "^0.0.1-security",
 		"kleur": "^3.0.3",
 		"mime-types": "^2.1.28",
 		"prompts": "^2.4.1",
-		"sqlite3": "^5.0.0"
+		"sqlite3": "^5.0.2"
 	},
 	"repository": {
 		"type": "git",
