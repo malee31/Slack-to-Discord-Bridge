@@ -132,7 +132,7 @@ startUp().then(() => {
 	slackEvents.on("message", async event => {
 		if(event.bot_id === botAuthData.bot_id || event?.user === botAuthData.user_id) return;
 
-		const targetChannel = await DiscordManager.locateChannel(event.channel);
+		let targetChannel = await DiscordManager.locateChannel(event.channel);
 		const user = event.user ? (await web.users.info({ user: event.user })).user : undefined;
 		const embeds = [userMessageEmbed(user, event.ts)];
 
@@ -141,10 +141,19 @@ startUp().then(() => {
 			// if(event.text.toUpperCase() === "SQL_DUMP") databaseManager.dataDump();
 			embeds[0].setDescription(await DiscordManager.slackTextParse(event.text));
 		}
-		// Get Link to First Message in Thread
+		// Locate a thread channel for threads instead of sending to the main channel
 		if(event.thread_ts) {
-			let threadMainURL = `https://discord.com/channels/${DiscordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(DiscordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
-			embeds[0].setDescription(`[｢Replied to This Message｣](${threadMainURL})\n${embeds[0].description || ""}`);
+			// TODO: Handle errors. This chunk of code was thrown together quickly so it isn't exactly in the best condition
+			const originalDiscordMessage = await targetChannel.messages.fetch((await databaseManager.locateMaps(DiscordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]);
+			let threadTitle = originalDiscordMessage.embeds[0].description;
+			threadTitle = threadTitle.length > 100 ? `${threadTitle.substring(0, 99)}…` : threadTitle;
+			if(!originalDiscordMessage.hasThread) targetChannel = await originalDiscordMessage.startThread({
+				name: threadTitle,
+				autoArchiveDuration: "MAX"
+			});
+			else targetChannel = originalDiscordMessage.thread;
+			// let threadMainURL = `https://discord.com/channels/${DiscordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(DiscordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
+			// embeds[0].setDescription(`[｢Replied to This Message｣](${threadMainURL})\n${embeds[0].description || ""}`);
 		}
 
 		// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here
