@@ -1,6 +1,6 @@
 /**
  * @file run.js is the root file that starts everything up and handles everything.
- * See the{@link module:Start| run.js documentation} for more information. (It has been renamed the Start module for documentation purposes)
+ * See the{@link module:Start| run.js documentation} for more information. (Named the Start module for documentation purposes)
  * @author Marvin Lee
  */
 
@@ -10,33 +10,38 @@
  */
 
 require("dotenv").config();
-const { createEventAdapter } = require("@slack/events-api");
 const databaseManager = require("./databaseManager.js");
 const DiscordManager = require("./discordManager.js");
-const slackListeners = require("./slackListeners.js");
-const fileManager = require("./fileManager.js");
-const { WebClient } = require("@slack/web-api");
-const Discord = require("discord.js");
+const SlackManager = require("./slackManager.js");
 
 // Initialize a server using the event adapter's request listener
-const slackEvents = createEventAdapter(process.env.SLACK_SIGNING_SECRET);
-const server = require("./fileServer.js")(slackEvents);
-
-const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
-
-let botAuthData;
+const server = require("./fileServer.js")(SlackManager.SlackHTTPServerEventAdapter);
 
 /**
- * Creates a basic embed template with the Slack user's profile picture, name, and message timestamp
- * @param {Object} user User object obtained through Slack's users.info endpoint
- * @param {number} time Timestamp from the Slack message. Can be obtained from event.ts
- * @returns {MessageEmbed} Blank user embed template
+ * Starts up the script by initializing all the necessary variables in all the JS files and completing start-up tasks
+ * @returns {Promise<Array>} Returns a Promise.all with an array of all the setup and start-up functions' results (Usually undefined)
  */
-function userMessageEmbed(user = {}, time) {
-	return new Discord.MessageEmbed()
-		.setAuthor(DiscordManager.userIdentify(user), user.profile?.image_512 || "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif")
-		.setColor(user.color ?? "#407ABA")
-		.setTimestamp(time * 1000);
+function startUp() {
+	console.log("============= Starting Up =============");
+	console.log("============ Checking .env ============");
+	if(process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_BOT_USER_OAUTH_ACCESS_TOKEN" && process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_USER_OAUTH_ACCESS_TOKEN") {
+		console.log("============== Bad .env ===============");
+		console.error(`SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE not set to either SLACK_BOT_USER_OAUTH_ACCESS_TOKEN or SLACK_USER_OAUTH_ACCESS_TOKEN\nPlease set it properly and try again\nCurrent Value: ${process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE}`);
+		process.exit(1);
+	}
+	console.log("============ Checked  .env ============");
+
+	return Promise.all([
+		SlackManager.start(),
+		DiscordManager.start(),
+		new Promise((resolve, reject) => {
+			server.listen(Number(process.env.PORT) || 3000, err => {
+				if(err) reject(err);
+				console.log(`========== Started Port ${server.address().port} ==========`);
+				resolve();
+			});
+		}),
+	]);
 }
 
 /**
@@ -57,47 +62,6 @@ function slackEmbedParse(embed = {}) {
 		.setColor(embed.color ?? "#407ABA");
 	if(embed.footer) discordEmbed.setFooter(embed.footer);
 	return discordEmbed;
-}
-
-/**
- * Starts up the script by initializing all the necessary variables in all the JS files and completing start-up tasks
- * @returns {Promise<Array.<*>>} Returns a Promise.all with an array of all the setup and start-up functions' results (Usually undefined)
- */
-function startUp() {
-	console.log("============= Starting Up =============");
-	console.log("============ Checking .env ============");
-	if(process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_BOT_USER_OAUTH_ACCESS_TOKEN" && process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_USER_OAUTH_ACCESS_TOKEN") {
-		console.log("============== Bad .env ===============");
-		console.error(`SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE not set to either SLACK_BOT_USER_OAUTH_ACCESS_TOKEN or SLACK_USER_OAUTH_ACCESS_TOKEN\nPlease set it properly and try again\nCurrent Value: ${process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE}`);
-		process.exit(1);
-	}
-	console.log("============ Checked  .env ============");
-
-	const pendingPromises = [];
-
-	// Can Disable With Environment Variable
-	if(process.env.DISABLE_CHANNEL_JOIN?.trim().toUpperCase() !== "TRUE") {
-		pendingPromises.push(web.conversations.list().then(channelList => {
-			for(const channel of channelList.channels) {
-				if(channel["is_channel"] && !channel["is_member"]) pendingPromises.push(web.conversations.join({ channel: channel.id }));
-			}
-			console.log("======== Slack Channels Joined ========");
-		}));
-	}
-
-	// Gets information about the bot and its scopes/permissions
-	pendingPromises.push(web.auth.test().then(auth => {
-		botAuthData = auth;
-		console.log("======= Slack App Data Retrieved ======");
-	}));
-
-	server.listen(Number(process.env.PORT) || 3000, () => {
-		console.log(`========== Started Port ${server.address().port} ==========`);
-	});
-
-	pendingPromises.push(DiscordManager.start(web));
-
-	return Promise.all(pendingPromises);
 }
 
 /**
@@ -124,122 +88,7 @@ async function standardOperations(targetChannel, payloads, attachments, slackCha
 startUp().then(() => {
 	console.log("========== Start Up Complete ==========");
 
-	// Prevents script from stopping on errors
-	slackEvents.on("error", err => {
-		console.warn("Something went wrong with the Slack Web API");
-		console.error(err);
-	});
-
 	// Attaches event listener that parses received messages
-	slackEvents.on("message", async event => {
-		if(event.bot_id === botAuthData.bot_id || event?.user === botAuthData.user_id) return;
-
-		let targetChannel = await DiscordManager.locateChannel(event.channel);
-		const user = event.user ? (await web.users.info({ user: event.user })).user : undefined;
-		const payloads = [{ embeds: [userMessageEmbed(user, event.ts)], files: [] }];
-
-		// Default Text Assembly
-		if(event.text) {
-			// if(event.text.toUpperCase() === "SQL_DUMP") databaseManager.dataDump();
-			payloads[0].embeds[0].setDescription(await DiscordManager.slackTextParse(event.text));
-		}
-		// Locate a thread channel for threads instead of sending to the main channel
-		if(event.thread_ts) {
-			// TODO: Handle errors. This chunk of code was thrown together quickly so it isn't exactly in the best condition
-			const originalDiscordMessage = await targetChannel.messages.fetch((await databaseManager.locateMaps(DiscordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]);
-			let threadTitle = originalDiscordMessage.embeds[0].description;
-			threadTitle = threadTitle.length > 100 ? `${threadTitle.substring(0, 99)}…` : threadTitle;
-			if(!originalDiscordMessage.hasThread) targetChannel = await originalDiscordMessage.startThread({
-				name: threadTitle,
-				autoArchiveDuration: "MAX"
-			});
-			else targetChannel = originalDiscordMessage.thread;
-			// let threadMainURL = `https://discord.com/channels/${DiscordManager.loggingGuild.id}/${targetChannel.id}/${(await databaseManager.locateMaps(DiscordManager.identify(event.channel, event.thread_ts)))[0]["DiscordMessageID"]}`;
-			// payload[0].embeds[0].setDescription(`[｢Replied to This Message｣](${threadMainURL})\n${payload.embeds[0].description || ""}`);
-		}
-
-		// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here
-		switch(event.subtype) {
-			case "bot_message":
-				console.warn("BOT MESSAGE - ABORT");
-				console.log(event);
-				break;
-			case "message_deleted":
-				console.log(targetChannel.name);
-				await DiscordManager.delete(targetChannel, DiscordManager.identify(event.channel, event.previous_message.ts))
-				break;
-			case "message_changed":
-				// Known bugs:
-				// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
-				// * Attachments are only parsed again if there were no attachments before but there are now. This means that if an attachment is somehow added in an edit and there was already an attachment before, they are ignored.
-				//     * Situations in which this will happen have not been found yet
-				// * Attachments may break the order of the logged messages if they process themselves faster than the main embed
-				// * Changes that occur before the original message has had a chance to be bridged over may crash the program (It won't shutdown though, it'll just leave a messy error message)
-
-				// Removes default main embed
-				payloads.shift();
-
-				// Handles changes in text content
-				if(event.message.text !== event.previous_message.text) {
-					await DiscordManager.textUpdate(targetChannel, DiscordManager.identify(event.channel, event.previous_message.ts), event.message.text)
-				}
-
-				// Deals with Slack URLs Unfurl Embeds (May cause bugs if other types of messages have attachments too)
-				if(Array.isArray(event.message.attachments) && !event.previous_message.attachments) {
-					for(const messageAttachment of event.message.attachments) {
-						payloads.push({ embeds: slackEmbedParse(messageAttachment), files: [] });
-					}
-				}
-				await DiscordManager.embedSender(targetChannel, payloads, DiscordManager.identify(event.channel, event.ts), false);
-				break;
-			case "file_share":
-				// Download the files, send the files (with the text), and then delete the files that are sent. Keeps the ones that are too large to send
-				let downloads = await DiscordManager.attachmentEmbeds(payloads, event.files);
-				await DiscordManager.embedSender(targetChannel, payloads, DiscordManager.identify(event.channel, event.ts));
-				await Promise.all(downloads
-					// Comment out the line below if you would not like to keep files 8MB or larger on your webserver
-					.filter(download => download.path !== fileManager.FAILED_DOWNLOAD_IMAGE_PATH && download.size < 8)
-					.map(download => fileManager.fileDelete(download.path))
-				);
-				break;
-			case "message_replied":
-				console.warn("Received a 'message_replied' event. This is just a thread and it should be working fine.\nJust note that if you see this: There was a bug alert for this subtype that said to check for event.thread_ts instead of using event.subtype to tell if the message is part of a thread. If you see this, it means that it has since been patched and the code should be updated");
-			/* No Support Added for Groups. If a default channel is being used, there is a chance that the code will still work for groups to some degree if this is uncommented but there are no guarantees
-			case "group_join":
-			case "group_leave":
-			case "group_archive":
-			case "group_unarchive":
-			case "group_name":
-			case "group_purpose":
-			case "group_topic": */
-			case "me_message": // It's just regular text in italics isn't it??? I'm not going to bother to italicize it
-			case "thread_broadcast": // Is a message AND a thread... Oh no...
-			case undefined:
-				await standardOperations(targetChannel, payloads, event.attachments, event.channel, event.ts);
-				break;
-			case "channel_topic":
-				await targetChannel.setTopic(event.topic);
-			case "channel_join":
-			case "channel_leave":
-			case "channel_archive":
-			case "channel_unarchive":
-			case "channel_purpose":
-				(await standardOperations(targetChannel, payloads, event.attachments, event.channel, event.ts)).forEach(message => {
-					message.pin({ reason: "Channel Metadata Change" });
-				});
-				break;
-			case "channel_name":
-				(await standardOperations(targetChannel, payloads, event.attachments, event.channel, event.ts)).forEach(message => {
-					message.pin({ reason: "Channel Metadata Change" });
-				});
-				console.log(`Renaming "#${event.old_name}" to "#${event.name}"`);
-				await targetChannel.setName(event.name, "Channel Metadata Change");
-				console.log(`Successfully Renamed "#${event.old_name}" to "#${event.name}"`);
-				break;
-			default:
-				console.warn(`Unknown Message Subtype ${event.subtype}`);
-		}
-	});
 
 	slackEvents.on("pin_added", async event => {
 		await DiscordManager.setPin(true, event.item.channel, event.user, event.item.message.ts);

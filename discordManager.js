@@ -19,15 +19,11 @@ class DiscordManager {
 	/**
 	 * Starts up the Discord Bot responsible for logging messages, locates the logging guild, and loads the serverMap.json to (dataManager.js).load()
 	 * @async
-	 * @param {WebClient} SlackWebAPIClient The Slack web client that allows interaction with their API
-	 * @param {string} [token] Optional Discord Token. Will use the DISCORD_TOKEN environment variable if not provided
 	 * @memberOf module:discordManager.DiscordManager
 	 */
-	static async start(SlackWebAPIClient, token) {
-		DiscordManager.SlackClient = SlackWebAPIClient;
-
+	static async start() {
 		// Start up Discord Bot
-		await DiscordManager.client.login(token || process.env.DISCORD_TOKEN);
+		await DiscordManager.client.login(process.env.DISCORD_TOKEN);
 		DiscordManager.client.once("disconnect", () => {
 			console.log("======= Disconnecting. Goodbye! =======");
 			process.exit(1);
@@ -243,17 +239,6 @@ class DiscordManager {
 	 */
 	static identify(channel, ts) {
 		return `${channel}/${ts}`;
-	}
-
-	/**
-	 * Creates a more readable name for each user than their user ID
-	 * @memberOf module:discordManager.DiscordManager
-	 * @param {Object} user User object obtained through the Slack users.info endpoint
-	 * @returns {string} String to use as their username when logging messages
-	 */
-	static userIdentify(user = {}) {
-		if(!user.real_name || !user.id) return "Unknown Pupper";
-		return `${user.real_name}@${user.id}`;
 	}
 
 	/**
