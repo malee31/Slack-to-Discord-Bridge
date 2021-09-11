@@ -209,10 +209,9 @@ class DiscordManager {
 		for(let embedNum = 0; embedNum < discordPayloads.length; embedNum++) {
 			discordPayloads[embedNum] = await discordChannel.send(discordPayloads[embedNum]);
 			if(mapTo) {
-				databaseManager.messageMap(mapTo, discordPayloads[embedNum].id, canHaveText, err => {
-					if(err) console.log(`MAP ERROR:\n${err}`);
-					// console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`);
-				});
+				await databaseManager.messageMap(mapTo, discordPayloads[embedNum].id, canHaveText)
+					// .then(() => { console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`); })
+					.catch(err => {console.warn(`MAP ERROR:\n${err}`)});
 				canHaveText = false;
 			}
 		}

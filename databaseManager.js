@@ -12,7 +12,7 @@ module.exports = {
 	 * @param {string} SMID ID for the Slack Message. There is no proper format for it as long as it is unique so this program uses ChannelID/TimeStamp format but you may change it however you like
 	 * @param {string} DMID ID for the Discord Message. Get it from the message.id property
 	 * @param {boolean} [textOnly = false] Whether or not this specific Discord Message ID is the one containing the text fields from Slack (Used when looking up which message to edit on message_changed)
-	 * @param {function} [callback] Callback that is passed to db.run AKA IDBDatabase.run. Use if you would like to check if the operation is successful or not or to do something after it finishes
+	 * @returns {Promise} Resolves when new map is successfully added
 	 */
 	messageMap,
 	/**
@@ -33,8 +33,21 @@ db.on("open", () => {
 	db.run("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL, PurelyText BOOLEAN NOT NULL)");
 });
 
-function messageMap(SMID, DMID, textOnly = false, callback) {
-	db.run("INSERT INTO MessageMap VALUES (?, ?, ?)", SMID, DMID, textOnly, callback);
+/**
+ * Add a new entry to the database to link together Discord Message IDs with Slack Message IDs
+ * @param {Object} data Object containing all the keys to add to the table. All properties are mandatory
+ * @param {string} data.SMID Slack Message ID to map
+ * @param {string} data.DMID Discord Message ID to map
+ * @param {boolean} [data.textOnly = false] Whether this Discord Message ID should be the designated text node. This message will be the one edited when editing text if true
+ * @return {Promise} Resolves after inserting the new row
+ */
+function messageMap({SMID, DMID, textOnly = false}) {
+	return new Promise((resolve, reject) => {
+		db.run("INSERT INTO MessageMap VALUES (?, ?, ?)", SMID, DMID, textOnly, (err, res) => {
+			if(err) reject(err);
+			resolve(res);
+		});
+	});
 }
 
 function locateMaps(SMID) {
