@@ -11,6 +11,7 @@ const Discord = require("discord.js");
 
 class DiscordManager {
 	static attachableFormats = ["png", "jpg", "jpeg"];
+	// noinspection JSCheckFunctionSignatures
 	static client = new Discord.Client({ intents: require("./Intents.js") });
 	static SlackClient;
 	static LoggingGuild;
@@ -24,26 +25,22 @@ class DiscordManager {
 	 */
 	static async start(SlackWebAPIClient, token) {
 		DiscordManager.SlackClient = SlackWebAPIClient;
+
+		// Start up Discord Bot
 		await DiscordManager.client.login(token || process.env.DISCORD_TOKEN);
 		DiscordManager.client.once("disconnect", () => {
 			console.log("======= Disconnecting. Goodbye! =======");
 			process.exit(1);
 		});
+		this.client.user.setPresence({
+			activities: [{
+				type: "LISTENING",
+				name: "Slack Messages"
+			}],
+			status: "online",
+			afk: false
+		});
 		console.log(`===== Logged in as ${this.client.user.tag} ====`);
-		try {
-			await this.client.user.setPresence({
-				activity: {
-					type: "LISTENING",
-					name: "Slack Messages"
-				},
-				status: "online",
-				afk: false
-			});
-			console.log("====== Successfully Set Presence ======");
-		} catch(err) {
-			console.warn("⚠⚠⚠⚠⚠ Failed to Set Presence ⚠⚠⚠⚠⚠");
-			console.error(err);
-		}
 
 		try {
 			console.log("======= Locating Logging Server =======");
@@ -69,14 +66,9 @@ class DiscordManager {
 	 * @return {GuildChannel} Returns the located Discord channel
 	 */
 	static async locateChannel(slackChannelID) {
-		let targetChannel = DiscordManager.LoggingGuild.channels.cache.get(dataManager.getChannel(slackChannelID));
+		let targetChannel = await DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(slackChannelID));
 		if(!targetChannel) {
-			let channelInfo;
-			try {
-				channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: slackChannelID });
-			} catch(channelInfoErr) {
-				throw `Slack conversations.info error:\n${channelInfoErr}`;
-			}
+			const channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: slackChannelID });
 			if(!channelInfo.channel) {
 				console.warn("No channelInfo.channel found: ", channelInfo);
 				channelInfo.channel = { name: "unknown_channel_name" };
@@ -86,13 +78,15 @@ class DiscordManager {
 				channelInfo.channel.name = "unknown_channel_name";
 			}
 			// Quirk: First occurrence of channel with the same name on Discord is used. The second occurrence is ignored
-			targetChannel = await DiscordManager.LoggingGuild.channels.cache.find(channel => channel.type === "text" && channel.name === channelInfo.channel.name);
+			targetChannel = (await DiscordManager.LoggingGuild.channels.fetch())
+				.find(channel => channel.type === "text" && channel.name === channelInfo.channel.name);
+
 			if(!targetChannel) {
 				try {
 					targetChannel = await DiscordManager.LoggingGuild.channels.create(channelInfo.channel.name, { reason: `#${channelInfo.channel.name} created for new Slack Messages` });
 				} catch(channelMakeErr) {
 					// Use the line below instead of throwing if there is a default channel listed in serverMap.json you would like to send to instead of throwing
-					// return DiscordManager.LoggingGuild.channels.cache.get(dataManager.getChannel(event.channel, true));
+					// return DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(event.channel, true));
 					throw `Channel #${channelInfo.channel.name} could not be found or created.\n${channelMakeErr}`;
 				}
 			}
@@ -187,7 +181,7 @@ class DiscordManager {
 	 */
 	static async textUpdate(channel, slackIdentifier, newText) {
 		let oldMessage = (await databaseManager.locateMaps(slackIdentifier))
-			.filter(async rowResult => rowResult["PurelyText"]);
+			.filter(rowResult => rowResult["PurelyText"]);
 		if(!oldMessage) console.warn(`Old Message Not Found For ${slackIdentifier}`);
 		oldMessage = await channel.messages.fetch(oldMessage[0]["DiscordMessageID"]);
 		let editedEmbed = new Discord.MessageEmbed(oldMessage.embeds[0]).setDescription(newText);

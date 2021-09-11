@@ -42,7 +42,7 @@ async function load() {
 	} catch(loadErr) {
 		if(loadErr.code === 'EEXIST') {
 			const serverMapFile = await fs.promises.readFile(serverMapPath);
-			Object.assign(data, JSON.parse(serverMapFile));
+			Object.assign(data, JSON.parse(serverMapFile.toString()));
 			return;
 		}
 		throw `Problem Encountered While Loading ServerMap from ${serverMapPath}\n${loadErr}`;

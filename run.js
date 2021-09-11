@@ -13,6 +13,7 @@ require("dotenv").config();
 const { createEventAdapter } = require("@slack/events-api");
 const databaseManager = require("./databaseManager.js");
 const DiscordManager = require("./discordManager.js");
+const slackListeners = require("./slackListeners.js");
 const fileManager = require("./fileManager.js");
 const { WebClient } = require("@slack/web-api");
 const Discord = require("discord.js");
@@ -24,12 +25,6 @@ const server = require("./fileServer.js")(slackEvents);
 const web = new WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 
 let botAuthData;
-
-// Prevents script from stopping on errors
-slackEvents.on("error", err => {
-	console.warn("Something went wrong with the Slack Web API");
-	console.error(err);
-});
 
 /**
  * Creates a basic embed template with the Slack user's profile picture, name, and message timestamp
@@ -128,6 +123,13 @@ async function standardOperations(targetChannel, payloads, attachments, slackCha
 // Starts up the logger
 startUp().then(() => {
 	console.log("========== Start Up Complete ==========");
+
+	// Prevents script from stopping on errors
+	slackEvents.on("error", err => {
+		console.warn("Something went wrong with the Slack Web API");
+		console.error(err);
+	});
+
 	// Attaches event listener that parses received messages
 	slackEvents.on("message", async event => {
 		if(event.bot_id === botAuthData.bot_id || event?.user === botAuthData.user_id) return;
