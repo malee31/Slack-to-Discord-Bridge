@@ -1,16 +1,18 @@
 const fileManager = require("./fileManager.js");
 const MessageSyntaxTree = require("./MessageSyntaxTree.js");
+const EventEmitter = require('events');
 
 module.exports = class SlackManager {
 	static SlackHTTPServerEventAdapter = (require("@slack/events-api")).createEventAdapter(process.env.SLACK_SIGNING_SECRET);
 	static client = new (require("@slack/web-api")).WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 	static AuthData = null;
+	static events = new EventEmitter()
 
 	static async start() {
 		// Can Disable With Environment Variable
 		if(process.env.DISABLE_CHANNEL_JOIN?.trim().toUpperCase() !== "TRUE") {
 			console.log("======= Joining Slack Channels ========");
-			const channelList = await this.client.conversations.list();
+			const channelList = (await this.client.conversations.list()).channels;
 			await Promise.all(channelList.map(channel => {
 				if(channel["is_channel"] && !channel["is_member"])
 					return this.client.conversations.join({ channel: channel.id })
@@ -114,7 +116,7 @@ module.exports = class SlackManager {
 		}
 
 		// TODO: Look up references to @users and #channels and add them to the syntax tree and populate syntaxTree.parseData
-		return syntaxTree;
+		this.events.emit("message", syntaxTree);
 	}
 }
 

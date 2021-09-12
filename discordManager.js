@@ -54,6 +54,10 @@ class DiscordManager {
 		console.log("========== Discord Bot Ready ==========");
 	}
 
+	static async handleSyntaxTree(syntaxTree) {
+		console.log("Syntax tree has been passed to Discord Manager");
+	}
+
 	/**
 	 * Locates a channel given a Slack Channel ID. Will grab associated channel from the serverMap.json or search by name. If it does not exist, the bot will create a channel with a matching name and serverMap it
 	 * @async
