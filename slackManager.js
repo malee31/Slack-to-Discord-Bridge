@@ -26,8 +26,8 @@ module.exports = class SlackManager {
 		console.log("======= Slack App Data Retrieved ======");
 
 		// Prevents script from stopping on errors
-		this.SlackHTTPServerEventAdapter.on("error", this.onerror);
-		this.SlackHTTPServerEventAdapter.on("message", this.onmessage)
+		this.SlackHTTPServerEventAdapter.on("error", this.onerror.bind(SlackManager));
+		this.SlackHTTPServerEventAdapter.on("message", this.onmessage.bind(SlackManager))
 	}
 
 	static onerror(err) {
@@ -35,19 +35,17 @@ module.exports = class SlackManager {
 		console.error(err);
 	}
 
-	static async onmessage(message) {
-		if(shouldIgnore(message)) return;
-		const syntaxTree = new MessageSyntaxTree();
-		syntaxTree.source = "slack";
-		syntaxTree.unparsedText = message.text || "";
-		syntaxTree.timestamp = message.ts * 1000;
-		syntaxTree.additional.channelId = message.channel;
-		syntaxTree.parseData.channel = await this.client.conversations.info({ channel: message.channel })
+	static shouldIgnore(message) {
+		if(message.bot_id === this.AuthData.bot_id || message?.user === this.AuthData.user_id) return true;
+		if(message.subtype === "bot_message") {
+			console.warn("BOT MESSAGE RECEIVED - MESSAGE IGNORED");
+			console.log(message);
+		}
+	}
 
-		const user = message.user || (await this.client.users.info({ user: message.user })).user || {};
-		syntaxTree.setIfString("name", userIdentify(user));
-		syntaxTree.setIfString("color", user.color ? `#${user.color}` : undefined);
-		syntaxTree.action = "send";
+	static async onmessage(message) {
+		if(this.shouldIgnore(message)) return;
+		let syntaxTree = await this.syntaxTreeFromMessage(message);
 
 		if(message.thread_ts) syntaxTree.additional.thread = { timestamp: message.thread_ts };
 
@@ -56,7 +54,7 @@ module.exports = class SlackManager {
 			syntaxTree.attachments.files = await Promise.all(message.files.map(fileData => fileManager.fileDownload(fileData)));
 		}
 
-		syntaxTree.attachments.embeds = (message.message.attachments || [])
+		syntaxTree.attachments.embeds = (message.attachments || [])
 			.map(unwrapAttachment);
 
 		if(message.subtype === "me_message") syntaxTree.additional.italicizeAll = true;
@@ -66,8 +64,11 @@ module.exports = class SlackManager {
 		switch(message.subtype) {
 			case "message_deleted":
 				syntaxTree.action = "delete";
+				syntaxTree.additional.deletedTimestamp = message.deleted_ts;
 				break;
 			case "message_changed":
+				message.message.channel = message.channel;
+				syntaxTree = await this.syntaxTreeFromMessage(message.message);
 				syntaxTree.action = "edit";
 				// Known bugs:
 				// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
@@ -118,6 +119,26 @@ module.exports = class SlackManager {
 		// TODO: Look up references to @users and #channels and add them to the syntax tree and populate syntaxTree.parseData
 		this.events.emit("message", syntaxTree);
 	}
+
+	static async syntaxTreeFromMessage(message) {
+		const syntaxTree = new MessageSyntaxTree();
+		syntaxTree.source = "slack";
+		syntaxTree.action = "send";
+		syntaxTree.unparsedText = message.text || "";
+		syntaxTree.timestamp = message.ts * 1000;
+		syntaxTree.additional.channelId = message.channel;
+		syntaxTree.additional.timestamp = message.ts;
+		syntaxTree.parseData.channel = await this.client.conversations.info({ channel: message.channel })
+
+		if(message.user) {
+			const user = (await this.client.users.info({ user: message.user })).user || { profile: {} };
+			syntaxTree.setIfString("name", userIdentify(user));
+			syntaxTree.setIfString("color", user.color ? `#${user.color}` : undefined);
+			syntaxTree.setIfString("profilePic", user.profile.image_512);
+		}
+
+		return syntaxTree;
+	}
 }
 
 /**
@@ -128,14 +149,6 @@ module.exports = class SlackManager {
 function userIdentify(user = {}) {
 	if(!user.real_name || !user.id) return "Unknown Pupper";
 	return `${user.real_name}@${user.id}`;
-}
-
-function shouldIgnore(message) {
-	if(message.bot_id === SlackManager.AuthData.bot_id || message?.user === SlackManager.AuthData.user_id) return true;
-	if(message.subtype === "bot_message") {
-		console.warn("BOT MESSAGE RECEIVED - MESSAGE IGNORED");
-		console.log(message);
-	}
 }
 
 /**

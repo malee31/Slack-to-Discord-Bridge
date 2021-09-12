@@ -10,10 +10,12 @@ const Discord = require("discord.js");
  */
 
 class DiscordManager {
+	// Removed from attachable formats because audio formats auto-embed themselves (Wow flac files are huge!):
+	// Removed from attachable formats because video formats auto-embed themselves then fail to load (Still available via "Open Original" download link):
+	// Do not work with embeds (Also, apparently "gifv" is not real): ["gif"]
 	static attachableFormats = ["png", "jpg", "jpeg"];
 	// noinspection JSCheckFunctionSignatures
 	static client = new Discord.Client({ intents: require("./Intents.js") });
-	static SlackClient;
 	static LoggingGuild;
 
 	/**
@@ -54,8 +56,132 @@ class DiscordManager {
 		console.log("========== Discord Bot Ready ==========");
 	}
 
+	/**
+	 * Does not handle attachments. Only top level data (depth of 1) for a syntax tree
+	 * @param syntaxTree
+	 */
+	static embedFromSyntaxTree(syntaxTree) {
+		const parsedEmbed = new Discord.MessageEmbed();
+
+		parsedEmbed.setColor(syntaxTree.color);
+		parsedEmbed.setAuthor(syntaxTree.name, syntaxTree.profilePic);
+		// TODO: Parse the text
+		parsedEmbed.setDescription(syntaxTree.unparsedText?.length === 0 ? "[No Message Contents]" : syntaxTree.unparsedText);
+		parsedEmbed.setTimestamp(syntaxTree.timestamp);
+
+		return { embeds: [parsedEmbed] };
+	}
+
+	static embedFromFile(file, templateEmbed) {
+		if(!templateEmbed instanceof Discord.MessageEmbed) throw new TypeError("Template Embed Required");
+
+		const result = {
+			embeds: [],
+			files: []
+		};
+
+		const fileEmbed = new Discord.MessageEmbed()
+			.setColor(templateEmbed.color)
+			.setTimestamp(templateEmbed.timestamp);
+
+		if(file.size < 8) {
+			if(this.attachableFormats.includes(file.extension.toLowerCase().trim()))
+				result.embeds.push(fileEmbed.setImage(`attachment://${file.name}`));
+
+			result.files.push({
+				attachment: file.path,
+				name: file.name
+			});
+		} else {
+			fileEmbed.setTitle(file.name);
+			let serverURLText = `[Copy Saved on Server as: /${file.storedAs}]`;
+			if(process.env.SERVER_URL) serverURLText += `\n(${process.env.SERVER_URL}/${encodeURIComponent(file.storedAs)})`;
+			result.embeds.push(fileEmbed.setDescription(`[File Too Large to Send](${file.original.url_private})${serverURLText}`));
+		}
+
+		console.log(result)
+
+		return result;
+	}
+
 	static async handleSyntaxTree(syntaxTree) {
-		console.log("Syntax tree has been passed to Discord Manager");
+		const mainEmbed = this.embedFromSyntaxTree(syntaxTree);
+		const parsedMessage = {
+			mainEmbed,
+			// Format in {embed, files}
+			additionalEmbeds: syntaxTree.attachments.files
+				.map(file => this.embedFromFile(file, mainEmbed))
+		};
+
+		syntaxTree.attachments.embeds
+			.map(this.embedFromSyntaxTree)
+			.forEach(parsedMessage.additionalEmbeds.push);
+
+		const targetChannel = await this.locateChannel(syntaxTree.additional.channelId);
+
+		switch(syntaxTree.action) {
+			case "send":
+				mainEmbed.embeds[0].setFooter(`${mainEmbed.embeds[0].footer ? `${mainEmbed.embeds[0].footer}\n` : ""}↓ Message Includes ${parsedMessage.additionalEmbeds.length} Additional Attachment${parsedMessage.additionalEmbeds.length === 1 ? "" : "s"} Below ↓`)
+				const sentMessage = await targetChannel.send(mainEmbed);
+				const messageIDs = [];
+				await databaseManager.messageMap({
+					SMID: syntaxTree.additional.timestamp.toString(),
+					DMID: sentMessage.id,
+					textOnly: true
+				}).then(() => {
+					console.log(`Mapped Slack ${syntaxTree.additional.timestamp} to Discord ${sentMessage.id}`);
+				}).catch(err => {
+					console.warn(`MAP ERROR:\n${err}`)
+				});
+
+				for(const additionalData of parsedMessage.additionalEmbeds)
+					messageIDs.push(await targetChannel.send(additionalData)
+						.then(message => message.id)
+					);
+
+				await Promise.all(messageIDs.map(id =>
+					databaseManager.messageMap({
+						SMID: syntaxTree.additional.timestamp.toString(),
+						DMID: id,
+						textOnly: false
+					}).then(() => {
+						console.log(`Mapped Slack ${syntaxTree.additional.timestamp} to Discord ${id}`);
+					}).catch(err => {
+						console.warn(`MAP ERROR:\n${err}`)
+					}))
+				);
+				break;
+			case "edit":
+				const originalMessageID = (await databaseManager.locateMaps(syntaxTree.additional.timestamp.toString())).find(map => map.PurelyText);
+				if(!originalMessageID) return console.warn(`Old Message Not Found For ${syntaxTree.additional.timestamp}`);
+				const originalMessage = await targetChannel.messages.fetch(originalMessageID.DiscordMessageID);
+				await originalMessage.edit({ embeds: [mainEmbed] });
+				break;
+			case "delete":
+				// Note: Deletes all parts of a message on Discord even if only a part is deleted on Slack (like a singular file)
+				// TODO: Delete only what is necessary
+				await Promise.all((await databaseManager.locateMaps(syntaxTree.additional.deletedTimestamp))
+					.map(async map => {
+						const message = await targetChannel.messages.fetch(map["DiscordMessageID"]);
+						await message.delete();
+					}));
+				break;
+			case "update-channel-data":
+				break;
+			case "update-channel-name":
+				break;
+			case "update-channel-topic":
+				break;
+			default:
+				console.log(`Unknown action: ${syntaxTree.action}`);
+		}
+
+		// Clean-up downloaded files after sending
+		await Promise.all(
+			syntaxTree.attachments.files
+				.filter(file => file.size < 8)
+				.map(file => fileManager.fileDelete(file.path))
+		);
 	}
 
 	/**
@@ -63,12 +189,13 @@ class DiscordManager {
 	 * @async
 	 * @memberOf module:discordManager.DiscordManager
 	 * @param {string} slackChannelID The Slack Channel id. Can be obtained through event.channel
-	 * @return {GuildChannel} Returns the located Discord channel
+	 * @return {TextChannel} Returns the located Discord channel
 	 */
-	static async locateChannel(slackChannelID) {
-		let targetChannel = await DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(slackChannelID));
+	static async locateChannel(syntaxTree) {
+		// TODO: Patch function
+		let targetChannel = await DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(syntaxTree.additional.channelId));
 		if(!targetChannel) {
-			const channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: slackChannelID });
+			const channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: syntaxTree.additional.channelId });
 			if(!channelInfo.channel) {
 				console.warn("No channelInfo.channel found: ", channelInfo);
 				channelInfo.channel = { name: "unknown_channel_name" };
@@ -90,85 +217,9 @@ class DiscordManager {
 					throw `Channel #${channelInfo.channel.name} could not be found or created.\n${channelMakeErr}`;
 				}
 			}
-			dataManager.mapChannel(slackChannelID, targetChannel.id);
+			dataManager.mapChannel(syntaxTree.additional.channelId, targetChannel.id);
 		}
 		return targetChannel;
-	}
-
-	// Removed from attachable formats because audio formats auto-embed themselves (Wow flac files are huge!):
-	// Removed from attachable formats because video formats auto-embed themselves then fail to load (Still available via "Open Original" download link):
-	// Do not work with embeds (Also, apparently "gifv" is not real): ["gif"]
-	/**
-	 * Parses the array of Slack files attached to a message by downloading them and adding ones that are under 8MB as embeds and those over 8MB as links
-	 * Notes: Discord auto-embeds ["mp3", "ogg", "wav", "flac"] formats and ["gif"] does not like to be embedded for some odd reason.
-	 * Video formats such as ["mov", "webm", "mp4"] will auto-embed but sometimes fail to load but the original can still be downloaded from the "See Original" link
-	 * @async
-	 * @memberOf module:discordManager.DiscordManager
-	 * @param {MessageOptions[]} payloads Array to add file embeds onto. Assumed to have at least 1 embed inside it before the function is called
-	 * @param {Object[]} slackFiles Array of Objects from a Slack message event that includes their download URLs. Passed to fileManager.fileDownload. Can be obtained through event.files
-	 * @returns {Object[]} Array of objects containing details on where the file is, what is is called, the original Slack file object, and more. Originates from resolving fileManager.fileDownload on all files
-	 */
-	static async attachmentEmbeds(payloads, slackFiles) {
-		let downloads = [];
-		// console.log("ATTEMPTING FILE DOWNLOAD");
-		for(const fileObj of slackFiles) {
-			downloads.push(fileManager.fileDownload(fileObj));
-		}
-
-		downloads = await Promise.all(downloads);
-
-		let sliceNum = 1;
-
-		if(DiscordManager.attachableFormats.includes(downloads[0].extension.toLowerCase().trim()) && downloads[0].size < 8) {
-			payloads[0].embeds[0].setImage(`attachment://${downloads[0].name}`);
-			payloads[0].files.push({
-				attachment: downloads[0].path,
-				name: downloads[0].name
-			});
-		} else {
-			sliceNum = 0;
-		}
-
-		if(downloads.length > sliceNum) {
-			await Promise.all(downloads.slice(sliceNum).map(async file => {
-				let newFileMessageOptions = {
-					embeds: [new Discord.MessageEmbed()
-						.setColor(payloads[0].embeds[0].color)
-						.setTimestamp(payloads[0].embeds[0].timestamp)],
-					files: []
-				};
-
-				// Discord File Upload Size Caps at 8MB Without Nitro Boost
-				// Increase Value if Logging Server is Boosted
-				if(file.size < 8) {
-					if(DiscordManager.attachableFormats.includes(file.extension.toLowerCase().trim())) {
-						newFileMessageOptions.embeds[0].setImage(`attachment://${file.name}`);
-						newFileMessageOptions.files.push({
-							attachment: file.path,
-							name: file.name
-						});
-					} else {
-						newFileMessageOptions = {
-							embeds: [],
-							files: [{
-								attachment: file.path,
-								name: file.name
-							}]
-						};
-					}
-				} else {
-					newFileMessageOptions.embeds[0].setTitle(file.name);
-					let serverURLText = `[Copy Saved on Server as: /${file.storedAs}]`;
-					if(process.env.SERVER_URL) {
-						serverURLText += `(${process.env.SERVER_URL}/${encodeURIComponent(file.storedAs)})`;
-					}
-					newFileMessageOptions.embeds[0].setDescription(`[File Too Large to Send](${file.original.url_private})\n${serverURLText}`);
-				}
-				payloads.push(newFileMessageOptions);
-			}));
-		}
-
-		return downloads;
 	}
 
 	/**
@@ -186,30 +237,6 @@ class DiscordManager {
 		oldMessage = await channel.messages.fetch(oldMessage[0]["DiscordMessageID"]);
 		let editedEmbed = new Discord.MessageEmbed(oldMessage.embeds[0]).setDescription(newText);
 		await oldMessage.edit(editedEmbed);
-	}
-
-	/**
-	 * Handles sending out all the embeds into a Discord channel and storing their IDs in the SQLite database
-	 * @async
-	 * @memberOf module:discordManager.DiscordManager
-	 * @param {TextChannel} discordChannel The Discord text channel where the messages/embeds will be logged to
-	 * @param {MessageOptions[]} discordPayloads Array of Discord embeds to send out
-	 * @param {string} [mapTo] The ID used for the Slack message associated with the Discord messages. Use if the message ids should be kept in the database for future edits and deletions
-	 * @param {boolean} canHaveText Whether or not to mark the first embed as the embed to edit if text changes. Assumes first embed in array is the one with text from the Slack message
-	 * @returns {Message[]} Array of the Discord messages sent to the channel and their details. Originates from TextChannel.send
-	 */
-	static async embedSender(discordChannel, discordPayloads, mapTo, canHaveText = true) {
-		if(discordPayloads.length > 1) discordPayloads[0].embeds[0].setFooter(`${discordPayloads[0].embeds[0].footer || ""}\n↓ Message Includes ${discordPayloads.length - 1} Additional Attachment${discordPayloads.length === 2 ? "" : "s"} Below ↓`);
-		for(let embedNum = 0; embedNum < discordPayloads.length; embedNum++) {
-			discordPayloads[embedNum] = await discordChannel.send(discordPayloads[embedNum]);
-			if(mapTo) {
-				await databaseManager.messageMap(mapTo, discordPayloads[embedNum].id, canHaveText)
-					// .then(() => { console.log(`Mapped Slack ${mapTo} to Discord ${sentMessage.id}`); })
-					.catch(err => {console.warn(`MAP ERROR:\n${err}`)});
-				canHaveText = false;
-			}
-		}
-		return discordPayloads;
 	}
 
 	/**
@@ -300,20 +327,6 @@ class DiscordManager {
 		// * When using code blocks, the first word is invisible when sent to Discord if it is the only word on the line with the opening ``` since it is parsed as a programming language instead of text by Discord
 		// console.log(text);
 		return text;
-	}
-
-	/**
-	 * Deletes messages associated with a given Slack message ID
-	 * @async
-	 * @memberOf module:discordManager.DiscordManager
-	 * @param {TextChannel} channel The Discord text channel where the message-to-be-deleted is
-	 * @param {string} slackIdentifier The ID used for the Slack message associated with the Discord message
-	 */
-	static async delete(channel, slackIdentifier) {
-		await Promise.all((await databaseManager.locateMaps(slackIdentifier)).map(async DMID => {
-			let message = await channel.messages.fetch(DMID["DiscordMessageID"]);
-			await message.delete();
-		}));
 	}
 }
 

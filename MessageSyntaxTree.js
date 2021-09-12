@@ -44,6 +44,8 @@ module.exports = class MessageSyntaxTree {
 	/**
 	 * Currently Used for
 	 * @property {string} channelId Channel ID from Slack
+	 * @property {number} deletedTimestamp The timestamp of the message being deleted in delete events
+	 * @property {number} timestamp Message timestamp from Slack
 	 * @property {Object} thread Thread data if the message was sent in a thread
 	 * @property {Object} thread.timestamp Thread timestamp
  	 */

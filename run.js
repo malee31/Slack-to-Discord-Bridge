@@ -46,7 +46,7 @@ function startUp() {
 // Starts up the logger
 startUp().then(() => {
 	console.log("======= All Services Started Up =======");
-	SlackManager.events.on("message", DiscordManager.handleSyntaxTree);
+	SlackManager.events.on("message", DiscordManager.handleSyntaxTree.bind(DiscordManager));
 	console.log("========== Start Up Complete ==========");
 }).catch(err => {
 	console.warn("⚠⚠ Failed Start-Up... Shutting Down ⚠⚠");
