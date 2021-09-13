@@ -45,7 +45,7 @@ module.exports = class SlackManager {
 
 	static async onmessage(message) {
 		if(this.shouldIgnore(message)) return;
-		let syntaxTree = await this.syntaxTreeFromMessage(message);
+		const syntaxTree = await this.syntaxTreeFromBase(message);
 
 		if(message.thread_ts) syntaxTree.additional.thread = { timestamp: message.thread_ts };
 
@@ -67,7 +67,7 @@ module.exports = class SlackManager {
 				syntaxTree.additional.deletedTimestamp = message.deleted_ts;
 				break;
 			case "message_changed":
-				syntaxTree = await this.syntaxTreeFromMessage(message.message, message.channel);
+				this.updateSyntaxTree(syntaxTree, message.message);
 				syntaxTree.action = "edit";
 				// Known bugs:
 				// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
@@ -86,7 +86,6 @@ module.exports = class SlackManager {
 			case "group_topic": */
 			case "channel_topic":
 				syntaxTree.action = "update-channel-topic";
-				syntaxTree.additional.channelTopic = message.topic;
 			case "channel_join":
 			case "channel_leave":
 			case "channel_archive":
@@ -119,15 +118,12 @@ module.exports = class SlackManager {
 		this.events.emit("message", syntaxTree);
 	}
 
-	static async syntaxTreeFromMessage(message, channel) {
+	static async syntaxTreeFromBase(message) {
 		const syntaxTree = new MessageSyntaxTree();
 		syntaxTree.source = "slack";
 		syntaxTree.action = "send";
-		syntaxTree.unparsedText = message.text || "";
-		syntaxTree.timestamp = message.ts * 1000;
-		syntaxTree.additional.timestamp = message.ts;
-		syntaxTree.parseData.channel = (await this.client.conversations.info({ channel: channel || message.channel })).channel;
-		syntaxTree.additional.channelId = syntaxTree.parseData.channel.id;
+		this.updateSyntaxTree(syntaxTree, message);
+		syntaxTree.parseData.channel = (await this.client.conversations.info({ channel: message.channel })).channel;
 
 		if(message.user) {
 			const user = (await this.client.users.info({ user: message.user })).user || { profile: {} };
@@ -137,6 +133,11 @@ module.exports = class SlackManager {
 		}
 
 		return syntaxTree;
+	}
+
+	static updateSyntaxTree(syntaxTree, message) {
+		syntaxTree.unparsedText = message.text || "";
+		syntaxTree.timestamp = message.ts;
 	}
 }
 

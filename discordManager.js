@@ -66,7 +66,7 @@ class DiscordManager {
 		parsedEmbed.setColor(syntaxTree.color);
 		parsedEmbed.setAuthor(syntaxTree.name, syntaxTree.profilePic);
 		parsedEmbed.setDescription(this.syntaxTreeParseText(syntaxTree));
-		parsedEmbed.setTimestamp(syntaxTree.timestamp);
+		parsedEmbed.setTimestamp(syntaxTree.timestamp * 1000);
 
 		return { embeds: [parsedEmbed] };
 	}
@@ -81,7 +81,7 @@ class DiscordManager {
 
 		const fileEmbed = new Discord.MessageEmbed()
 			.setColor(templateEmbed.color)
-			.setTimestamp(templateEmbed.timestamp);
+			.setTimestamp(templateEmbed.timestamp * 1000);
 
 		if(file.size < 8) {
 			if(this.attachableFormats.includes(file.extension.toLowerCase().trim()))
@@ -179,11 +179,11 @@ class DiscordManager {
 				const sentMessage = await targetChannel.send(mainEmbed);
 				const messageIDs = [];
 				await databaseManager.messageMap({
-					SMID: syntaxTree.additional.timestamp.toString(),
+					SMID: syntaxTree.timestamp,
 					DMID: sentMessage.id,
 					textOnly: true
 				}).then(() => {
-					console.log(`Mapped Slack ${syntaxTree.additional.timestamp} to Discord ${sentMessage.id}`);
+					console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${sentMessage.id}`);
 				}).catch(err => {
 					console.warn(`MAP ERROR:\n${err}`)
 				});
@@ -195,19 +195,19 @@ class DiscordManager {
 
 				await Promise.all(messageIDs.map(id =>
 					databaseManager.messageMap({
-						SMID: syntaxTree.additional.timestamp.toString(),
+						SMID: syntaxTree.timestamp.toString(),
 						DMID: id,
 						textOnly: false
 					}).then(() => {
-						console.log(`Mapped Slack ${syntaxTree.additional.timestamp} to Discord ${id}`);
+						console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${id}`);
 					}).catch(err => {
 						console.warn(`MAP ERROR:\n${err}`)
 					}))
 				);
 				break;
 			case "edit":
-				const originalMessageID = (await databaseManager.locateMaps(syntaxTree.additional.timestamp.toString())).find(map => map.PurelyText);
-				if(!originalMessageID) return console.warn(`Old Message Not Found For ${syntaxTree.additional.timestamp}`);
+				const originalMessageID = (await databaseManager.locateMaps(syntaxTree.timestamp.toString())).find(map => map.PurelyText);
+				if(!originalMessageID) return console.warn(`Old Message Not Found For ${syntaxTree.timestamp}`);
 				const originalMessage = await targetChannel.messages.fetch(originalMessageID.DiscordMessageID);
 				await originalMessage.edit({ embeds: [mainEmbed] });
 				break;
@@ -250,7 +250,7 @@ class DiscordManager {
 		let targetChannel = await DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(syntaxTree.parseData.channel.id));
 		console.log(syntaxTree.parseData.channel, dataManager.getChannel(syntaxTree.parseData.channel.id))
 		if(!targetChannel) {
-			const channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: syntaxTree.additional.channelId });
+			const channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: syntaxTree.parseData.channel.id });
 			if(!channelInfo.channel) {
 				console.warn("No channelInfo.channel found: ", channelInfo);
 				channelInfo.channel = { name: "unknown_channel_name" };
@@ -272,7 +272,7 @@ class DiscordManager {
 					throw `Channel #${channelInfo.channel.name} could not be found or created.\n${channelMakeErr}`;
 				}
 			}
-			dataManager.mapChannel(syntaxTree.additional.channelId, targetChannel.id);
+			dataManager.mapChannel(syntaxTree.parseData.channel.id, targetChannel.id);
 		}
 		return targetChannel;
 	}

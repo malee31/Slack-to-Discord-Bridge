@@ -14,7 +14,7 @@ module.exports = class MessageSyntaxTree {
 	profilePic = "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif";
 	// The main content of the original message in unparsed form
 	unparsedText = "[No Message Contents]";
-	// Message Timestamp in milliseconds (Not seconds. Add that to additional if it is needed)
+	// Message Timestamp in seconds (Not milliseconds! Add that to additional if it is needed or just calculate it yourself)
 	timestamp = 0;
 	// Color for embeds
 	color = "#407ABA";
@@ -45,7 +45,6 @@ module.exports = class MessageSyntaxTree {
 	 * Currently Used for
 	 * @property {string} channelId Channel ID from Slack
 	 * @property {number} deletedTimestamp The timestamp of the message being deleted in delete events
-	 * @property {number} timestamp Message timestamp from Slack
 	 * @property {Object} thread Thread data if the message was sent in a thread
 	 * @property {Object} thread.timestamp Thread timestamp
  	 */
