@@ -13,7 +13,7 @@ module.exports = class MessageSyntaxTree {
 	// URL to sender's profile picture
 	profilePic = "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif";
 	// The main content of the original message in unparsed form
-	unparsedText = "No Message";
+	unparsedText = "[No Message Contents]";
 	// Message Timestamp in milliseconds (Not seconds. Add that to additional if it is needed)
 	timestamp = 0;
 	// Color for embeds

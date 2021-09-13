@@ -65,8 +65,7 @@ class DiscordManager {
 
 		parsedEmbed.setColor(syntaxTree.color);
 		parsedEmbed.setAuthor(syntaxTree.name, syntaxTree.profilePic);
-		// TODO: Parse the text
-		parsedEmbed.setDescription(syntaxTree.unparsedText?.length === 0 ? "[No Message Contents]" : syntaxTree.unparsedText);
+		parsedEmbed.setDescription(this.syntaxTreeParseText(syntaxTree));
 		parsedEmbed.setTimestamp(syntaxTree.timestamp);
 
 		return { embeds: [parsedEmbed] };
@@ -102,6 +101,61 @@ class DiscordManager {
 		console.log(result)
 
 		return result;
+	}
+
+	static syntaxTreeParseText(syntaxTree) {
+		if(syntaxTree.unparsedText.length === 0) return "[No Message Contents]";
+		let parsedText = syntaxTree.unparsedText;
+
+		// TODO: Parse channels and mentions
+		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
+		// Known Bugs:
+		// * Slow. Each mention slows down parsing significantly back in the MessageSyntaxTree assembly stage
+		// let mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g);
+		// if(mentions) {
+		// 	let identify = mentions.filter((id, index) => mentions.indexOf(id) === index).map(id => {
+		// 		return DiscordManager.SlackClient.users.info({ user: id });
+		// 	});
+		// 	(await Promise.all(identify)).forEach(userInfo => {
+		// 		text = text.replace(new RegExp(`<@${userInfo.user.id}>`, 'g'), `[${this.userIdentify(userInfo.user)}]`);
+		// 	});
+		// }
+
+		// URL Slack to Discord Markdown Translation
+		// Known Bugs:
+		// * Including the character '>' in any part of the link's text will make the translation cut off early
+		// * Certain non-urls will not parse correctly for some odd reason. For example, Slack will try to auto-encode text into a URL if it is entered as one and that won't sit well with Discord
+		let urls = parsedText.match(/(?<=<)https?:\/\/[\w@:%.\/+~#=]+(|.+?)?(?=>)/g);
+		if(urls) {
+			urls.map(link => {
+				let split = link.split("|");
+				parsedText = parsedText.replace(`<${link}>`, `[${split[1] && split[1].trim().length > 0 ? split[1].trim() : split[0]}](${split[0]})`);
+			});
+		}
+
+		// Simple Slack to Discord Markdown Translation
+		// Known Bugs:
+		// * Using Ctrl + Z on Slack to undo any markdown results in that undo being ignored on Discord. Escaped markdown is parsed as if it was never escaped
+		// * Formatting markdown using the format buttons instead of actual markdown means that results may not reflect what is seen on Slack
+		// Strikethrough Translation
+		parsedText = parsedText.replace(/~~/g, "\\~\\~").replace(/(?<=^|\s)(~(?=[^\s])[^~]+(?<=[^\s])~)(?=$|\s)/g, "~$1~");
+		// Italic Translation (Untested)
+		parsedText = parsedText.replace(/(?<=^|\s)_((?=[^\s])[^_]+(?<=[^\s]))_(?=$|\s)/g, "*$1*");
+		// Bold Translation (Untested)
+		parsedText = parsedText.replace(/(?<=^|\s)(\*(?=[^\s])[^_]+(?<=[^\s])\*)(?=$|\s)/g, "*$1*");
+
+		// Unescaping HTML Escapes created by Slack's API
+		// Known Bugs:
+		// * Literally typing any of the following HTML escape codes normally will result in them being converted over to their unescaped form on Discord
+		// - Typing &gt; on Slack translates to > on Discord
+		// - Typing &lt; on Slack translates to < on Discord
+		// - Typing &amp; on Slack translates to & on Discord
+		parsedText = parsedText.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+
+		// Additional Known Bugs:
+		// * When using code blocks, the first word is invisible when sent to Discord if it is the only word on the line with the opening ``` since it is parsed as a programming language instead of text by Discord
+		// console.log(parsedText);
+		return parsedText;
 	}
 
 	static async handleSyntaxTree(syntaxTree) {
@@ -270,63 +324,6 @@ class DiscordManager {
 	 */
 	static identify(channel, ts) {
 		return `${channel}/${ts}`;
-	}
-
-	/**
-	 * Converts Slack markdown to Discord markdown. Has some acceptable edge cases
-	 * @memberOf module:discordManager.DiscordManager
-	 * @param {string} text Slack text to convert
-	 * @returns {Promise<string>} Resulting text with Discord markdown
-	 */
-	static async slackTextParse(text) {
-		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
-		// Known Bugs:
-		// * Slow. Each mention slows down parsing significantly
-		let mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g);
-		if(mentions) {
-			let identify = mentions.filter((id, index) => mentions.indexOf(id) === index).map(id => {
-				return DiscordManager.SlackClient.users.info({ user: id });
-			});
-			(await Promise.all(identify)).forEach(userInfo => {
-				text = text.replace(new RegExp(`<@${userInfo.user.id}>`, 'g'), `[${this.userIdentify(userInfo.user)}]`);
-			});
-		}
-
-		// URL Slack to Discord Markdown Translation
-		// Known Bugs:
-		// * Including the character '>' in any part of the link's text will make the translation cut off early
-		// * Certain non-urls will not parse correctly for some odd reason. For example, Slack will try to auto-encode text into a URL if it is entered as one and that won't sit well with Discord
-		let urls = text.match(/(?<=<)https?:\/\/[\w@:%.\/+~#=]+(|.+?)?(?=>)/g);
-		if(urls) {
-			urls.map(link => {
-				let split = link.split("|");
-				text = text.replace(`<${link}>`, `[${split[1] && split[1].trim().length > 0 ? split[1].trim() : split[0]}](${split[0]})`);
-			});
-		}
-
-		// Simple Slack to Discord Markdown Translation
-		// Known Bugs:
-		// * Using Ctrl + Z on Slack to undo any markdown results in that undo being ignored on Discord. Escaped markdown is parsed as if it was never escaped
-		// * Formatting markdown using the format buttons instead of actual markdown means that results may not reflect what is seen on Slack
-		// Strikethrough Translation
-		text = text.replace(/~~/g, "\\~\\~").replace(/(?<=^|\s)(~(?=[^\s])[^~]+(?<=[^\s])~)(?=$|\s)/g, "~$1~");
-		// Italic Translation (Untested)
-		text = text.replace(/(?<=^|\s)_((?=[^\s])[^_]+(?<=[^\s]))_(?=$|\s)/g, "*$1*");
-		// Bold Translation (Untested)
-		text = text.replace(/(?<=^|\s)(\*(?=[^\s])[^_]+(?<=[^\s])\*)(?=$|\s)/g, "*$1*");
-
-		// Unescaping HTML Escapes created by Slack's API
-		// Known Bugs:
-		// * Literally typing any of the following HTML escape codes normally will result in them being converted over to their unescaped form on Discord
-		// - Typing &gt; on Slack translates to > on Discord
-		// - Typing &lt; on Slack translates to < on Discord
-		// - Typing &amp; on Slack translates to & on Discord
-		text = text.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
-
-		// Additional Known Bugs:
-		// * When using code blocks, the first word is invisible when sent to Discord if it is the only word on the line with the opening ``` since it is parsed as a programming language instead of text by Discord
-		// console.log(text);
-		return text;
 	}
 }
 
