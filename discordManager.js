@@ -175,7 +175,7 @@ class DiscordManager {
 
 		switch(syntaxTree.action) {
 			case "send":
-				mainEmbed.embeds[0].setFooter(`${mainEmbed.embeds[0].footer ? `${mainEmbed.embeds[0].footer}\n` : ""}↓ Message Includes ${parsedMessage.additionalEmbeds.length} Additional Attachment${parsedMessage.additionalEmbeds.length === 1 ? "" : "s"} Below ↓`)
+				if(parsedMessage.additionalEmbeds.length !== 0) mainEmbed.embeds[0].setFooter(`${mainEmbed.embeds[0].footer ? `${mainEmbed.embeds[0].footer}\n` : ""}↓ Message Includes ${parsedMessage.additionalEmbeds.length} Additional Attachment${parsedMessage.additionalEmbeds.length === 1 ? "" : "s"} Below ↓`)
 				const sentMessage = await targetChannel.send(mainEmbed);
 				const messageIDs = [];
 				await databaseManager.messageMap({
