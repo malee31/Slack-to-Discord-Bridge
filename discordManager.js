@@ -171,7 +171,7 @@ class DiscordManager {
 			.map(this.embedFromSyntaxTree)
 			.forEach(parsedMessage.additionalEmbeds.push);
 
-		const targetChannel = await this.locateChannel(syntaxTree.additional.channelId);
+		const targetChannel = await this.locateChannel(syntaxTree);
 
 		switch(syntaxTree.action) {
 			case "send":
@@ -247,7 +247,8 @@ class DiscordManager {
 	 */
 	static async locateChannel(syntaxTree) {
 		// TODO: Patch function
-		let targetChannel = await DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(syntaxTree.additional.channelId));
+		let targetChannel = await DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(syntaxTree.parseData.channel.id));
+		console.log(syntaxTree.parseData.channel, dataManager.getChannel(syntaxTree.parseData.channel.id))
 		if(!targetChannel) {
 			const channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: syntaxTree.additional.channelId });
 			if(!channelInfo.channel) {

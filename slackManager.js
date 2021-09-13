@@ -6,7 +6,7 @@ module.exports = class SlackManager {
 	static SlackHTTPServerEventAdapter = (require("@slack/events-api")).createEventAdapter(process.env.SLACK_SIGNING_SECRET);
 	static client = new (require("@slack/web-api")).WebClient(process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN);
 	static AuthData = null;
-	static events = new EventEmitter()
+	static events = new EventEmitter();
 
 	static async start() {
 		// Can Disable With Environment Variable
@@ -67,8 +67,7 @@ module.exports = class SlackManager {
 				syntaxTree.additional.deletedTimestamp = message.deleted_ts;
 				break;
 			case "message_changed":
-				message.message.channel = message.channel;
-				syntaxTree = await this.syntaxTreeFromMessage(message.message);
+				syntaxTree = await this.syntaxTreeFromMessage(message.message, message.channel);
 				syntaxTree.action = "edit";
 				// Known bugs:
 				// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
@@ -120,15 +119,15 @@ module.exports = class SlackManager {
 		this.events.emit("message", syntaxTree);
 	}
 
-	static async syntaxTreeFromMessage(message) {
+	static async syntaxTreeFromMessage(message, channel) {
 		const syntaxTree = new MessageSyntaxTree();
 		syntaxTree.source = "slack";
 		syntaxTree.action = "send";
 		syntaxTree.unparsedText = message.text || "";
 		syntaxTree.timestamp = message.ts * 1000;
-		syntaxTree.additional.channelId = message.channel;
 		syntaxTree.additional.timestamp = message.ts;
-		syntaxTree.parseData.channel = await this.client.conversations.info({ channel: message.channel })
+		syntaxTree.parseData.channel = (await this.client.conversations.info({ channel: channel || message.channel })).channel;
+		syntaxTree.additional.channelId = syntaxTree.parseData.channel.id;
 
 		if(message.user) {
 			const user = (await this.client.users.info({ user: message.user })).user || { profile: {} };
