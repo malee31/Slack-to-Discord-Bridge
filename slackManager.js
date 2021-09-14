@@ -45,6 +45,21 @@ module.exports = class SlackManager {
 
 	static async onmessage(message) {
 		if(this.shouldIgnore(message)) return;
+		/*
+		Notes for improving syntax tree parsing
+		- Only message.subtype === undefined or 'file_share' has message.user. Assuming that only new content has user property
+			- Will need to clone embeds for edits in the future (Makes sense. Just compare text contents or file contents)
+		- All events have message.channel (All clear)
+		- Files are given ids by Slack, consider storing them. Their mimetypes are also provided by the api
+
+		Plan:
+		- Search up channel *ALWAYS*
+		- Search up user only in the events that need them
+			- Consider splitting the control flow into separate functions based on the subtype instead of handling them all together
+			- Fill up syntaxTree with less unnecessary defaults
+		- Some testing still needed for threads, pins, channel joins/exits, and more
+			- Consider creating new syntax tree classes for different events
+		 */
 		const syntaxTree = await this.syntaxTreeFromBase(message);
 
 		if(message.thread_ts) syntaxTree.additional.thread = { timestamp: message.thread_ts };
