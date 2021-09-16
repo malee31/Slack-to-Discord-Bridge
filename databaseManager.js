@@ -31,6 +31,7 @@ module.exports = {
 db.on("open", () => {
 	console.log("=========== Database Opened ===========");
 	db.run("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL, PurelyText BOOLEAN NOT NULL)");
+	db.run("CREATE TABLE IF NOT EXISTS FileMap (SlackFileID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL)");
 });
 
 /**

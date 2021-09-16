@@ -54,7 +54,8 @@ module.exports = {
 			storedAs: fileName,
 			extension: fileFormat.extension,
 			size: downloadSize,
-			original: fileObj
+			original: fileObj,
+			id: fileObj.id
 		};
 	},
 

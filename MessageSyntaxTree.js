@@ -64,6 +64,31 @@ class MessageSyntaxTree extends SyntaxTreeBase {
 	};
 }
 
+/**
+ * Syntax Tree for deletion events
+ */
+class DeleteSyntaxTree extends SyntaxTreeBase {
+	messageIdentifier = "";
+	deletedTimestamp = undefined;
+}
+
+/**
+ * Syntax Tree for content changes
+ */
+class ChangeSyntaxTree extends SyntaxTreeBase {
+	newUnparsedText = "[No Message Contents]";
+	changeTimestamp = undefined;
+
+	// Files and Embeds
+	attachments = {
+		files: [],
+		// Embeds will come in the form of another MessageSyntaxTree instance
+		embeds: []
+	};
+}
+
 module.exports = {
-	MessageSyntaxTree
+	MessageSyntaxTree,
+	DeleteSyntaxTree,
+	ChangeSyntaxTree
 };
