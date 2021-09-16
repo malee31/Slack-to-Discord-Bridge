@@ -1,5 +1,5 @@
 const fileManager = require("./fileManager.js");
-const MessageSyntaxTree = require("./MessageSyntaxTree.js");
+const { MessageSyntaxTree } = require("./MessageSyntaxTree.js");
 const EventEmitter = require('events');
 
 module.exports = class SlackManager {

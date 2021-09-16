@@ -1,23 +1,14 @@
 // Don't mind me lazily using class instances as a lazy way to deep clone objects :P
 
 /**
- * Class used between the original message and bridged message
- * Purpose: Deconstruct messages from whatever form they come in as into a common structure for the bridge to utilize
- * @class {MessageSyntaxTree}
+ * Base for bridge syntax trees
  */
-module.exports = class MessageSyntaxTree {
+
+class SyntaxTreeBase {
 	// Where the message originates from. In the case of this project, it should always be set to "slack"
 	source = "Unknown";
-	// Name of sender
-	name = "Unknown Pupper";
-	// URL to sender's profile picture
-	profilePic = "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif";
-	// The main content of the original message in unparsed form
-	unparsedText = "[No Message Contents]";
 	// Message Timestamp in seconds (Not milliseconds! Add that to additional if it is needed or just calculate it yourself)
 	timestamp = 0;
-	// Color for embeds
-	color = "#407ABA";
 	// What action to reflect. Examples: "send", "edit", "pin", "delete"
 	action = "none";
 
@@ -32,12 +23,6 @@ module.exports = class MessageSyntaxTree {
 			description: "No Description"
 		}
 	};
-	// Files and Embeds
-	attachments = {
-		files: [],
-		// Embeds will come in the form of another MessageSyntaxTree instance
-		embeds: []
-	};
 
 	// Miscellaneous. Assign and utilize as needed
 	// Meant for data that is specific to your project that the bridging end requires to pass the message on
@@ -47,7 +32,7 @@ module.exports = class MessageSyntaxTree {
 	 * @property {number} deletedTimestamp The timestamp of the message being deleted in delete events
 	 * @property {Object} thread Thread data if the message was sent in a thread
 	 * @property {Object} thread.timestamp Thread timestamp
- 	 */
+	 */
 	additional = {}
 
 	// Helper methods that silently validate and set or ignore new values
@@ -56,3 +41,29 @@ module.exports = class MessageSyntaxTree {
 		if(this[propName] !== undefined && typeof str === "string") this[propName] = str;
 	}
 }
+
+/**
+ * Class used between the original message and bridged message
+ * Purpose: Deconstruct messages from whatever form they come in as into a common structure for the bridge to utilize
+ * @class {MessageSyntaxTree}
+ */
+class MessageSyntaxTree extends SyntaxTreeBase {
+	// Name of sender
+	name = "Unknown Pupper";
+	// URL to sender's profile picture
+	profilePic = "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif";
+	// The main content of the original message in unparsed form
+	unparsedText = "[No Message Contents]";
+	// Color for embeds
+	color = "#407ABA";
+	// Files and Embeds
+	attachments = {
+		files: [],
+		// Embeds will come in the form of another MessageSyntaxTree instance
+		embeds: []
+	};
+}
+
+module.exports = {
+	MessageSyntaxTree
+};
