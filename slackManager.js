@@ -1,5 +1,5 @@
 const fileManager = require("./fileManager.js");
-const { MessageSyntaxTree } = require("./MessageSyntaxTree.js");
+const SyntaxTree = require("./MessageSyntaxTree.js");
 const EventEmitter = require('events');
 
 module.exports = class SlackManager {
@@ -134,7 +134,7 @@ module.exports = class SlackManager {
 	}
 
 	static async syntaxTreeFromBase(message) {
-		const syntaxTree = new MessageSyntaxTree();
+		const syntaxTree = new SyntaxTree.MessageSyntaxTree();
 		syntaxTree.source = "slack";
 		syntaxTree.action = "send";
 		this.updateSyntaxTree(syntaxTree, message);
@@ -171,7 +171,7 @@ function userIdentify(user = {}) {
  * TODO: A lot of testing and variations need to be implemented
  */
 function unwrapAttachment(attachment) {
-	const syntaxTree = new MessageSyntaxTree();
+	const syntaxTree = new SyntaxTree.MessageSyntaxTree();
 	syntaxTree.source = "slack";
 	syntaxTree.setIfString("name", attachment.service_name || attachment.author_name);
 	syntaxTree.setIfString("profilePic", attachment.service_icon || attachment.author_icon);
