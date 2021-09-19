@@ -26,8 +26,8 @@ module.exports = class SlackManager {
 		console.log("======= Slack App Data Retrieved ======");
 
 		// Prevents script from stopping on errors
-		this.SlackHTTPServerEventAdapter.on("error", this.onerror.bind(SlackManager));
-		this.SlackHTTPServerEventAdapter.on("message", this.onmessage.bind(SlackManager))
+		this.SlackHTTPServerEventAdapter.on("error", this.onerror);
+		this.SlackHTTPServerEventAdapter.on("message", this.onmessage);
 	}
 
 	static onerror(err) {
@@ -36,15 +36,33 @@ module.exports = class SlackManager {
 	}
 
 	static shouldIgnore(message) {
-		if(message.bot_id === this.AuthData.bot_id || message?.user === this.AuthData.user_id) return true;
+		if(message.bot_id === SlackManager.AuthData.bot_id || message?.user === SlackManager.AuthData.user_id) return true;
 		if(message.subtype === "bot_message") {
 			console.warn("BOT MESSAGE RECEIVED - MESSAGE IGNORED");
 			console.log(message);
 		}
 	}
 
+	static async onchange(message) {
+		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.ChangeSyntaxTree(), message);
+		SlackManager.updateSyntaxTree(syntaxTree, message.message);
+		// Known bugs:
+		// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
+		// * Attachments are only parsed again if there were no attachments before but there are now. This means that if an attachment is somehow added in an edit and there was already an attachment before, they are ignored.
+		//     * Situations in which this will happen have not been found yet
+		// * Attachments may break the order of the logged messages if they process themselves faster than the main embed
+		// * Changes that occur before the original message has had a chance to be bridged over may crash the program (It won't shutdown though, it'll just leave a messy error message)
+		return syntaxTree;
+	}
+
+	static async ondelete(message) {
+		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.DeleteSyntaxTree(), message);
+		syntaxTree.additional.deletedTimestamp = message.deleted_ts;
+		return syntaxTree;
+	}
+
 	static async onmessage(message) {
-		if(this.shouldIgnore(message)) return;
+		if(SlackManager.shouldIgnore(message)) return;
 		/*
 		Notes for improving syntax tree parsing
 		- Only message.subtype === undefined or 'file_share' has message.user. Assuming that only new content has user property
@@ -60,9 +78,11 @@ module.exports = class SlackManager {
 		- Some testing still needed for threads, pins, channel joins/exits, and more
 			- Consider creating new syntax tree classes for different events
 		 */
-		const syntaxTree = await this.syntaxTreeFromBase(message);
 
-		if(message.thread_ts) syntaxTree.additional.thread = { timestamp: message.thread_ts };
+		if(message.subtype === "message_deleted") return await SlackManager.ondelete(message);
+		else if(message.subtype === "message_changed") return await SlackManager.onchange(message);
+
+		const syntaxTree = await SlackManager.syntaxTreeFromBase(new SyntaxTree.MessageSyntaxTree(), message);
 
 		if(message.subtype === "file_share") {
 			// Important Note: Downloads all files locally. Remember to delete them when you are done with fileManager.fileDelete(fileName)
@@ -77,20 +97,6 @@ module.exports = class SlackManager {
 		// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here
 		// noinspection FallThroughInSwitchStatementJS
 		switch(message.subtype) {
-			case "message_deleted":
-				syntaxTree.action = "delete";
-				syntaxTree.additional.deletedTimestamp = message.deleted_ts;
-				break;
-			case "message_changed":
-				this.updateSyntaxTree(syntaxTree, message.message);
-				syntaxTree.action = "edit";
-				// Known bugs:
-				// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
-				// * Attachments are only parsed again if there were no attachments before but there are now. This means that if an attachment is somehow added in an edit and there was already an attachment before, they are ignored.
-				//     * Situations in which this will happen have not been found yet
-				// * Attachments may break the order of the logged messages if they process themselves faster than the main embed
-				// * Changes that occur before the original message has had a chance to be bridged over may crash the program (It won't shutdown though, it'll just leave a messy error message)
-				break;
 			/* No Support Added for Groups. If a default channel is being used, there is a chance that the code will still work for groups to some degree if this is uncommented but there are no guarantees
 			case "group_join":
 			case "group_leave":
@@ -133,15 +139,15 @@ module.exports = class SlackManager {
 		this.events.emit("message", syntaxTree);
 	}
 
-	static async syntaxTreeFromBase(message) {
-		const syntaxTree = new SyntaxTree.MessageSyntaxTree();
+	static async syntaxTreeFromBase(syntaxTree, message) {
 		syntaxTree.source = "slack";
-		syntaxTree.action = "send";
-		this.updateSyntaxTree(syntaxTree, message);
-		syntaxTree.parseData.channel = (await this.client.conversations.info({ channel: message.channel })).channel;
+		SlackManager.updateSyntaxTree(syntaxTree, message);
+		syntaxTree.parseData.channel = (await SlackManager.client.conversations.info({ channel: message.channel })).channel;
+
+		if(message.thread_ts) syntaxTree.additional.thread = { timestamp: message.thread_ts };
 
 		if(message.user) {
-			const user = (await this.client.users.info({ user: message.user })).user || { profile: {} };
+			const user = (await SlackManager.client.users.info({ user: message.user })).user || { profile: {} };
 			syntaxTree.setIfString("name", userIdentify(user));
 			syntaxTree.setIfString("color", user.color ? `#${user.color}` : undefined);
 			syntaxTree.setIfString("profilePic", user.profile.image_512);

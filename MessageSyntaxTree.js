@@ -48,6 +48,7 @@ class SyntaxTreeBase {
  * @class {MessageSyntaxTree}
  */
 class MessageSyntaxTree extends SyntaxTreeBase {
+	action = "send";
 	// Name of sender
 	name = "Unknown Pupper";
 	// URL to sender's profile picture
@@ -68,6 +69,7 @@ class MessageSyntaxTree extends SyntaxTreeBase {
  * Syntax Tree for deletion events
  */
 class DeleteSyntaxTree extends SyntaxTreeBase {
+	action = "delete";
 	messageIdentifier = "";
 	deletedTimestamp = undefined;
 }
@@ -76,6 +78,7 @@ class DeleteSyntaxTree extends SyntaxTreeBase {
  * Syntax Tree for content changes
  */
 class ChangeSyntaxTree extends SyntaxTreeBase {
+	action = "edit";
 	newUnparsedText = "[No Message Contents]";
 	changeTimestamp = undefined;
 
