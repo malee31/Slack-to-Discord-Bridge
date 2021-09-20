@@ -45,6 +45,7 @@ module.exports = class SlackManager {
 
 	static async onchange(message) {
 		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.ChangeSyntaxTree(), message);
+		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
 		SlackManager.updateSyntaxTree(syntaxTree, message.message);
 		// Known bugs:
 		// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
@@ -57,6 +58,7 @@ module.exports = class SlackManager {
 
 	static async ondelete(message) {
 		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.DeleteSyntaxTree(), message);
+		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
 		syntaxTree.additional.deletedTimestamp = message.deleted_ts;
 		return syntaxTree;
 	}
@@ -84,10 +86,10 @@ module.exports = class SlackManager {
 
 		const syntaxTree = await SlackManager.syntaxTreeFromBase(new SyntaxTree.MessageSyntaxTree(), message);
 
-		if(message.subtype === "file_share") {
-			// Important Note: Downloads all files locally. Remember to delete them when you are done with fileManager.fileDelete(fileName)
-			syntaxTree.attachments.files = await Promise.all(message.files.map(fileData => fileManager.fileDownload(fileData)));
-		}
+		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
+
+		// Important Note: Downloads all files locally. Remember to delete them when you are done with fileManager.fileDelete(fileName)
+		if(message.subtype === "file_share") syntaxTree.attachments.files = await Promise.all(message.files.map(fileData => fileManager.fileDownload(fileData)));
 
 		syntaxTree.attachments.embeds = (message.attachments || [])
 			.map(unwrapAttachment);
