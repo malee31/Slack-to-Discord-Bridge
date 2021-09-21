@@ -20,6 +20,7 @@
 		"http": "^0.0.1-security",
 		"kleur": "^3.0.3",
 		"mime-types": "^2.1.28",
+		"prompt-set": "^2.1.0",
 		"prompts": "^2.4.1",
 		"sqlite3": "^5.0.2"
 	},
