@@ -158,7 +158,7 @@ class DiscordManager {
 		return parsedText;
 	}
 
-	static async handleSyntaxTree(syntaxTree) {
+	static async handleMessages(syntaxTree) {
 		const mainEmbed = this.embedFromSyntaxTree(syntaxTree);
 		const parsedMessage = {
 			mainEmbed,
@@ -205,21 +205,6 @@ class DiscordManager {
 					}))
 				);
 				break;
-			case "edit":
-				const originalMessageID = (await databaseManager.locateMaps(syntaxTree.timestamp.toString())).find(map => map.PurelyText);
-				if(!originalMessageID) return console.warn(`Old Message Not Found For ${syntaxTree.timestamp}`);
-				const originalMessage = await targetChannel.messages.fetch(originalMessageID.DiscordMessageID);
-				await originalMessage.edit({ embeds: [mainEmbed] });
-				break;
-			case "delete":
-				// Note: Deletes all parts of a message on Discord even if only a part is deleted on Slack (like a singular file)
-				// TODO: Delete only what is necessary
-				await Promise.all((await databaseManager.locateMaps(syntaxTree.additional.deletedTimestamp))
-					.map(async map => {
-						const message = await targetChannel.messages.fetch(map["DiscordMessageID"]);
-						await message.delete();
-					}));
-				break;
 			case "update-channel-data":
 				break;
 			case "update-channel-name":
@@ -236,6 +221,26 @@ class DiscordManager {
 				.filter(file => file.size < 8)
 				.map(file => fileManager.fileDelete(file.path))
 		);
+	}
+
+	static async handleChanges(syntaxTree) {
+		const mainEmbed = this.embedFromSyntaxTree(syntaxTree);
+		const targetChannel = await this.locateChannel(syntaxTree);
+		const originalMessageID = (await databaseManager.locateMaps(syntaxTree.timestamp.toString())).find(map => map.PurelyText);
+		if(!originalMessageID) return console.warn(`Old Message Not Found For ${syntaxTree.timestamp}`);
+		const originalMessage = await targetChannel.messages.fetch(originalMessageID.DiscordMessageID);
+		await originalMessage.edit(mainEmbed);
+	}
+
+	static async handleDeletes(syntaxTree) {
+		const targetChannel = await this.locateChannel(syntaxTree);
+		// Note: Deletes all parts of a message on Discord even if only a part is deleted on Slack (like a singular file)
+		// TODO: Delete only what is necessary
+		await Promise.all((await databaseManager.locateMaps(syntaxTree.additional.deletedTimestamp))
+			.map(async map => {
+				const message = await targetChannel.messages.fetch(map["DiscordMessageID"]);
+				await message.delete();
+			}));
 	}
 
 	/**

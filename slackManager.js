@@ -53,14 +53,14 @@ module.exports = class SlackManager {
 		//     * Situations in which this will happen have not been found yet
 		// * Attachments may break the order of the logged messages if they process themselves faster than the main embed
 		// * Changes that occur before the original message has had a chance to be bridged over may crash the program (It won't shutdown though, it'll just leave a messy error message)
-		return syntaxTree;
+		this.events.emit("change", syntaxTree);
 	}
 
 	static async ondelete(message) {
 		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.DeleteSyntaxTree(), message);
 		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
 		syntaxTree.additional.deletedTimestamp = message.deleted_ts;
-		return syntaxTree;
+		this.events.emit("delete", syntaxTree);
 	}
 
 	static async onmessage(message) {
