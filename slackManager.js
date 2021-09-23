@@ -49,14 +49,15 @@ module.exports = class SlackManager {
 		// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here
 		switch(message.subtype) {
 			case "message_deleted":
-				return SlackManager.ondelete(message);
+				return SlackManager.onDelete(message);
 			case "message_changed":
 				return SlackManager.onchange(message);
 			case undefined:
 			case "me_message": // It's just regular message in italics more or less
 			case "thread_broadcast": // Is a message AND a thread... Oh no...
+			case "bot_message": // Might need a custom function to work properly. Use bots.info to search up user if needed
 			case "file_share":
-				return SlackManager.onmessage(message);
+				return SlackManager.onMessage(message);
 			/* No Support Added for Groups. If a default channel is being used, there is a chance that the code will still work for groups to some degree if this is uncommented but there are no guarantees
 			case "group_join":
 			case "group_leave":
@@ -65,26 +66,16 @@ module.exports = class SlackManager {
 			case "group_name":
 			case "group_purpose":
 			case "group_topic": */
-			case "channel_topic":
-			// syntaxTree.action = "update-channel-topic";
 			case "channel_join":
 			case "channel_leave":
 			case "channel_archive":
 			case "channel_unarchive":
-			case "channel_purpose":
-				// syntaxTree.action = "update-channel-data";
+				// Reuse message feature? Should I port this over at all???
 				break;
 			case "channel_name":
-				// console.log(`Renaming "#${message.old_name}" to "#${message.name}"`);
-				// syntaxTree.action = "update-channel-name";
-				// syntaxTree.additional.newName = message.name;
-				break;
-			case "bot_message":
-				console.log("No additional actions required");
-				break;
-			case "unsupported":
-				console.log(`No support: ${message.subtype}`);
-				break;
+			case "channel_topic":
+			case "channel_purpose":
+				return SlackManager.onChannelUpdate(message);
 			default:
 				console.warn(`Unknown Message Subtype ${message.subtype}`);
 		}
@@ -103,14 +94,14 @@ module.exports = class SlackManager {
 		this.events.emit("change", syntaxTree);
 	}
 
-	static async ondelete(message) {
+	static async onDelete(message) {
 		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.DeleteSyntaxTree(), message);
 		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
 		syntaxTree.additional.deletedTimestamp = message.deleted_ts;
 		this.events.emit("delete", syntaxTree);
 	}
 
-	static async onmessage(message) {
+	static async onMessage(message) {
 		/*
 		Notes for improving syntax tree parsing
 		- Only message.subtype === undefined or 'file_share' has message.user. Assuming that only new content has user property
@@ -140,6 +131,10 @@ module.exports = class SlackManager {
 
 		// TODO: Look up references to @users and #channels and add them to the syntax tree and populate syntaxTree.parseData
 		this.events.emit("message", syntaxTree);
+	}
+
+	static async onChannelUpdate(message) {
+		// TODO: Implement
 	}
 
 	static async syntaxTreeFromBase(syntaxTree, message) {
