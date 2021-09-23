@@ -27,7 +27,7 @@ module.exports = class SlackManager {
 
 		// Prevents script from stopping on errors
 		this.SlackHTTPServerEventAdapter.on("error", this.onerror);
-		this.SlackHTTPServerEventAdapter.on("message", this.onmessage);
+		this.SlackHTTPServerEventAdapter.on("message", this.splitEvents);
 	}
 
 	static onerror(err) {
@@ -40,6 +40,53 @@ module.exports = class SlackManager {
 		if(message.subtype === "bot_message") {
 			console.warn("BOT MESSAGE RECEIVED - MESSAGE IGNORED");
 			console.log(message);
+		}
+	}
+
+	static splitEvents(message) {
+		if(SlackManager.shouldIgnore(message)) return;
+
+		// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here
+		switch(message.subtype) {
+			case "message_deleted":
+				return SlackManager.ondelete(message);
+			case "message_changed":
+				return SlackManager.onchange(message);
+			case undefined:
+			case "me_message": // It's just regular message in italics more or less
+			case "thread_broadcast": // Is a message AND a thread... Oh no...
+			case "file_share":
+				return SlackManager.onmessage(message);
+			/* No Support Added for Groups. If a default channel is being used, there is a chance that the code will still work for groups to some degree if this is uncommented but there are no guarantees
+			case "group_join":
+			case "group_leave":
+			case "group_archive":
+			case "group_unarchive":
+			case "group_name":
+			case "group_purpose":
+			case "group_topic": */
+			case "channel_topic":
+			// syntaxTree.action = "update-channel-topic";
+			case "channel_join":
+			case "channel_leave":
+			case "channel_archive":
+			case "channel_unarchive":
+			case "channel_purpose":
+				// syntaxTree.action = "update-channel-data";
+				break;
+			case "channel_name":
+				// console.log(`Renaming "#${message.old_name}" to "#${message.name}"`);
+				// syntaxTree.action = "update-channel-name";
+				// syntaxTree.additional.newName = message.name;
+				break;
+			case "bot_message":
+				console.log("No additional actions required");
+				break;
+			case "unsupported":
+				console.log(`No support: ${message.subtype}`);
+				break;
+			default:
+				console.warn(`Unknown Message Subtype ${message.subtype}`);
 		}
 	}
 
@@ -64,7 +111,6 @@ module.exports = class SlackManager {
 	}
 
 	static async onmessage(message) {
-		if(SlackManager.shouldIgnore(message)) return;
 		/*
 		Notes for improving syntax tree parsing
 		- Only message.subtype === undefined or 'file_share' has message.user. Assuming that only new content has user property
@@ -80,10 +126,6 @@ module.exports = class SlackManager {
 		- Some testing still needed for threads, pins, channel joins/exits, and more
 			- Consider creating new syntax tree classes for different events
 		 */
-
-		if(message.subtype === "message_deleted") return await SlackManager.ondelete(message);
-		else if(message.subtype === "message_changed") return await SlackManager.onchange(message);
-
 		const syntaxTree = await SlackManager.syntaxTreeFromBase(new SyntaxTree.MessageSyntaxTree(), message);
 
 		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
@@ -95,47 +137,6 @@ module.exports = class SlackManager {
 			.map(unwrapAttachment);
 
 		if(message.subtype === "me_message") syntaxTree.additional.italicizeAll = true;
-
-		// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here
-		// noinspection FallThroughInSwitchStatementJS
-		switch(message.subtype) {
-			/* No Support Added for Groups. If a default channel is being used, there is a chance that the code will still work for groups to some degree if this is uncommented but there are no guarantees
-			case "group_join":
-			case "group_leave":
-			case "group_archive":
-			case "group_unarchive":
-			case "group_name":
-			case "group_purpose":
-			case "group_topic": */
-			case "channel_topic":
-				syntaxTree.action = "update-channel-topic";
-			case "channel_join":
-			case "channel_leave":
-			case "channel_archive":
-			case "channel_unarchive":
-			case "channel_purpose":
-				syntaxTree.action = "update-channel-data";
-				break;
-			case "channel_name":
-				console.log(`Renaming "#${message.old_name}" to "#${message.name}"`);
-				syntaxTree.action = "update-channel-name";
-				syntaxTree.additional.newName = message.name;
-				break;
-			case undefined:
-			case "me_message": // It's just regular message in italics more or less
-			case "thread_broadcast": // Is a message AND a thread... Oh no...
-			case "file_share":
-			case "bot_message":
-				console.log("No additional actions required");
-				break;
-			case "message_replied":
-				console.warn("Received a 'message_replied' message. This is just a thread and it should be working fine.\nJust note that if you see this: There was a bug alert for this subtype that said to check for message.thread_ts instead of using message.subtype to tell if the message is part of a thread. If you see this, it means that it has since been patched and the code should be updated");
-			case "unsupported":
-				console.log(`No support: ${message.subtype}`);
-				break;
-			default:
-				console.warn(`Unknown Message Subtype ${message.subtype}`);
-		}
 
 		// TODO: Look up references to @users and #channels and add them to the syntax tree and populate syntaxTree.parseData
 		this.events.emit("message", syntaxTree);
