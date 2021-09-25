@@ -112,8 +112,6 @@ module.exports = class SlackManager {
 		Plan:
 		- Search up channel *ALWAYS*
 		- Search up user only in the events that need them
-			- Consider splitting the control flow into separate functions based on the subtype instead of handling them all together
-			- Fill up syntaxTree with less unnecessary defaults
 		- Some testing still needed for threads, pins, channel joins/exits, and more
 			- Consider creating new syntax tree classes for different events
 		 */

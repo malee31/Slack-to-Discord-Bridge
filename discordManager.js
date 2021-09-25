@@ -176,8 +176,8 @@ class DiscordManager {
 		switch(syntaxTree.action) {
 			case "send":
 				if(parsedMessage.additionalEmbeds.length !== 0) mainEmbed.embeds[0].setFooter(`${mainEmbed.embeds[0].footer ? `${mainEmbed.embeds[0].footer}\n` : ""}↓ Message Includes ${parsedMessage.additionalEmbeds.length} Additional Attachment${parsedMessage.additionalEmbeds.length === 1 ? "" : "s"} Below ↓`);
-
-				const sentMessage = await targetChannel.send(mainEmbed);
+				const sendTo = syntaxTree.additional.thread.timestamp ? await DiscordManager.locateThread(targetChannel.threads, syntaxTree) : targetChannel;
+				const sentMessage = await sendTo.send(mainEmbed);
 				const messageIDs = [];
 				await databaseManager.messageMap({
 					SMID: syntaxTree.timestamp,
@@ -255,17 +255,9 @@ class DiscordManager {
 		console.log(syntaxTree.parseData.channel, dataManager.getChannel(syntaxTree.parseData.channel.id))
 		if(!targetChannel) {
 			const channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: syntaxTree.parseData.channel.id });
-			if(!channelInfo.channel) {
-				console.warn("No channelInfo.channel found: ", channelInfo);
-				channelInfo.channel = { name: "unknown_channel_name" };
-			}
-			if(!channelInfo.channel.name) {
-				console.warn("No channelInfo.channel.name found: ", channelInfo.channel);
-				channelInfo.channel.name = "unknown_channel_name";
-			}
 			// Quirk: First occurrence of channel with the same name on Discord is used. The second occurrence is ignored
 			targetChannel = (await DiscordManager.LoggingGuild.channels.fetch())
-				.find(channel => channel.type === "text" && channel.name === channelInfo.channel.name);
+				.find(channel => channel.type === "text" && channel.name === channelInfo?.channel?.name || "unknown_channel_name");
 
 			if(!targetChannel) {
 				try {
@@ -279,6 +271,13 @@ class DiscordManager {
 			dataManager.mapChannel(syntaxTree.parseData.channel.id, targetChannel.id);
 		}
 		return targetChannel;
+	}
+
+	static async locateThread(threadManager, syntaxTree) {
+		const thread = (await threadManager.fetch()).find(thread => {
+			return true;
+		});
+		return thread;
 	}
 
 	/**
