@@ -5,7 +5,7 @@ const DiscordManager = require("./discordManager.js");
 const testData = require("./testCases.json");
 
 // Run with `node collectTestData.js > testCases.json` or `node collectTestData.js emit <test case number to emit>`
-if (require.main === module && process.argv[2] !== "emit") {
+if(require.main === module && process.argv[2] !== "emit") {
 	console.log("[");
 	const SlackHTTPServerEventAdapter = (require("@slack/events-api")).createEventAdapter(process.env.SLACK_SIGNING_SECRET);
 	const server = require("./fileServer.js")(SlackHTTPServerEventAdapter);

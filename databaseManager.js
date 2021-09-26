@@ -43,7 +43,7 @@ db.on("open", () => {
  * @param {boolean} [data.textOnly = false] Whether this Discord Message ID should be the designated text node. This message will be the one edited when editing text if true
  * @return {Promise} Resolves after inserting the new row
  */
-function messageMap({SMID, DMID, threadID = "Main", textOnly = false}) {
+function messageMap({ SMID, DMID, threadID = "Main", textOnly = false }) {
 	return new Promise((resolve, reject) => {
 		db.run("INSERT INTO MessageMap VALUES (?, ?, ?)", SMID, DMID, textOnly, (err, res) => {
 			if(err) reject(err);

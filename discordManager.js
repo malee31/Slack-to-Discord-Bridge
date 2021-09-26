@@ -290,9 +290,9 @@ class DiscordManager {
 	 */
 	static async textUpdate(channel, slackIdentifier, newText) {
 		let oldMessage = (await databaseManager.locateMaps(slackIdentifier))
-			.filter(rowResult => rowResult["PurelyText"]);
+			.find(rowResult => rowResult["PurelyText"]);
 		if(!oldMessage) console.warn(`Old Message Not Found For ${slackIdentifier}`);
-		oldMessage = await channel.messages.fetch(oldMessage[0]["DiscordMessageID"]);
+		oldMessage = await channel.messages.fetch(oldMessage["DiscordMessageID"]);
 		let editedEmbed = new Discord.MessageEmbed(oldMessage.embeds[0]).setDescription(newText);
 		await oldMessage.edit(editedEmbed);
 	}
