@@ -20,7 +20,10 @@ class SyntaxTreeBase {
 		emojis: [],
 		channel: {
 			name: "Unknown Channel",
-			description: "No Description"
+			description: "No Description",
+			topic: "",
+			purpose: "",
+			id: ""
 		}
 	};
 
@@ -91,13 +94,7 @@ class ChangeSyntaxTree extends SyntaxTreeBase {
 }
 
 class ChannelSyntaxTree extends SyntaxTreeBase {
-	constructor() {
-		super();
-		Object.assign(this.parseData.channel, {
-			topic: "",
-			purpose: ""
-		});
-	}
+	// Literally no different from normal base. Just extending for the class name change
 }
 
 module.exports = {

@@ -140,7 +140,12 @@ module.exports = class SlackManager {
 	static async syntaxTreeFromBase(syntaxTree, message) {
 		syntaxTree.source = "slack";
 		SlackManager.updateSyntaxTree(syntaxTree, message);
-		syntaxTree.parseData.channel = (await SlackManager.client.conversations.info({ channel: message.channel })).channel;
+		const originalChannel = (await SlackManager.client.conversations.info({ channel: message.channel })).channel;
+		syntaxTree.parseData.channel.name = originalChannel.name;
+		syntaxTree.parseData.channel.id = originalChannel.id;
+		syntaxTree.parseData.channel.topic = originalChannel.topic.value;
+		syntaxTree.parseData.channel.purpose = originalChannel.purpose.value;
+		syntaxTree.parseData.channel.purpose = Boolean(originalChannel.is_archived);
 
 		if(message.thread_ts) syntaxTree.additional.thread = { timestamp: message.thread_ts };
 
