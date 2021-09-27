@@ -90,8 +90,19 @@ class ChangeSyntaxTree extends SyntaxTreeBase {
 	};
 }
 
+class ChannelSyntaxTree extends SyntaxTreeBase {
+	constructor() {
+		super();
+		Object.assign(this.parseData.channel, {
+			topic: "",
+			purpose: ""
+		});
+	}
+}
+
 module.exports = {
 	MessageSyntaxTree,
 	DeleteSyntaxTree,
-	ChangeSyntaxTree
+	ChangeSyntaxTree,
+	ChannelSyntaxTree
 };

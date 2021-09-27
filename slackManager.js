@@ -133,6 +133,8 @@ module.exports = class SlackManager {
 
 	static async onChannelUpdate(message) {
 		// TODO: Implement
+		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.ChannelSyntaxTree(), message);
+		this.events.emit("channel_update", syntaxTree);
 	}
 
 	static async syntaxTreeFromBase(syntaxTree, message) {
