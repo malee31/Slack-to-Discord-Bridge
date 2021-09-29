@@ -46,9 +46,10 @@ function startUp() {
 // Starts up the logger
 startUp().then(() => {
 	console.log("======= All Services Started Up =======");
-	SlackManager.events.on("message", DiscordManager.handleMessages.bind(DiscordManager));
-	SlackManager.events.on("change", DiscordManager.handleChanges.bind(DiscordManager));
-	SlackManager.events.on("delete", DiscordManager.handleDeletes.bind(DiscordManager));
+	SlackManager.events.on("message", DiscordManager.handleMessages);
+	SlackManager.events.on("change", DiscordManager.handleChanges);
+	SlackManager.events.on("delete", DiscordManager.handleDeletes);
+	SlackManager.events.on("channel_update", DiscordManager.handleChannelUpdates);
 	console.log("========== Start Up Complete ==========");
 }).catch(err => {
 	console.warn("⚠⚠ Failed Start-Up... Shutting Down ⚠⚠");

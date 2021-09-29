@@ -30,7 +30,7 @@ class DiscordManager {
 			console.log("======= Disconnecting. Goodbye! =======");
 			process.exit(1);
 		});
-		this.client.user.setPresence({
+		DiscordManager.client.user.setPresence({
 			activities: [{
 				type: "LISTENING",
 				name: "Slack Messages"
@@ -38,11 +38,11 @@ class DiscordManager {
 			status: "online",
 			afk: false
 		});
-		console.log(`===== Logged in as ${this.client.user.tag} ====`);
+		console.log(`===== Logged in as ${DiscordManager.client.user.tag} ====`);
 
 		try {
 			console.log("======= Locating Logging Server =======");
-			DiscordManager.LoggingGuild = await this.client.guilds.fetch(process.env.DISCORD_GUILD_ID);
+			DiscordManager.LoggingGuild = await DiscordManager.client.guilds.fetch(process.env.DISCORD_GUILD_ID);
 		} catch(locateError) {
 			console.warn("⚠⚠ Failed to Locate Logging Server ⚠⚠");
 			console.error(locateError);
@@ -65,7 +65,7 @@ class DiscordManager {
 
 		parsedEmbed.setColor(syntaxTree.color);
 		parsedEmbed.setAuthor(syntaxTree.name, syntaxTree.profilePic);
-		parsedEmbed.setDescription(this.syntaxTreeParseText(syntaxTree));
+		parsedEmbed.setDescription(DiscordManager.syntaxTreeParseText(syntaxTree));
 		parsedEmbed.setTimestamp(syntaxTree.timestamp * 1000);
 
 		return { embeds: [parsedEmbed] };
@@ -84,7 +84,7 @@ class DiscordManager {
 			.setTimestamp(templateEmbed.timestamp * 1000);
 
 		if(file.size < 8) {
-			if(this.attachableFormats.includes(file.extension.toLowerCase().trim()))
+			if(DiscordManager.attachableFormats.includes(file.extension.toLowerCase().trim()))
 				result.embeds.push(fileEmbed.setImage(`attachment://${file.name}`));
 
 			result.files.push({
@@ -117,7 +117,7 @@ class DiscordManager {
 		// 		return DiscordManager.SlackClient.users.info({ user: id });
 		// 	});
 		// 	(await Promise.all(identify)).forEach(userInfo => {
-		// 		text = text.replace(new RegExp(`<@${userInfo.user.id}>`, 'g'), `[${this.userIdentify(userInfo.user)}]`);
+		// 		text = text.replace(new RegExp(`<@${userInfo.user.id}>`, 'g'), `[${DiscordManager.userIdentify(userInfo.user)}]`);
 		// 	});
 		// }
 
@@ -159,19 +159,19 @@ class DiscordManager {
 	}
 
 	static async handleMessages(syntaxTree) {
-		const mainEmbed = this.embedFromSyntaxTree(syntaxTree);
+		const mainEmbed = DiscordManager.embedFromSyntaxTree(syntaxTree);
 		const parsedMessage = {
 			mainEmbed,
 			// Format in {embed, files}
 			additionalEmbeds: syntaxTree.attachments.files
-				.map(file => this.embedFromFile(file, mainEmbed))
+				.map(file => DiscordManager.embedFromFile(file, mainEmbed))
 		};
 
 		syntaxTree.attachments.embeds
-			.map(this.embedFromSyntaxTree)
+			.map(DiscordManager.embedFromSyntaxTree)
 			.forEach(parsedMessage.additionalEmbeds.push);
 
-		const targetChannel = await this.locateChannel(syntaxTree);
+		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
 
 		switch(syntaxTree.action) {
 			case "send":
@@ -223,8 +223,8 @@ class DiscordManager {
 	}
 
 	static async handleChanges(syntaxTree) {
-		const mainEmbed = this.embedFromSyntaxTree(syntaxTree);
-		const targetChannel = await this.locateChannel(syntaxTree);
+		const mainEmbed = DiscordManager.embedFromSyntaxTree(syntaxTree);
+		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
 		const originalMessageID = (await databaseManager.locateMaps(syntaxTree.timestamp.toString())).find(map => map.PurelyText);
 		if(!originalMessageID) return console.warn(`Old Message Not Found For ${syntaxTree.timestamp}`);
 		const originalMessage = await targetChannel.messages.fetch(originalMessageID.DiscordMessageID);
@@ -232,14 +232,22 @@ class DiscordManager {
 	}
 
 	static async handleDeletes(syntaxTree) {
-		const targetChannel = await this.locateChannel(syntaxTree);
-		// Note: Deletes all parts of a message on Discord even if only a part is deleted on Slack (like a singular file)
-		// TODO: Delete only what is necessary
+		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
+		// TODO: Delete only what is necessary. Currently deletes all parts of a message even if only a portion is deleted from Slack
+		//  (Example: Deleting 1/3 files on Slack deletes all 3 and the text on Discord)
 		await Promise.all((await databaseManager.locateMaps(syntaxTree.additional.deletedTimestamp))
 			.map(async map => {
 				const message = await targetChannel.messages.fetch(map["DiscordMessageID"]);
 				await message.delete();
 			}));
+	}
+
+	static async handleChannelUpdates(syntaxTree) {
+		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
+		const channelData = syntaxTree.parseData.channel;
+		const discordTopic = `${channelData.topic} | ${channelData.purpose || "Archive Channel"}`;
+		if(targetChannel.name !== channelData.name) await targetChannel.setName(channelData.name, "Channel name changed from Slack");
+		if(targetChannel.topic !== discordTopic) await targetChannel.setTopic(discordTopic, "Channel Topic changed from Slack");
 	}
 
 	/**
@@ -307,13 +315,13 @@ class DiscordManager {
 	 * @param {number} slackTs The timestamp of the pinned Slack message. Used with the channel ID to identify the message and find it
 	 */
 	static async setPin(pin = false, slackChannelID, slackUserID, slackTs) {
-		const targetChannel = await this.locateChannel(slackChannelID);
+		const targetChannel = await DiscordManager.locateChannel(slackChannelID);
 		const user = slackUserID ? (await DiscordManager.SlackClient.users.info({ user: slackUserID })).user : undefined;
-		const maps = await databaseManager.locateMaps(this.identify(slackChannelID, slackTs));
+		const maps = await databaseManager.locateMaps(DiscordManager.identify(slackChannelID, slackTs));
 		for(const map of maps) {
 			const selectedMessage = await targetChannel.messages.fetch(map["DiscordMessageID"]);
 			if(pin) {
-				await selectedMessage.pin({ reason: `Pinned by ${this.userIdentify(user)} at ${slackTs * 1000} Epoch Time` });
+				await selectedMessage.pin({ reason: `Pinned by ${DiscordManager.userIdentify(user)} at ${slackTs * 1000} Epoch Time` });
 			} else {
 				await selectedMessage.unpin();
 			}
