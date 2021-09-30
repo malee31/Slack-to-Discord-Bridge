@@ -173,46 +173,36 @@ class DiscordManager {
 
 		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
 
-		switch(syntaxTree.action) {
-			case "send":
-				if(parsedMessage.additionalEmbeds.length !== 0) mainEmbed.embeds[0].setFooter(`${mainEmbed.embeds[0].footer ? `${mainEmbed.embeds[0].footer}\n` : ""}↓ Message Includes ${parsedMessage.additionalEmbeds.length} Additional Attachment${parsedMessage.additionalEmbeds.length === 1 ? "" : "s"} Below ↓`);
-				const sendTo = syntaxTree.additional.thread.timestamp ? await DiscordManager.locateThread(targetChannel.threads, syntaxTree) : targetChannel;
-				const sentMessage = await sendTo.send(mainEmbed);
-				const messageIDs = [];
-				await databaseManager.messageMap({
-					SMID: syntaxTree.timestamp,
-					DMID: sentMessage.id,
-					textOnly: true
-				}).then(() => {
-					console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${sentMessage.id}`);
-				}).catch(err => {
-					console.warn(`MAP ERROR:\n${err}`)
-				});
+		if(parsedMessage.additionalEmbeds.length !== 0) mainEmbed.embeds[0].setFooter(`${mainEmbed.embeds[0].footer ? `${mainEmbed.embeds[0].footer}\n` : ""}↓ Message Includes ${parsedMessage.additionalEmbeds.length} Additional Attachment${parsedMessage.additionalEmbeds.length === 1 ? "" : "s"} Below ↓`);
+		const sendTo = syntaxTree.additional.thread.timestamp ? await DiscordManager.locateThread(targetChannel.threads, syntaxTree) : targetChannel;
+		const sentMessage = await sendTo.send(mainEmbed);
+		const messageIDs = [];
+		await databaseManager.messageMap({
+			SMID: syntaxTree.timestamp,
+			DMID: sentMessage.id,
+			textOnly: true
+		}).then(() => {
+			console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${sentMessage.id}`);
+		}).catch(err => {
+			console.warn(`MAP ERROR:\n${err}`)
+		});
 
-				for(const additionalData of parsedMessage.additionalEmbeds)
-					messageIDs.push(await targetChannel.send(additionalData)
-						.then(message => message.id)
-					);
+		for(const additionalData of parsedMessage.additionalEmbeds)
+			messageIDs.push(await targetChannel.send(additionalData)
+				.then(message => message.id)
+			);
 
-				await Promise.all(messageIDs.map(id =>
-					databaseManager.messageMap({
-						SMID: syntaxTree.timestamp.toString(),
-						DMID: id,
-						textOnly: false
-					}).then(() => {
-						console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${id}`);
-					}).catch(err => {
-						console.warn(`MAP ERROR:\n${err}`)
-					}))
-				);
-				break;
-			case "update-channel-name":
-			case "update-channel-topic":
-			case "update-channel-data":
-				break;
-			default:
-				console.log(`Unknown action: ${syntaxTree.action}`);
-		}
+		await Promise.all(messageIDs.map(id =>
+			databaseManager.messageMap({
+				SMID: syntaxTree.timestamp.toString(),
+				DMID: id,
+				textOnly: false
+			}).then(() => {
+				console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${id}`);
+			}).catch(err => {
+				console.warn(`MAP ERROR:\n${err}`)
+			}))
+		);
 
 		// Clean-up downloaded files after sending
 		await Promise.all(
