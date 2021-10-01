@@ -107,20 +107,6 @@ class DiscordManager {
 		if(syntaxTree.unparsedText.length === 0) return "[No Message Contents]";
 		let parsedText = syntaxTree.unparsedText;
 
-		// TODO: Parse channels and mentions
-		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
-		// Known Bugs:
-		// * Slow. Each mention slows down parsing significantly back in the MessageSyntaxTree assembly stage
-		// let mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g);
-		// if(mentions) {
-		// 	let identify = mentions.filter((id, index) => mentions.indexOf(id) === index).map(id => {
-		// 		return DiscordManager.SlackClient.users.info({ user: id });
-		// 	});
-		// 	(await Promise.all(identify)).forEach(userInfo => {
-		// 		text = text.replace(new RegExp(`<@${userInfo.user.id}>`, 'g'), `[${DiscordManager.userIdentify(userInfo.user)}]`);
-		// 	});
-		// }
-
 		// URL Slack to Discord Markdown Translation
 		// Known Bugs:
 		// * Including the character '>' in any part of the link's text will make the translation cut off early
@@ -151,6 +137,15 @@ class DiscordManager {
 		// - Typing &lt; on Slack translates to < on Discord
 		// - Typing &amp; on Slack translates to & on Discord
 		parsedText = parsedText.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+
+		// Replace all mentions and channels
+		for(const user of syntaxTree.parseData.users) {
+			parsedText = parsedText.replace(new RegExp(user.mention, "g"), user.plainText);
+		}
+
+		for(const channel of syntaxTree.parseData.channels) {
+			parsedText = parsedText.replace(new RegExp(channel.channelReference, "g"), channel.plainText);
+		}
 
 		// Additional Known Bugs:
 		// * When using code blocks, the first word is invisible when sent to Discord if it is the only word on the line with the opening ``` since it is parsed as a programming language instead of text by Discord

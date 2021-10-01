@@ -164,7 +164,11 @@ module.exports = class SlackManager {
 	}
 
 	static async fetchTextDetails(syntaxTree, text) {
-		const mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g) || [];
+		// TODO: Parse and map channels
+		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
+		// Known Bugs:
+		// * Slow. Each mention slows down parsing significantly back in the MessageSyntaxTree assembly stage
+		const mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8,10}(?=>)/g) || [];
 		const slackUsers = await Promise.all(
 			mentions
 				.filter((id, index) => mentions.indexOf(id) === index)
@@ -175,6 +179,20 @@ module.exports = class SlackManager {
 			syntaxTree.parseData.users.push({
 				mention: `<@${slackUser.user.id}>`,
 				plainText: userIdentify(slackUsers.user)
+			});
+		}
+
+		const channels = text.match(/(?<=<#)[C][A-Z0-9]{2,}(?=>)$/g) || [];
+		const slackChannels = await Promise.all(
+			channels
+				.filter((id, index) => channels.indexOf(id) === index)
+				.map(id => SlackManager.client.conversations.info({ channel: id }))
+		);
+
+		for(const slackChannel of slackChannels) {
+			syntaxTree.parseData.channels.push({
+				channelReference: `<#${slackChannel.id}>`,
+				plainText: `#${slackChannel.name}`
 			});
 		}
 	}
