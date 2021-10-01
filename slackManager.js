@@ -84,7 +84,7 @@ module.exports = class SlackManager {
 	static async onchange(message) {
 		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.ChangeSyntaxTree(), message);
 		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
-		SlackManager.updateSyntaxTree(syntaxTree, message.message);
+		await SlackManager.updateSyntaxTree(syntaxTree, message.message);
 		// Known bugs:
 		// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
 		// * Attachments are only parsed again if there were no attachments before but there are now. This means that if an attachment is somehow added in an edit and there was already an attachment before, they are ignored.
@@ -138,7 +138,7 @@ module.exports = class SlackManager {
 
 	static async syntaxTreeFromBase(syntaxTree, message) {
 		syntaxTree.source = "slack";
-		SlackManager.updateSyntaxTree(syntaxTree, message);
+		await SlackManager.updateSyntaxTree(syntaxTree, message);
 		const originalChannel = (await SlackManager.client.conversations.info({ channel: message.channel })).channel;
 		syntaxTree.parseData.channel.name = originalChannel.name;
 		syntaxTree.parseData.channel.id = originalChannel.id;
@@ -158,9 +158,25 @@ module.exports = class SlackManager {
 		return syntaxTree;
 	}
 
-	static updateSyntaxTree(syntaxTree, message) {
-		syntaxTree.unparsedText = message.text || "";
+	static async updateSyntaxTree(syntaxTree, message) {
+		syntaxTree.unparsedText = await SlackManager.fetchTextDetails(syntaxTree, message.text || "");
 		syntaxTree.timestamp = message.ts;
+	}
+
+	static async fetchTextDetails(syntaxTree, text) {
+		const mentions = text.match(/(?<=<@)[UW][A-Z0-9]{8}([A-Z0-9]{2})?(?=>)/g) || [];
+		const slackUsers = await Promise.all(
+			mentions
+				.filter((id, index) => mentions.indexOf(id) === index)
+				.map(id => SlackManager.client.users.info({ user: id }))
+		);
+
+		for(const slackUser of slackUsers) {
+			syntaxTree.parseData.users.push({
+				mention: `<@${slackUser.user.id}>`,
+				plainText: userIdentify(slackUsers.user)
+			});
+		}
 	}
 }
 
