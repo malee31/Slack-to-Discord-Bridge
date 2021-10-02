@@ -143,6 +143,7 @@ class DiscordManager {
 			parsedText = parsedText.replace(new RegExp(user.mention, "g"), user.plainText);
 		}
 
+		// TODO: Map to actual channel on Discord and use a Discord channel mention
 		for(const channel of syntaxTree.parseData.channels) {
 			parsedText = parsedText.replace(new RegExp(channel.channelReference, "g"), channel.plainText);
 		}
@@ -239,31 +240,37 @@ class DiscordManager {
 	 * Locates a channel given a Slack Channel ID. Will grab associated channel from the serverMap.json or search by name. If it does not exist, the bot will create a channel with a matching name and serverMap it
 	 * @async
 	 * @memberOf module:discordManager.DiscordManager
-	 * @param {string} slackChannelID The Slack Channel id. Can be obtained through event.channel
-	 * @return {TextChannel} Returns the located Discord channel
 	 */
 	static async locateChannel(syntaxTree) {
 		// TODO: Patch function
-		let targetChannel = await DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(syntaxTree.parseData.channel.id));
-		console.log(syntaxTree.parseData.channel, dataManager.getChannel(syntaxTree.parseData.channel.id))
-		if(!targetChannel) {
-			const channelInfo = await DiscordManager.SlackClient.conversations.info({ channel: syntaxTree.parseData.channel.id });
-			// Quirk: First occurrence of channel with the same name on Discord is used. The second occurrence is ignored
-			targetChannel = (await DiscordManager.LoggingGuild.channels.fetch())
-				.find(channel => channel.type === "text" && channel.name === channelInfo?.channel?.name || "unknown_channel_name");
+		const channelData = syntaxTree.parseData.channel;
+		const targetData = {
+			id: dataManager.getChannel(channelData.id),
+			channel: undefined,
+			thread: undefined,
+			target: undefined
+		};
+		targetData.channel = await DiscordManager.LoggingGuild.channels.fetch(targetData);
+		if(!targetData.channel) {
+			// Quirk: If two channels on Discord have a matching name, only the first one found will be used
+			targetData.channel = (await DiscordManager.LoggingGuild.channels.fetch())
+				.filter(channel => channel.type === "text")
+				.find(channel => channel.name === channelData.name);
 
-			if(!targetChannel) {
+			if(!targetData.channel) {
 				try {
-					targetChannel = await DiscordManager.LoggingGuild.channels.create(channelInfo.channel.name, { reason: `#${channelInfo.channel.name} created for new Slack Messages` });
+					targetData.channel = await DiscordManager.LoggingGuild.channels.create(channelData.name, { reason: `#${channelData.name} created for new Slack Messages` });
 				} catch(channelMakeErr) {
 					// Use the line below instead of throwing if there is a default channel listed in serverMap.json you would like to send to instead of throwing
-					// return DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(event.channel, true));
-					throw `Channel #${channelInfo.channel.name} could not be found or created.\n${channelMakeErr}`;
+					// return DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(channelData.id, true));
+					throw `Channel #${channelData.name} could not be found or created.\n${channelMakeErr}`;
 				}
 			}
-			dataManager.mapChannel(syntaxTree.parseData.channel.id, targetChannel.id);
+
+			dataManager.mapChannel(channelData.id, targetData.channel.id);
 		}
-		return targetChannel;
+		// TODO: Change function calls to use targetData instead of targetData.channel
+		return targetData.channel;
 	}
 
 	static async locateThread(threadManager, syntaxTree) {

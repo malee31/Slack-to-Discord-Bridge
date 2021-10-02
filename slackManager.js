@@ -83,7 +83,7 @@ module.exports = class SlackManager {
 
 	static async onchange(message) {
 		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.ChangeSyntaxTree(), message);
-		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
+		syntaxTree.parseData.channel = await SlackManager.client.conversations.info({ channel: message.channel });
 		await SlackManager.updateSyntaxTree(syntaxTree, message.message);
 		// Known bugs:
 		// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
@@ -96,7 +96,7 @@ module.exports = class SlackManager {
 
 	static async onDelete(message) {
 		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.DeleteSyntaxTree(), message);
-		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
+		syntaxTree.parseData.channel = (await SlackManager.client.channels.info({ channel: message.channel })).channel;
 		syntaxTree.additional.deletedTimestamp = message.deleted_ts;
 		this.events.emit("delete", syntaxTree);
 	}
@@ -117,7 +117,7 @@ module.exports = class SlackManager {
 		 */
 		const syntaxTree = await SlackManager.syntaxTreeFromBase(new SyntaxTree.MessageSyntaxTree(), message);
 
-		syntaxTree.parseData.channel = await SlackManager.client.channels.info({ channel: message.channel });
+		syntaxTree.parseData.channel = await SlackManager.client.conversations.info({ channel: message.channel });
 
 		// Important Note: Downloads all files locally. Remember to delete them when you are done with fileManager.fileDelete(fileName)
 		if(message.subtype === "file_share") syntaxTree.attachments.files = await Promise.all(message.files.map(fileData => fileManager.fileDownload(fileData)));
@@ -159,11 +159,14 @@ module.exports = class SlackManager {
 	}
 
 	static async updateSyntaxTree(syntaxTree, message) {
-		syntaxTree.unparsedText = await SlackManager.fetchTextDetails(syntaxTree, message.text || "");
+		syntaxTree.unparsedText = message.text;
+		await SlackManager.fetchTextDetails(syntaxTree);
 		syntaxTree.timestamp = message.ts;
 	}
 
-	static async fetchTextDetails(syntaxTree, text) {
+	static async fetchTextDetails(syntaxTree) {
+		const text = syntaxTree.unparsedText;
+		if(!text) return;
 		// TODO: Parse and map channels
 		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
 		// Known Bugs:
@@ -178,11 +181,11 @@ module.exports = class SlackManager {
 		for(const slackUser of slackUsers) {
 			syntaxTree.parseData.users.push({
 				mention: `<@${slackUser.user.id}>`,
-				plainText: userIdentify(slackUsers.user)
+				plainText: userIdentify(slackUser.user)
 			});
 		}
 
-		const channels = text.match(/(?<=<#)[C][A-Z0-9]{2,}(?=>)$/g) || [];
+		const channels = text.match(/(?<=<#)[C][A-Z0-9]{2,}(?=\|[\w\-]+>)/g) || [];
 		const slackChannels = await Promise.all(
 			channels
 				.filter((id, index) => channels.indexOf(id) === index)
@@ -191,8 +194,8 @@ module.exports = class SlackManager {
 
 		for(const slackChannel of slackChannels) {
 			syntaxTree.parseData.channels.push({
-				channelReference: `<#${slackChannel.id}>`,
-				plainText: `#${slackChannel.name}`
+				channelReference: `<#${slackChannel.channel.id}|${slackChannel.channel.name}>`,
+				plainText: `#${slackChannel.channel.name}`
 			});
 		}
 	}
