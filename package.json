@@ -6,6 +6,8 @@
 	"scripts": {
 		"start": "node run.js",
 		"setup": "node setup/setup.js",
+		"collect-tests": "node testing/collectTestData.js",
+		"emit-test": "node testing/emitTestData.js",
 		"jsdoc": "npx jsdoc --configure jsdoc.json .",
 		"jsdoc-serve": "npx http-server -c-1 ./docs"
 	},
