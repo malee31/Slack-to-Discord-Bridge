@@ -117,7 +117,7 @@ module.exports = class SlackManager {
 		 */
 		const syntaxTree = await SlackManager.syntaxTreeFromBase(new SyntaxTree.MessageSyntaxTree(), message);
 
-		syntaxTree.parseData.channel = await SlackManager.client.conversations.info({ channel: message.channel });
+		syntaxTree.parseData.channel = (await SlackManager.client.conversations.info({ channel: message.channel })).channel;
 
 		// Important Note: Downloads all files locally. Remember to delete them when you are done with fileManager.fileDelete(fileName)
 		if(message.subtype === "file_share") syntaxTree.attachments.files = await Promise.all(message.files.map(fileData => fileManager.fileDownload(fileData)));
@@ -146,7 +146,18 @@ module.exports = class SlackManager {
 		syntaxTree.parseData.channel.purpose = originalChannel.purpose.value;
 		syntaxTree.parseData.channel.purpose = Boolean(originalChannel.is_archived);
 
-		if(message.thread_ts) syntaxTree.additional.thread = { timestamp: message.thread_ts };
+		if(message.thread_ts) {
+			const threadParent = (await SlackManager.client.conversations.history({
+				channel: originalChannel.id,
+				latest: message.thread_ts,
+				inclusive: true,
+				limit: 1,
+			})).messages[0];
+
+			syntaxTree.parseData.thread.id = message.thread_ts;
+			// Thread title will be unparsed
+			if(threadParent.text) syntaxTree.parseData.thread.title = threadParent.text;
+		}
 
 		if(message.user) {
 			const user = (await SlackManager.client.users.info({ user: message.user })).user || { profile: {} };

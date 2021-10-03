@@ -66,6 +66,14 @@ class MessageSyntaxTree extends SyntaxTreeBase {
 		// Embeds will come in the form of another MessageSyntaxTree instance
 		embeds: []
 	};
+
+	constructor() {
+		super();
+		this.parseData.thread = {
+			id: "",
+			title: "No Title"
+		};
+	}
 }
 
 /**

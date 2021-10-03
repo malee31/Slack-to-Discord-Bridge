@@ -167,11 +167,10 @@ class DiscordManager {
 			.map(DiscordManager.embedFromSyntaxTree)
 			.forEach(parsedMessage.additionalEmbeds.push);
 
-		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
+		const targetData = await DiscordManager.locateChannel(syntaxTree);
 
 		if(parsedMessage.additionalEmbeds.length !== 0) mainEmbed.embeds[0].setFooter(`${mainEmbed.embeds[0].footer ? `${mainEmbed.embeds[0].footer}\n` : ""}↓ Message Includes ${parsedMessage.additionalEmbeds.length} Additional Attachment${parsedMessage.additionalEmbeds.length === 1 ? "" : "s"} Below ↓`);
-		const sendTo = syntaxTree.additional.thread.timestamp ? await DiscordManager.locateThread(targetChannel.threads, syntaxTree) : targetChannel;
-		const sentMessage = await sendTo.send(mainEmbed);
+		const sentMessage = await targetData.target.send(mainEmbed);
 		const messageIDs = [];
 		await databaseManager.messageMap({
 			SMID: syntaxTree.timestamp,
@@ -184,7 +183,7 @@ class DiscordManager {
 		});
 
 		for(const additionalData of parsedMessage.additionalEmbeds)
-			messageIDs.push(await targetChannel.send(additionalData)
+			messageIDs.push(await targetData.target.send(additionalData)
 				.then(message => message.id)
 			);
 
@@ -245,19 +244,19 @@ class DiscordManager {
 		// TODO: Patch function
 		const channelData = syntaxTree.parseData.channel;
 		const targetData = {
-			id: dataManager.getChannel(channelData.id),
+			id: undefined,
 			channel: undefined,
 			thread: undefined,
 			target: undefined
 		};
-		targetData.channel = await DiscordManager.LoggingGuild.channels.fetch(targetData);
-		if(!targetData.channel) {
+		targetData.channel = await DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(channelData.id));
+		if(!(targetData.channel instanceof Discord.TextChannel)) {
 			// Quirk: If two channels on Discord have a matching name, only the first one found will be used
 			targetData.channel = (await DiscordManager.LoggingGuild.channels.fetch())
 				.filter(channel => channel.type === "text")
 				.find(channel => channel.name === channelData.name);
 
-			if(!targetData.channel) {
+			if(!(targetData.channel instanceof Discord.TextChannel)) {
 				try {
 					targetData.channel = await DiscordManager.LoggingGuild.channels.create(channelData.name, { reason: `#${channelData.name} created for new Slack Messages` });
 				} catch(channelMakeErr) {
@@ -269,15 +268,20 @@ class DiscordManager {
 
 			dataManager.mapChannel(channelData.id, targetData.channel.id);
 		}
-		// TODO: Change function calls to use targetData instead of targetData.channel
-		return targetData.channel;
+
+		if(syntaxTree.parseData.thread.id) targetData.thread = await this.locateThread(syntaxTree, targetData.channel);
+		targetData.id = targetData.channel.id;
+		targetData.target = targetData.thread || targetData.channel;
+
+		return targetData;
 	}
 
-	static async locateThread(threadManager, syntaxTree) {
-		const thread = (await threadManager.fetch()).find(thread => {
-			return true;
-		});
-		return thread;
+	static async locateThread(syntaxTree, channel) {
+		// Thread ID stored in syntaxTree.parseData.thread.id
+		const allThreads = (await channel.threads.fetch()).threads;
+		let targetThread;
+		// TODO: Implement in a similar fashion to locateChannel
+		return targetThread;
 	}
 
 	/**
