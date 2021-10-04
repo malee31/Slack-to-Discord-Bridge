@@ -30,26 +30,38 @@ module.exports = {
 // Starts up the database and sets it up if it does not already exist
 db.on("open", () => {
 	console.log("=========== Database Opened ===========");
-	db.run("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL, PurelyText BOOLEAN NOT NULL)");
-	db.run("CREATE TABLE IF NOT EXISTS FileMap (SlackFileID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL)");
+	db.run("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE, PurelyText BOOLEAN NOT NULL)");
+	db.run("CREATE TABLE IF NOT EXISTS FileMap (SlackFileID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE)");
+
+	db.run("CREATE TABLE IF NOT EXISTS ChannelMap (SlackChannelID TEXT NOT NULL UNIQUE, DiscordChannelID TEXT NOT NULL UNIQUE)");
+	db.run("CREATE TABLE IF NOT EXISTS ThreadMap (SlackThreadID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL UNIQUE)");
 });
 
 /**
  * Add a new entry to the database to link together Discord Message IDs with Slack Message IDs
  * @param {Object} data Object containing all the keys to add to the table. All properties are mandatory
- * @param {string} data.SMID Slack Message ID to map
- * @param {string} data.DMID Discord Message ID to map
- * @param {string} [data.threadID = "Main"] Discord Message Thread Channel ID if used
+ * @param {string} data.SlackMessageID Slack Message ID to map
+ * @param {string} data.DiscordMessageID Discord Message ID to map
+ * @param {string} [data.DiscordThreadID = "Main"] Discord Message Thread Channel ID if used
+ * @param {string} [data.SlackThreadID = "Main"] Slack Message Thread Channel ID if used
  * @param {boolean} [data.textOnly = false] Whether this Discord Message ID should be the designated text node. This message will be the one edited when editing text if true
  * @return {Promise} Resolves after inserting the new row
  */
-function messageMap({ SMID, DMID, threadID = "Main", textOnly = false }) {
-	return new Promise((resolve, reject) => {
-		db.run("INSERT INTO MessageMap VALUES (?, ?, ?)", SMID, DMID, textOnly, (err, res) => {
-			if(err) reject(err);
-			resolve(res);
-		});
-	});
+function messageMap({ SlackMessageID, DiscordMessageID, SlackThreadID = "Main", DiscordThreadID = "Main", textOnly = false }) {
+	return Promise.all([
+		new Promise((resolve, reject) => {
+			db.run("INSERT OR IGNORE INTO MessageMap VALUES (?, ?, ?)", SlackMessageID, DiscordMessageID, textOnly, (err, res) => {
+				if(err) reject(err);
+				resolve(res);
+			});
+		}),
+		new Promise((resolve, reject) => {
+			db.run("INSERT OR IGNORE INTO ThreadMap VALUES (?, ?)", SlackThreadID, DiscordThreadID, (err, res) => {
+				if(err) reject(err);
+				resolve(res);
+			});
+		})
+	]);
 }
 
 function locateMaps(SMID) {

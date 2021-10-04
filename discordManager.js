@@ -173,8 +173,10 @@ class DiscordManager {
 		const sentMessage = await targetData.target.send(mainEmbed);
 		const messageIDs = [];
 		await databaseManager.messageMap({
-			SMID: syntaxTree.timestamp,
-			DMID: sentMessage.id,
+			SlackMessageID: syntaxTree.timestamp,
+			DiscordMessageID: sentMessage.id,
+			SlackThreadID: syntaxTree.parseData.thread.id,
+			DiscordThreadID: targetData.thread?.id,
 			textOnly: true
 		}).then(() => {
 			console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${sentMessage.id}`);
@@ -189,8 +191,10 @@ class DiscordManager {
 
 		await Promise.all(messageIDs.map(id =>
 			databaseManager.messageMap({
-				SMID: syntaxTree.timestamp.toString(),
-				DMID: id,
+				SlackMessageID: syntaxTree.timestamp.toString(),
+				DiscordMessageID: id,
+				SlackThreadID: syntaxTree.parseData.thread.id,
+				DiscordThreadID: targetData.thread?.id,
 				textOnly: false
 			}).then(() => {
 				console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${id}`);
