@@ -21,6 +21,7 @@ module.exports = {
 	 * @returns {Promise<Object[]>} Returns an array of all the matching rows. Access the values of the rows using the column title as an object key
 	 */
 	locateMaps,
+	locateThreadMap,
 	/**
 	 * Simply prints/dumps the entire database's contents into the console. Use for testing purposes when unable to check the database directly
 	 */
@@ -62,6 +63,20 @@ function messageMap({ SlackMessageID, DiscordMessageID, SlackThreadID = "Main", 
 			});
 		})
 	]);
+}
+
+/**
+ * Searches up pre-existing maps for threads
+ * @param {string} SlackThreadId
+ * @return {Promise<string>}
+ */
+function locateThreadMap(SlackThreadId) {
+	return new Promise((resolve, reject) => {
+		db.get("SELECT DiscordThreadID FROM ThreadMap WHERE SlackThreadID = ?", SlackThreadId, (err, res) => {
+			if(err) reject(err);
+			resolve(res);
+		});
+	});
 }
 
 function locateMaps(SMID) {

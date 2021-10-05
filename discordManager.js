@@ -194,8 +194,7 @@ class DiscordManager {
 				SlackMessageID: syntaxTree.timestamp.toString(),
 				DiscordMessageID: id,
 				SlackThreadID: syntaxTree.parseData.thread.id,
-				DiscordThreadID: targetData.thread?.id,
-				textOnly: false
+				DiscordThreadID: targetData.thread?.id
 			}).then(() => {
 				console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${id}`);
 			}).catch(err => {
@@ -281,10 +280,25 @@ class DiscordManager {
 	}
 
 	static async locateThread(syntaxTree, channel) {
-		// Thread ID stored in syntaxTree.parseData.thread.id
-		const allThreads = (await channel.threads.fetch()).threads;
+		// Note: Does NOT look things up by name.
+		// TODO: Test function
+		const storedThreadID = await databaseManager.locateThreadMap(syntaxTree.parseData.thread.id);
+		debugger;
 		let targetThread;
-		// TODO: Implement in a similar fashion to locateChannel
+		if(storedThreadID) {
+			targetThread = await channel.threads.fetch(storedThreadID);
+		} else {
+			const originalMessageID = (await databaseManager.locateMaps(syntaxTree.timestamp)).pop()["DiscordMessageID"];
+			const originalMessage = await channel.messages.fetch(originalMessageID);
+			const originalContent = originalMessage.embeds[0].description || "No Text Content";
+			targetThread = await originalMessage.startThread({
+				// 1-Day
+				name: originalContent.length > 50 ? `${originalContent.slice(0, 49)}…` : originalContent,
+				autoArchiveDuration: 1440,
+				reason: "Mirroring thread started on Slack"
+			});
+		}
+		debugger;
 		return targetThread;
 	}
 
