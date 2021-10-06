@@ -15,13 +15,15 @@ module.exports = {
 	 * @returns {Promise} Resolves when new map is successfully added
 	 */
 	messageMap,
+	channelMap,
 	/**
 	 * Looks up all the rows associated with the given Slack Message ID and returns it
 	 * @param {string} SMID Slack Message ID to search for
 	 * @returns {Promise<Object[]>} Returns an array of all the matching rows. Access the values of the rows using the column title as an object key
 	 */
-	locateMaps,
+	locateMessageMaps,
 	locateThreadMap,
+	locateChannelMap,
 	/**
 	 * Simply prints/dumps the entire database's contents into the console. Use for testing purposes when unable to check the database directly
 	 */
@@ -29,14 +31,34 @@ module.exports = {
 };
 
 // Starts up the database and sets it up if it does not already exist
-db.on("open", () => {
-	console.log("=========== Database Opened ===========");
-	db.run("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE, PurelyText BOOLEAN NOT NULL)");
-	db.run("CREATE TABLE IF NOT EXISTS FileMap (SlackFileID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE)");
 
-	db.run("CREATE TABLE IF NOT EXISTS ChannelMap (SlackChannelID TEXT NOT NULL UNIQUE, DiscordChannelID TEXT NOT NULL UNIQUE)");
-	db.run("CREATE TABLE IF NOT EXISTS ThreadMap (SlackThreadID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL UNIQUE)");
+module.exports.startup = new Promise((resolve) => {
+	const dbPromisify = query => new Promise((resolve, reject) => {
+		db.run(query, err => {
+			if(err) reject(err);
+			resolve();
+		})
+	});
+
+	db.on("open", () => {
+		console.log("=========== Database Opened ===========");
+		resolve(Promise.all([
+			dbPromisify("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE, PurelyText BOOLEAN NOT NULL)"),
+			dbPromisify("CREATE TABLE IF NOT EXISTS FileMap (SlackFileID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE)"),
+			dbPromisify("CREATE TABLE IF NOT EXISTS ChannelMap (SlackChannelID TEXT NOT NULL UNIQUE, DiscordChannelID TEXT NOT NULL UNIQUE)"),
+			dbPromisify("CREATE TABLE IF NOT EXISTS ThreadMap (SlackThreadID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL UNIQUE)")
+		]));
+	});
 });
+
+function channelMap(SlackChannelID, DiscordChannelID) {
+	return new Promise((resolve, reject) => {
+		db.run("INSERT OR IGNORE INTO ChannelMap VALUES (?, ?)", SlackChannelID, DiscordChannelID, err => {
+			if(err) reject(err);
+			resolve();
+		});
+	});
+}
 
 /**
  * Add a new entry to the database to link together Discord Message IDs with Slack Message IDs
@@ -51,18 +73,27 @@ db.on("open", () => {
 function messageMap({ SlackMessageID, DiscordMessageID, SlackThreadID = "Main", DiscordThreadID = "Main", textOnly = false }) {
 	return Promise.all([
 		new Promise((resolve, reject) => {
-			db.run("INSERT OR IGNORE INTO MessageMap VALUES (?, ?, ?)", SlackMessageID, DiscordMessageID, textOnly, (err, res) => {
+			db.run("INSERT OR IGNORE INTO MessageMap VALUES (?, ?, ?)", SlackMessageID, DiscordMessageID, textOnly, err => {
 				if(err) reject(err);
-				resolve(res);
+				resolve();
 			});
 		}),
 		new Promise((resolve, reject) => {
-			db.run("INSERT OR IGNORE INTO ThreadMap VALUES (?, ?)", SlackThreadID, DiscordThreadID, (err, res) => {
+			db.run("INSERT OR IGNORE INTO ThreadMap VALUES (?, ?)", SlackThreadID, DiscordThreadID, err => {
 				if(err) reject(err);
-				resolve(res);
+				resolve();
 			});
 		})
 	]);
+}
+
+function locateChannelMap(SlackChannelID) {
+	return new Promise((resolve, reject) => {
+		db.get("SELECT DiscordChannelID FROM ChannelMap WHERE SlackChannelID = ?", SlackChannelID, (err, res) => {
+			if(err) reject(err);
+			resolve(res);
+		});
+	});
 }
 
 /**
@@ -79,7 +110,7 @@ function locateThreadMap(SlackThreadId) {
 	});
 }
 
-function locateMaps(SMID) {
+function locateMessageMaps(SMID) {
 	return new Promise((resolve, reject) => {
 		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SMID, (err, res) => {
 			if(err) reject(err);

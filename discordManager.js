@@ -1,5 +1,4 @@
 const databaseManager = require("./databaseManager.js");
-const dataManager = require("./dataManager.js");
 const fileManager = require("./fileManager.js");
 const Discord = require("discord.js");
 
@@ -19,7 +18,7 @@ class DiscordManager {
 	static LoggingGuild;
 
 	/**
-	 * Starts up the Discord Bot responsible for logging messages, locates the logging guild, and loads the serverMap.json to (dataManager.js).load()
+	 * Starts up the Discord Bot responsible for logging messages, locates the logging guild, and loads the sqlite3 tables
 	 * @async
 	 * @memberOf module:discordManager.DiscordManager
 	 */
@@ -49,9 +48,9 @@ class DiscordManager {
 			process.exit(1);
 		}
 
-		console.log("===== Retrieving Saved Server Map =====");
-		await dataManager.load();
-		console.log("====== Saved Server Map Retrieved =====");
+		console.log("======= Creating SQLite3 Tables =======");
+		await databaseManager.startup;
+		console.log("======= SQLite3 Tables Created ========");
 
 		console.log("========== Discord Bot Ready ==========");
 	}
@@ -213,7 +212,7 @@ class DiscordManager {
 	static async handleChanges(syntaxTree) {
 		const mainEmbed = DiscordManager.embedFromSyntaxTree(syntaxTree);
 		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
-		const originalMessageID = (await databaseManager.locateMaps(syntaxTree.timestamp.toString())).find(map => map.PurelyText);
+		const originalMessageID = (await databaseManager.locateMessageMaps(syntaxTree.timestamp.toString())).find(map => map.PurelyText);
 		if(!originalMessageID) return console.warn(`Old Message Not Found For ${syntaxTree.timestamp}`);
 		const originalMessage = await targetChannel.messages.fetch(originalMessageID.DiscordMessageID);
 		await originalMessage.edit(mainEmbed);
@@ -223,7 +222,7 @@ class DiscordManager {
 		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
 		// TODO: Delete only what is necessary. Currently deletes all parts of a message even if only a portion is deleted from Slack
 		//  (Example: Deleting 1/3 files on Slack deletes all 3 and the text on Discord)
-		await Promise.all((await databaseManager.locateMaps(syntaxTree.additional.deletedTimestamp))
+		await Promise.all((await databaseManager.locateMessageMaps(syntaxTree.additional.deletedTimestamp))
 			.map(async map => {
 				const message = await targetChannel.messages.fetch(map["DiscordMessageID"]);
 				await message.delete();
@@ -252,8 +251,11 @@ class DiscordManager {
 			thread: undefined,
 			target: undefined
 		};
-		targetData.channel = await DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(channelData.id));
-		if(!(targetData.channel instanceof Discord.TextChannel)) {
+
+		const targetChannelID = await databaseManager.locateChannelMap(channelData.id);
+		if(targetChannelID) {
+			targetData.channel = await DiscordManager.LoggingGuild.channels.fetch(targetChannelID);
+		} else {
 			// Quirk: If two channels on Discord have a matching name, only the first one found will be used
 			targetData.channel = (await DiscordManager.LoggingGuild.channels.fetch())
 				.filter(channel => channel.type === "text")
@@ -263,13 +265,11 @@ class DiscordManager {
 				try {
 					targetData.channel = await DiscordManager.LoggingGuild.channels.create(channelData.name, { reason: `#${channelData.name} created for new Slack Messages` });
 				} catch(channelMakeErr) {
-					// Use the line below instead of throwing if there is a default channel listed in serverMap.json you would like to send to instead of throwing
-					// return DiscordManager.LoggingGuild.channels.fetch(dataManager.getChannel(channelData.id, true));
 					throw `Channel #${channelData.name} could not be found or created.\n${channelMakeErr}`;
 				}
 			}
 
-			dataManager.mapChannel(channelData.id, targetData.channel.id);
+			await databaseManager.channelMap(channelData.id, targetData.channel.id);
 		}
 
 		if(syntaxTree.parseData.thread.id) targetData.thread = await this.locateThread(syntaxTree, targetData.channel);
@@ -288,7 +288,7 @@ class DiscordManager {
 		if(storedThreadID) {
 			targetThread = await channel.threads.fetch(storedThreadID);
 		} else {
-			const originalMessageID = (await databaseManager.locateMaps(syntaxTree.timestamp)).pop()["DiscordMessageID"];
+			const originalMessageID = (await databaseManager.locateMessageMaps(syntaxTree.timestamp)).pop()["DiscordMessageID"];
 			const originalMessage = await channel.messages.fetch(originalMessageID);
 			const originalContent = originalMessage.embeds[0].description || "No Text Content";
 			targetThread = await originalMessage.startThread({
@@ -311,7 +311,7 @@ class DiscordManager {
 	 * @param {string} newText What to change the text to
 	 */
 	static async textUpdate(channel, slackIdentifier, newText) {
-		let oldMessage = (await databaseManager.locateMaps(slackIdentifier))
+		let oldMessage = (await databaseManager.locateMessageMaps(slackIdentifier))
 			.find(rowResult => rowResult["PurelyText"]);
 		if(!oldMessage) console.warn(`Old Message Not Found For ${slackIdentifier}`);
 		oldMessage = await channel.messages.fetch(oldMessage["DiscordMessageID"]);
@@ -331,7 +331,7 @@ class DiscordManager {
 	static async setPin(pin = false, slackChannelID, slackUserID, slackTs) {
 		const targetChannel = await DiscordManager.locateChannel(slackChannelID);
 		const user = slackUserID ? (await DiscordManager.SlackClient.users.info({ user: slackUserID })).user : undefined;
-		const maps = await databaseManager.locateMaps(DiscordManager.identify(slackChannelID, slackTs));
+		const maps = await databaseManager.locateMessageMaps(DiscordManager.identify(slackChannelID, slackTs));
 		for(const map of maps) {
 			const selectedMessage = await targetChannel.messages.fetch(map["DiscordMessageID"]);
 			if(pin) {
