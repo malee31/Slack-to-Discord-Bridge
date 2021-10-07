@@ -1,12 +1,19 @@
 const sqlite = require('sqlite3');
 const path = require("path");
 const db = new sqlite.Database(path.resolve(__dirname, "messageMap.sqlite3"));
+const Tables = Object.freeze({
+	MESSAGE_MAP: "MessageMap",
+	FILE_MAP: "FileMap",
+	THREAD_MAP: "ThreadMap",
+	CHANNEL_MAP: "ChannelMap"
+});
 
 /**
  * Helper functions for managing the SQLite database
  * @module databaseManager
  */
 module.exports = {
+	Tables,
 	/**
 	 * Stores the ID pairs for Slack Messages and Discord Messages (Warning: The function is very much fire and forget. It may also be asynchronous so changes won't be made instantly. Use the callback if you need something to run after it finished or to check to see if it is successful)
 	 * @param {string} SMID ID for the Slack Message. There is no proper format for it as long as it is unique so this program uses ChannelID/TimeStamp format but you may change it however you like
@@ -15,6 +22,7 @@ module.exports = {
 	 * @returns {Promise} Resolves when new map is successfully added
 	 */
 	messageMap,
+	tableMap,
 	channelMap,
 	/**
 	 * Looks up all the rows associated with the given Slack Message ID and returns it
@@ -51,9 +59,9 @@ module.exports.startup = new Promise((resolve) => {
 	});
 });
 
-function channelMap(SlackChannelID, DiscordChannelID) {
+function tableMap(tableName, SlackObjectID, DiscordObjectID) {
 	return new Promise((resolve, reject) => {
-		db.run("INSERT OR IGNORE INTO ChannelMap VALUES (?, ?)", SlackChannelID, DiscordChannelID, err => {
+		db.run("INSERT OR IGNORE INTO ? VALUES (?, ?)", tableName, SlackObjectID, DiscordObjectID, err => {
 			if(err) reject(err);
 			resolve();
 		});
@@ -78,12 +86,7 @@ function messageMap({ SlackMessageID, DiscordMessageID, SlackThreadID = "Main", 
 				resolve();
 			});
 		}),
-		new Promise((resolve, reject) => {
-			db.run("INSERT OR IGNORE INTO ThreadMap VALUES (?, ?)", SlackThreadID, DiscordThreadID, err => {
-				if(err) reject(err);
-				resolve();
-			});
-		})
+		tableMap(Tables.THREAD_MAP, SlackThreadID, DiscordThreadID)
 	]);
 }
 

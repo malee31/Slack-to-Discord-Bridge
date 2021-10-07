@@ -269,7 +269,7 @@ class DiscordManager {
 				}
 			}
 
-			await databaseManager.channelMap(channelData.id, targetData.channel.id);
+			await databaseManager.tableMap(databaseManager.Tables.CHANNEL_MAP, channelData.id, targetData.channel.id);
 		}
 
 		if(syntaxTree.parseData.thread.id) targetData.thread = await this.locateThread(syntaxTree, targetData.channel);
