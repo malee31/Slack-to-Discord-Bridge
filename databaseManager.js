@@ -23,19 +23,14 @@ module.exports = {
 	 */
 	messageMap,
 	tableMap,
-	channelMap,
+	locateThreadMap,
+	locateChannelMap,
 	/**
 	 * Looks up all the rows associated with the given Slack Message ID and returns it
 	 * @param {string} SMID Slack Message ID to search for
 	 * @returns {Promise<Object[]>} Returns an array of all the matching rows. Access the values of the rows using the column title as an object key
 	 */
 	locateMessageMaps,
-	locateThreadMap,
-	locateChannelMap,
-	/**
-	 * Simply prints/dumps the entire database's contents into the console. Use for testing purposes when unable to check the database directly
-	 */
-	dataDump
 };
 
 // Starts up the database and sets it up if it does not already exist
@@ -68,6 +63,28 @@ function tableMap(tableName, SlackObjectID, DiscordObjectID) {
 	});
 }
 
+function tableLocateMap(tableName, SelectProperty, WhereProperty, SlackObjectID) {
+	return new Promise((resolve, reject) => {
+		db.get("SELECT ? FROM ? WHERE ? = ?", SelectProperty, tableName, WhereProperty, SlackObjectID, (err, res) => {
+			if(err) reject(err);
+			resolve(res);
+		});
+	});
+}
+
+function locateChannelMap(SlackChannelID) {
+	return tableLocateMap("DiscordChannelID", Tables.CHANNEL_MAP, "SlackChannelID", SlackChannelID);
+}
+
+/**
+ * Searches up pre-existing maps for threads
+ * @param {string} SlackThreadId
+ * @return {Promise<string>}
+ */
+function locateThreadMap(SlackThreadId) {
+	return tableLocateMap("DiscordChannelID", Tables.THREAD_MAP, "SlackThreadID", SlackThreadId);
+}
+
 /**
  * Add a new entry to the database to link together Discord Message IDs with Slack Message IDs
  * @param {Object} data Object containing all the keys to add to the table. All properties are mandatory
@@ -90,41 +107,11 @@ function messageMap({ SlackMessageID, DiscordMessageID, SlackThreadID = "Main", 
 	]);
 }
 
-function locateChannelMap(SlackChannelID) {
-	return new Promise((resolve, reject) => {
-		db.get("SELECT DiscordChannelID FROM ChannelMap WHERE SlackChannelID = ?", SlackChannelID, (err, res) => {
-			if(err) reject(err);
-			resolve(res);
-		});
-	});
-}
-
-/**
- * Searches up pre-existing maps for threads
- * @param {string} SlackThreadId
- * @return {Promise<string>}
- */
-function locateThreadMap(SlackThreadId) {
-	return new Promise((resolve, reject) => {
-		db.get("SELECT DiscordThreadID FROM ThreadMap WHERE SlackThreadID = ?", SlackThreadId, (err, res) => {
-			if(err) reject(err);
-			resolve(res);
-		});
-	});
-}
-
 function locateMessageMaps(SMID) {
 	return new Promise((resolve, reject) => {
 		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SMID, (err, res) => {
 			if(err) reject(err);
 			resolve(res);
 		});
-	});
-}
-
-function dataDump() {
-	console.log("DUMPING DATABASE DATA:");
-	db.each("SELECT * FROM MessageMap", (err, data) => {
-		console.log(JSON.stringify(data));
 	});
 }
