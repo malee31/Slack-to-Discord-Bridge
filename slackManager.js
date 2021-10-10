@@ -27,7 +27,7 @@ module.exports = class SlackManager {
 
 		// Prevents script from stopping on errors
 		this.SlackHTTPServerEventAdapter.on("error", this.onerror);
-		this.SlackHTTPServerEventAdapter.on("message", this.splitEvents);
+		this.SlackHTTPServerEventAdapter.on("message", this.rerouteMessageEvent);
 	}
 
 	static onerror(err) {
@@ -43,7 +43,7 @@ module.exports = class SlackManager {
 		}
 	}
 
-	static splitEvents(message) {
+	static rerouteMessageEvent(message) {
 		if(SlackManager.shouldIgnore(message)) return;
 
 		// Note: Some of these subtypes might either not exist or have another method of capture since they don't appear to trigger here

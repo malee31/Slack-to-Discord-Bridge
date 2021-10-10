@@ -7,7 +7,7 @@ const server = require("../fileServer.js")(SlackHTTPServerEventAdapter);
 const TEST_CASE_PATH = require("path").resolve(__dirname, "testCases.json");
 
 // testData.latest will store the last 10 events. Newest event will be at index 0
-let testData = {latest: []};
+let testData = { latest: [] };
 try {
 	testData = JSON.parse(fs.readFileSync(TEST_CASE_PATH).toString());
 } catch(e) {
