@@ -253,6 +253,7 @@ class DiscordManager {
 		};
 
 		const targetChannelID = await databaseManager.locateChannelMap(channelData.id);
+		debugger;
 		if(targetChannelID) {
 			targetData.channel = await DiscordManager.LoggingGuild.channels.fetch(targetChannelID);
 		} else {
@@ -280,7 +281,7 @@ class DiscordManager {
 	}
 
 	static async locateThread(syntaxTree, channel) {
-		// Note: Does NOT look things up by name.
+		// Note: Does NOT look things up by name unlike locateChannel.
 		// TODO: Test function
 		const storedThreadID = await databaseManager.locateThreadMap(syntaxTree.parseData.thread.id);
 		debugger;

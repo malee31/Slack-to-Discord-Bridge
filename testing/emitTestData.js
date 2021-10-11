@@ -27,7 +27,7 @@ Promise.all([
 	} else {
 		selectedCase = testData[emitWhich[0]][Number(emitWhich[1])];
 	}
-	console.log(`EMITTING: ${testData.subtype}`);
+	console.log(`[${emitWhich.join(", ")}] EMITTING SUBTYPE: [${selectedCase.thread_ts ? "THREAD" : "NORMAL"}] ${selectedCase.subtype || "message"}`);
 	SlackManager.events.on("message", DiscordManager.handleMessages);
 	SlackManager.events.on("change", DiscordManager.handleChanges);
 	SlackManager.events.on("delete", DiscordManager.handleDeletes);

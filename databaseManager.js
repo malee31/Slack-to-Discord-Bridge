@@ -14,6 +14,7 @@ const Tables = Object.freeze({
  */
 module.exports = {
 	Tables,
+	tableMap,
 	/**
 	 * Stores the ID pairs for Slack Messages and Discord Messages (Warning: The function is very much fire and forget. It may also be asynchronous so changes won't be made instantly. Use the callback if you need something to run after it finished or to check to see if it is successful)
 	 * @param {string} SMID ID for the Slack Message. There is no proper format for it as long as it is unique so this program uses ChannelID/TimeStamp format but you may change it however you like
@@ -22,9 +23,8 @@ module.exports = {
 	 * @returns {Promise} Resolves when new map is successfully added
 	 */
 	messageMap,
-	tableMap,
-	locateThreadMap,
 	locateChannelMap,
+	locateThreadMap,
 	/**
 	 * Looks up all the rows associated with the given Slack Message ID and returns it
 	 * @param {string} SMID Slack Message ID to search for
@@ -55,20 +55,26 @@ module.exports.startup = new Promise((resolve) => {
 });
 
 function tableMap(tableName, SlackObjectID, DiscordObjectID) {
+	debugger;
 	return new Promise((resolve, reject) => {
-		db.run("INSERT OR IGNORE INTO ? VALUES (?, ?)", tableName, SlackObjectID, DiscordObjectID, err => {
+		db.run(`INSERT OR IGNORE INTO ${tableName} VALUES (?, ?)`, SlackObjectID, DiscordObjectID, err => {
 			if(err) reject(err);
 			resolve();
 		});
 	});
 }
 
-function tableLocateMap(tableName, SelectProperty, WhereProperty, SlackObjectID) {
+function tableLocateMap(SelectProperty, tableName, WhereProperty, SlackObjectID) {
+	// WARNING: SQL Injection possible for all parameters except SlackObjectID. Do not take user input for this function other than it!
 	return new Promise((resolve, reject) => {
-		db.get("SELECT ? FROM ? WHERE ? = ?", SelectProperty, tableName, WhereProperty, SlackObjectID, (err, res) => {
-			if(err) reject(err);
-			resolve(res);
-		});
+		db.get(`SELECT ${SelectProperty} AS value
+                FROM ${tableName}
+                WHERE ${WhereProperty} = ?`, SlackObjectID,
+			(err, res) => {
+				if(err) reject(err);
+				resolve((res || {}).value);
+			}
+		);
 	});
 }
 
@@ -76,13 +82,17 @@ function locateChannelMap(SlackChannelID) {
 	return tableLocateMap("DiscordChannelID", Tables.CHANNEL_MAP, "SlackChannelID", SlackChannelID);
 }
 
-/**
- * Searches up pre-existing maps for threads
- * @param {string} SlackThreadId
- * @return {Promise<string>}
- */
-function locateThreadMap(SlackThreadId) {
-	return tableLocateMap("DiscordChannelID", Tables.THREAD_MAP, "SlackThreadID", SlackThreadId);
+function locateThreadMap(SlackThreadID) {
+	return tableLocateMap("DiscordChannelID", Tables.THREAD_MAP, "SlackThreadID", SlackThreadID);
+}
+
+function locateMessageMaps(SMID) {
+	return new Promise((resolve, reject) => {
+		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SMID, (err, res) => {
+			if(err) reject(err);
+			resolve(res);
+		});
+	});
 }
 
 /**
@@ -105,13 +115,4 @@ function messageMap({ SlackMessageID, DiscordMessageID, SlackThreadID = "Main", 
 		}),
 		tableMap(Tables.THREAD_MAP, SlackThreadID, DiscordThreadID)
 	]);
-}
-
-function locateMessageMaps(SMID) {
-	return new Promise((resolve, reject) => {
-		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SMID, (err, res) => {
-			if(err) reject(err);
-			resolve(res);
-		});
-	});
 }
