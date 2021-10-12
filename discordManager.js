@@ -284,13 +284,15 @@ class DiscordManager {
 		// Note: Does NOT look things up by name unlike locateChannel.
 		// TODO: Test function
 		const storedThreadID = await databaseManager.locateThreadMap(syntaxTree.parseData.thread.id);
-		debugger;
+		// debugger;
 		let targetThread;
 		if(storedThreadID) {
 			targetThread = await channel.threads.fetch(storedThreadID);
 		} else {
+			const boundMessageIDs = await databaseManager.locateMessageMaps(syntaxTree.timestamp);
+			debugger;
 			// TODO: Locate the PurelyText message only
-			const originalMessageID = (await databaseManager.locateMessageMaps(syntaxTree.timestamp)).pop()["DiscordMessageID"];
+			const originalMessageID = boundMessageIDs.pop()["DiscordMessageID"];
 			const originalMessage = await channel.messages.fetch(originalMessageID);
 			const originalContent = originalMessage.embeds[0].description || "No Text Content";
 			targetThread = await originalMessage.startThread({

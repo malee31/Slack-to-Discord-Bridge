@@ -82,13 +82,14 @@ function locateChannelMap(SlackChannelID) {
 }
 
 function locateThreadMap(SlackThreadID) {
-	return tableLocateMap("DiscordChannelID", Tables.THREAD_MAP, "SlackThreadID", SlackThreadID);
+	return tableLocateMap("DiscordThreadID", Tables.THREAD_MAP, "SlackThreadID", SlackThreadID);
 }
 
-function locateMessageMaps(SMID) {
+function locateMessageMaps(SlackMessageID) {
 	return new Promise((resolve, reject) => {
-		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SMID, (err, res) => {
+		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SlackMessageID, (err, res) => {
 			if(err) reject(err);
+			debugger;
 			resolve(res);
 		});
 	});
