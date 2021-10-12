@@ -55,7 +55,6 @@ module.exports.startup = new Promise((resolve) => {
 });
 
 function tableMap(tableName, SlackObjectID, DiscordObjectID) {
-	debugger;
 	return new Promise((resolve, reject) => {
 		db.run(`INSERT OR IGNORE INTO ${tableName} VALUES (?, ?)`, SlackObjectID, DiscordObjectID, err => {
 			if(err) reject(err);

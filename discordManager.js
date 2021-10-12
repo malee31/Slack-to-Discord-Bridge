@@ -253,13 +253,13 @@ class DiscordManager {
 		};
 
 		const targetChannelID = await databaseManager.locateChannelMap(channelData.id);
-		debugger;
 		if(targetChannelID) {
 			targetData.channel = await DiscordManager.LoggingGuild.channels.fetch(targetChannelID);
 		} else {
 			// Quirk: If two channels on Discord have a matching name, only the first one found will be used
-			targetData.channel = (await DiscordManager.LoggingGuild.channels.fetch())
-				.filter(channel => channel.type === "text")
+			const allChannels = (await DiscordManager.LoggingGuild.channels.fetch());
+			targetData.channel = allChannels
+				.filter(channel => channel.type === "GUILD_TEXT")
 				.find(channel => channel.name === channelData.name);
 
 			if(!(targetData.channel instanceof Discord.TextChannel)) {
@@ -289,6 +289,7 @@ class DiscordManager {
 		if(storedThreadID) {
 			targetThread = await channel.threads.fetch(storedThreadID);
 		} else {
+			// TODO: Locate the PurelyText message only
 			const originalMessageID = (await databaseManager.locateMessageMaps(syntaxTree.timestamp)).pop()["DiscordMessageID"];
 			const originalMessage = await channel.messages.fetch(originalMessageID);
 			const originalContent = originalMessage.embeds[0].description || "No Text Content";
