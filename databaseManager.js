@@ -1,4 +1,5 @@
 const sqlite = require('sqlite3');
+sqlite.verbose();
 const path = require("path");
 const db = new sqlite.Database(path.resolve(__dirname, "messageMap.sqlite3"));
 const Tables = Object.freeze({
@@ -89,8 +90,7 @@ function locateMessageMaps(SlackMessageID) {
 	return new Promise((resolve, reject) => {
 		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SlackMessageID, (err, res) => {
 			if(err) reject(err);
-			debugger;
-			resolve(res);
+			resolve(res || []);
 		});
 	});
 }

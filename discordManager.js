@@ -289,20 +289,30 @@ class DiscordManager {
 		if(storedThreadID) {
 			targetThread = await channel.threads.fetch(storedThreadID);
 		} else {
-			const boundMessageIDs = await databaseManager.locateMessageMaps(syntaxTree.timestamp);
-			debugger;
-			// TODO: Locate the PurelyText message only
-			const originalMessageID = boundMessageIDs.pop()["DiscordMessageID"];
+			const threadID = syntaxTree.parseData.thread.id;
+			const boundMessageIDs = await databaseManager.locateMessageMaps(threadID);
+			const originalMessageID = boundMessageIDs
+				.find(messageMap => messageMap.PurelyText)
+				.DiscordMessageID;
+
 			const originalMessage = await channel.messages.fetch(originalMessageID);
 			const originalContent = originalMessage.embeds[0].description || "No Text Content";
-			targetThread = await originalMessage.startThread({
-				// 1-Day
-				name: originalContent.length > 50 ? `${originalContent.slice(0, 49)}…` : originalContent,
-				autoArchiveDuration: 1440,
-				reason: "Mirroring thread started on Slack"
-			});
+
+			debugger;
+			if(originalMessage.hasThread) {
+				targetThread = originalMessage.thread;
+			} else {
+				targetThread = await originalMessage.startThread({
+					// 1-Day
+					name: originalContent.length > 50 ? `${originalContent.slice(0, 49)}…` : originalContent,
+					autoArchiveDuration: 1440,
+					reason: "Mirroring thread started on Slack"
+				});
+			}
+
+			await databaseManager.tableMap(databaseManager.Tables.THREAD_MAP, threadID, targetThread.id);
 		}
-		debugger;
+
 		return targetThread;
 	}
 
