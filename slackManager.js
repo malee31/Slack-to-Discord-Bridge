@@ -96,8 +96,12 @@ module.exports = class SlackManager {
 
 	static async onDelete(message) {
 		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.DeleteSyntaxTree(), message);
-		syntaxTree.parseData.channel = (await SlackManager.client.channels.info({ channel: message.channel })).channel;
-		syntaxTree.additional.deletedTimestamp = message.deleted_ts;
+		syntaxTree.deletedTimestamp = message.deleted_ts;
+		syntaxTree.timestamp = message.previous_message.ts;
+		if(message.previous_message.thread_ts) {
+			syntaxTree.parseData.thread.id = message.previous_message.thread_ts;
+			syntaxTree.parseData.thread.name = "Deleted Thread";
+		}
 		this.events.emit("delete", syntaxTree);
 	}
 

@@ -222,9 +222,9 @@ class DiscordManager {
 		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
 		// TODO: Delete only what is necessary. Currently deletes all parts of a message even if only a portion is deleted from Slack
 		//  (Example: Deleting 1/3 files on Slack deletes all 3 and the text on Discord)
-		await Promise.all((await databaseManager.locateMessageMaps(syntaxTree.additional.deletedTimestamp))
+		await Promise.all((await databaseManager.locateMessageMaps(syntaxTree.timestamp))
 			.map(async map => {
-				const message = await targetChannel.messages.fetch(map["DiscordMessageID"]);
+				const message = await targetChannel.target.messages.fetch(map["DiscordMessageID"]);
 				await message.delete();
 			}));
 	}
