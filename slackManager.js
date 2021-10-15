@@ -51,7 +51,7 @@ module.exports = class SlackManager {
 			case "message_deleted":
 				return SlackManager.onDelete(message);
 			case "message_changed":
-				return SlackManager.onchange(message);
+				return SlackManager.onChange(message);
 			case undefined:
 			case "me_message": // It's just regular message in italics more or less
 			case "thread_broadcast": // Is a message AND a thread... Oh no...
@@ -81,9 +81,8 @@ module.exports = class SlackManager {
 		}
 	}
 
-	static async onchange(message) {
+	static async onChange(message) {
 		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.ChangeSyntaxTree(), message);
-		syntaxTree.parseData.channel = await SlackManager.client.conversations.info({ channel: message.channel });
 		await SlackManager.updateSyntaxTree(syntaxTree, message.message);
 		// Known bugs:
 		// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
@@ -110,14 +109,11 @@ module.exports = class SlackManager {
 		Notes for improving syntax tree parsing
 		- Only message.subtype === undefined or 'file_share' has message.user. Assuming that only new content has user property
 			- Will need to clone embeds for edits in the future (Makes sense. Just compare text contents or file contents)
-		- All events have message.channel (All clear)
-		- Files are given ids by Slack, consider storing them. Their mimetypes are also provided by the api
+		- Files are given ids by Slack, consider storing them. Their mimetypes are also provided by the API
 
 		Plan:
-		- Search up channel *ALWAYS*
 		- Search up user only in the events that need them
-		- Some testing still needed for threads, pins, channel joins/exits, and more
-			- Consider creating new syntax tree classes for different events
+		- Some testing still needed for pins, channel joins/exits, and more
 		 */
 		const syntaxTree = await SlackManager.syntaxTreeFromBase(new SyntaxTree.MessageSyntaxTree(), message);
 
