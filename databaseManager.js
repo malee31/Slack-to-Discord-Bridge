@@ -47,7 +47,7 @@ module.exports.startup = new Promise((resolve) => {
 	db.on("open", () => {
 		console.log("=========== Database Opened ===========");
 		resolve(Promise.all([
-			dbPromisify("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE, PurelyText BOOLEAN NOT NULL)"),
+			dbPromisify("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL, PurelyText BOOLEAN NOT NULL)"),
 			dbPromisify("CREATE TABLE IF NOT EXISTS FileMap (SlackFileID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE)"),
 			dbPromisify("CREATE TABLE IF NOT EXISTS ChannelMap (SlackChannelID TEXT NOT NULL UNIQUE, DiscordChannelID TEXT NOT NULL UNIQUE)"),
 			dbPromisify("CREATE TABLE IF NOT EXISTS ThreadMap (SlackThreadID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL UNIQUE)")
@@ -108,7 +108,7 @@ function locateMessageMaps(SlackMessageID) {
 function messageMap({ SlackMessageID, DiscordMessageID, SlackThreadID = "Main", DiscordThreadID = "Main", textOnly = false }) {
 	return Promise.all([
 		new Promise((resolve, reject) => {
-			db.run("INSERT OR IGNORE INTO MessageMap VALUES (?, ?, ?)", SlackMessageID, DiscordMessageID, textOnly, err => {
+			db.run("INSERT OR IGNORE INTO MessageMap VALUES (?, ?, ?, ?)", SlackMessageID, DiscordMessageID, DiscordThreadID, textOnly, err => {
 				if(err) reject(err);
 				resolve();
 			});
