@@ -5,6 +5,7 @@ const SlackManager = require("../slackManager.js");
 const DiscordManager = require("../discordManager.js");
 const testData = require("./testCases.json");
 const server = require("../fileServer.js")(SlackManager.SlackHTTPServerEventAdapter);
+const Set = require("prompt-set");
 
 Promise.all([
 	SlackManager.start(),
@@ -21,7 +22,7 @@ Promise.all([
 	SlackManager.events.on("change", DiscordManager.handleChanges);
 	SlackManager.events.on("delete", DiscordManager.handleDeletes);
 	SlackManager.events.on("channel_update", DiscordManager.handleChannelUpdates);
-}).then(async () => {
+}).then(async() => {
 	const args = process.argv.slice(2);
 	let selectedCases = [];
 	switch(selectMode(args)) {
@@ -32,7 +33,8 @@ Promise.all([
 			addPairs(selectedCases, args);
 			break;
 		case "prompt":
-			// TODO
+			const promptedCase = await promptCase();
+			selectedCases.push(promptedCase);
 			break;
 		default:
 			throw "If you see this, emitTestData.js is broken.";
@@ -46,7 +48,7 @@ Promise.all([
 		SlackManager.SlackHTTPServerEventAdapter.emit("message", testCase);
 	}
 
-	console.log("===== Emitting Complete =====");
+	console.log("========== Emitting Complete ==========");
 	process.exit(0);
 });
 
@@ -111,4 +113,30 @@ function addPairs(selectedCases, pairedArgs) {
 
 		selectedCases.push(cases[caseNum]);
 	}
+}
+
+async function promptCase() {
+
+	const caseType = await Set.Promptlet({
+		name: "caseType",
+		message: "Select the type of event to emit. Latest contains the newest ones added",
+		type: "list",
+		choices: Object.keys(testData)
+	}).execute();
+
+	const caseNum = await Set.Promptlet({
+		name: "caseType",
+		message: "Select the type of event to emit. Latest contains the newest ones added",
+		type: "list",
+		// Note: Patch autoTrim in prompt-set. It converts the value to a type error
+		autoTrim: false,
+		choices: testData[caseType].map((testCase, index) => {
+			return {
+				name: `[${index}] Content: ${testCase.text || testCase.message?.text || "[No Details]"}`,
+				value: index
+			};
+		})
+	}).execute();
+
+	return testData[caseType][caseNum];
 }
