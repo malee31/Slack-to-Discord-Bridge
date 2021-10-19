@@ -11,7 +11,7 @@ let testData = { latest: [] };
 try {
 	testData = JSON.parse(fs.readFileSync(TEST_CASE_PATH).toString());
 } catch(e) {
-	console.warn(`${e.code}: Pre-existing test data could not be read. Overwriting...`);
+	console.warn(`${e.code}: Pre-existing test data could not be read. Overwriting...\nIf this is your first time collecting test data, you can ignore this warning.`);
 }
 
 SlackHTTPServerEventAdapter.on("message", event => {

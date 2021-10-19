@@ -19,48 +19,21 @@ module.exports = fsMake;
 
 function fsMake(slackEvents) {
 	return http.createServer((req, res) => {
+		// Default Slack endpoint for all Slack events
 		if(req.url === "/slack/events") {
 			slackEvents.requestListener()(req, res);
 			return;
 		}
 
-		const filePath = path.resolve(fileManager.DOWNLOADS_FOLDER, `.${decodeURIComponent(req.url.split("?")[0])}`);
-		console.log(`[${new Date().toLocaleString()}] Accessing ${filePath} from ${req.url}`);
-		if(!filePath.startsWith(fileManager.DOWNLOADS_FOLDER)) {
-			console.warn(`Attempt to access ${filePath} detected and denied`);
-			return;
-		}
-		if(process.env.DISABLE_FILE_SERVER?.trim().toLowerCase() === "true") {
-			console.warn(`File Server is Disabled. File Request Denied`);
-			res.writeHead(500, { "Content-Type": "text/plain" });
-			res.write(`The file server is set to private and disabled.\nYour files are most likely still stored on the server so ask the server owner for it if you need it!`);
-			res.end();
-			return;
-		}
+		const fileName = decodeURIComponent(req.url.split("?")[0]);
+		const filePath = getRequestedPath(fileName, res);
+
+		if(!filePath) return;
 		if(filePath === fileManager.DOWNLOADS_FOLDER) {
-			if(process.env.DISABLE_FILE_SERVER_LIST?.trim().toLowerCase() !== "true") {
-				fs.readdir(filePath, (err, files) => {
-					if(err) {
-						console.warn("Error Reading Downloads Folder");
-						res.writeHead(500, { "Content-Type": "text/plain" });
-						res.write(`Error Reading Downloads Folder: \n${err}`);
-						res.end();
-						return;
-					}
-					res.writeHead(200, { "Content-Type": "text/plain" });
-					res.write(`Download Folder Contents:\n`);
-					files.forEach(file => {
-						res.write(`${file}\n`);
-					});
-					res.end();
-				});
-			} else {
-				res.writeHead(200, { "Content-Type": "text/plain" });
-				res.write("List of files stored on the server will not be listed because DISABLE_FILE_SERVER_LIST is set to TRUE.\nEach specific file is still accessible through their respective urls");
-				res.end();
-			}
+			showFileList(filePath, res);
 			return;
 		}
+
 		fs.readFile(filePath, (err, data) => {
 			if(err) {
 				console.warn(`Error reading file from downloads: ${err}`);
@@ -77,4 +50,48 @@ function fsMake(slackEvents) {
 			res.end(data, "UTF-8");
 		});
 	});
+}
+
+function getRequestedPath(fileName, res) {
+	const filePath = path.resolve(fileManager.DOWNLOADS_FOLDER, fileName);
+	console.log(`[${new Date().toLocaleString()}] Accessing ${filePath} from ${req.url}`);
+	if(!filePath.startsWith(fileManager.DOWNLOADS_FOLDER)) {
+		console.warn(`Attempt to access ${filePath} detected and denied`);
+		return false;
+	}
+
+	if(process.env.DISABLE_FILE_SERVER?.trim().toLowerCase() === "true") {
+		console.warn(`File Server is Disabled. File Request Denied`);
+		res.writeHead(500, { "Content-Type": "text/plain" });
+		res.write(`The file server is set to private and disabled.\nYour files are most likely still stored on the server so ask the server owner for it if you need it!`);
+		res.end();
+		return false;
+	}
+
+	return filePath;
+}
+
+function showFileList(filePath, res) {
+	if(process.env.DISABLE_FILE_SERVER_LIST?.trim().toLowerCase() !== "true") {
+		fs.readdir(filePath, (err, files) => {
+			if(err) {
+				console.warn("Error Reading Downloads Folder");
+				res.writeHead(500, { "Content-Type": "text/plain" });
+				res.write(`Error Reading Downloads Folder: \n${err}`);
+				res.end();
+				return;
+			}
+
+			res.writeHead(200, { "Content-Type": "text/plain" });
+			res.write(`Download Folder Contents:\n`);
+			files.forEach(file => {
+				res.write(`${file}\n`);
+			});
+			res.end();
+		});
+	} else {
+		res.writeHead(200, { "Content-Type": "text/plain" });
+		res.write("List of files stored on the server will not be listed because DISABLE_FILE_SERVER_LIST is set to TRUE.\nEach specific file is still accessible through their respective urls");
+		res.end();
+	}
 }
