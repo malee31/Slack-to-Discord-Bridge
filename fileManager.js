@@ -44,7 +44,7 @@ module.exports = {
 			finalDownloadPath = FAILED_DOWNLOAD_IMAGE_PATH;
 		}
 
-		// TODO: There is probably a way to get it from the headers while downloading the file
+		// fileObj.size has the size in bytes too but it isn't as accurate
 		const downloadSize = await fileSize(finalDownloadPath);
 
 		return {
@@ -114,36 +114,44 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
  */
 async function completeDownload(saveTo, downloadFromURL, headers = {}, rejectOnRedirect = false) {
 	return new Promise((resolve, reject) => {
-		https.get(downloadFromURL, {
+		https.get({
+			url: downloadFromURL,
 			headers: headers
-		}).on("response", response => {
-			if(response.statusCode >= 300 && response.statusCode < 400) {
-				// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
-				const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
-				if(!rejectOnRedirect) {
-					console.warn(`[HTTP ${response.statusCode}] Following Redirect to File at [${redirectURL}]\nNote that if this happens and fails a lot, the token may be invalid`);
-					resolve(completeDownload(saveTo, `${redirectURL}`, headers));
-				} else return reject(new Error(`[HTTP ${response.statusCode}] Redirect Returned from [${downloadFromURL}] to [${redirectURL}]`))
-			} else {
+		})
+			.on("response", response => {
+				if(response.statusCode >= 300 && response.statusCode < 400) {
+					// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
+					const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
+					if(!rejectOnRedirect) {
+						console.warn(`[HTTP ${response.statusCode}] Following Redirect to File at [${redirectURL}]\nNote that if this happens and fails a lot, the token may be invalid`);
+						resolve(completeDownload(saveTo, `${redirectURL}`, headers));
+					} else {
+						reject(new Error(`[HTTP ${response.statusCode}] Redirect Returned from [${downloadFromURL}] to [${redirectURL}]`))
+					}
+
+					return;
+				}
+
 				if(response.statusCode !== 200) {
 					console.warn(`[HTTP ${response.statusCode}] [${response.statusMessage}] from [${downloadFromURL}]\n↑ ↑ ↑ Request Returned a Non-200 Status Code. Proceeding Anyways...`);
 				}
 
 				console.log(`Saving a File to ${saveTo}`);
 				const saveFile = fs.createWriteStream(saveTo);
+				saveFile
+					.on('finish', () => {
+						pendingDownloads.splice(pendingDownloads.indexOf(saveTo), 1);
+						resolve(saveTo);
+					}).on("error", err => completeDownloadErrorHandler(err, saveTo));
 
-				response.pipe(saveFile).on("error", err => {
-					console.warn(`Unable to Pipe File Contents into File: ${err}`);
-					saveFile.end();
-					reject(completeDownloadErrorHandler(err, saveTo));
-				});
-
-				saveFile.on('finish', () => {
-					pendingDownloads.splice(pendingDownloads.indexOf(saveTo), 1);
-					resolve(saveTo);
-				}).on("error", err => completeDownloadErrorHandler(err, saveTo));
-			}
-		}).on("error",
+				response
+					.pipe(saveFile)
+					.on("error", err => {
+						console.warn(`Unable to Pipe File Contents into File: ${err}`);
+						saveFile.end();
+						reject(completeDownloadErrorHandler(err, saveTo));
+					});
+			}).on("error",
 			err => completeDownloadErrorHandler(err)
 		);
 	});
@@ -157,7 +165,7 @@ async function completeDownload(saveTo, downloadFromURL, headers = {}, rejectOnR
  * @return {Promise} Throws errors through the Promise
  */
 async function completeDownloadErrorHandler(err, unlinkLocation) {
-	// Delete the file asynchronously on fail. Doesn't check the result
+	// Blindly deletes the file asynchronously on error
 	try {
 		if(unlinkLocation) await fs.promises.unlink(unlinkLocation);
 	} catch(unlinkErr) {
