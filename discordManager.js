@@ -243,7 +243,6 @@ class DiscordManager {
 	 * @memberOf module:discordManager.DiscordManager
 	 */
 	static async locateChannel(syntaxTree) {
-		// TODO: Patch function
 		const channelData = syntaxTree.parseData.channel;
 		const targetData = {
 			id: undefined,
@@ -282,9 +281,7 @@ class DiscordManager {
 
 	static async locateThread(syntaxTree, channel) {
 		// Note: Does NOT look things up by name unlike locateChannel.
-		// TODO: Test function
 		const storedThreadID = await databaseManager.locateThreadMap(syntaxTree.parseData.thread.id);
-		// debugger;
 		let targetThread;
 		if(storedThreadID) {
 			targetThread = await channel.threads.fetch(storedThreadID);
@@ -298,7 +295,6 @@ class DiscordManager {
 			const originalMessage = await channel.messages.fetch(originalMessageID);
 			const originalContent = originalMessage.embeds[0].description || "No Text Content";
 
-			debugger;
 			if(originalMessage.hasThread) {
 				targetThread = originalMessage.thread;
 			} else {

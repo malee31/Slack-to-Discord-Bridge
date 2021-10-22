@@ -2,6 +2,7 @@ const https = require("https");
 const path = require("path");
 const fs = require("fs");
 
+const DEFAULT_TOKEN = process.env[process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE || "SLACK_BOT_USER_OAUTH_ACCESS_TOKEN"];
 const DOWNLOADS_FOLDER = path.resolve(__dirname, "downloads");
 const FAILED_DOWNLOAD_IMAGE_PATH = path.resolve(__dirname, "placeholders", "ERROR.png");
 // Arbitrary. Used as the max number of attempts getValidFileName has for finding an available path to download a file to
@@ -37,7 +38,7 @@ module.exports = {
 
 		try {
 			await completeDownload(finalDownloadPath, fileObj["url_private_download"], {
-				Authorization: `Bearer ${auth || process.env[process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE]}`
+				Authorization: `Bearer ${auth || DEFAULT_TOKEN}`
 			}, true);
 		} catch(err) {
 			console.error(`Failed to Download File. Using Default File as Attachment. Reason: ${err}`);
