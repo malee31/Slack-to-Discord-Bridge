@@ -31,10 +31,18 @@ function getAuth() {
  */
 function testOAuthToken(promptResult, bot = true) {
 	let errorMessage = "";
-	if(!/xox[bp]-[\da-fA-F-]+/.test(promptResult)) errorMessage = "OAuth Tokens Must Start With 'xoxp-' or 'xoxb-' Followed By Letters, Numbers, Or Dashes";
-	if(bot && promptResult.startsWith("xoxp")) errorMessage = "This Token Is A User OAuth Token. A *Bot* User OAuth Token Is Currently Needed (Starts with xoxb).";
-	if(!bot && promptResult.startsWith("xoxb")) errorMessage = "This Token Is A *Bot* User OAuth Token. A User OAuth Token Is Currently Needed (Starts with xoxp).";
-	if(errorMessage) return Promise.resolve(errorMessage);
+	if(!/xox[bp]-[\da-fA-F-]+/.test(promptResult)) {
+		errorMessage = "OAuth Tokens Must Start With 'xoxp-' or 'xoxb-' Followed By Letters, Numbers, Or Dashes";
+	}
+	if(bot && promptResult.startsWith("xoxp")) {
+		errorMessage = "This Token Is A User OAuth Token. A *Bot* User OAuth Token Is Currently Needed (Starts with xoxb).";
+	}
+	if(!bot && promptResult.startsWith("xoxb")) {
+		errorMessage = "This Token Is A *Bot* User OAuth Token. A User OAuth Token Is Currently Needed (Starts with xoxp).";
+	}
+	if(errorMessage) {
+		return Promise.resolve(errorMessage);
+	}
 
 	const testWeb = new WebClient(promptResult);
 	return testWeb.auth.test().then(authData => {
@@ -42,7 +50,9 @@ function testOAuthToken(promptResult, bot = true) {
 		auth = authData;
 		return true;
 	}).catch(err => {
-		if(err.data.error === "invalid_auth") return "The Token Is Invalid. Double Check And Try Again";
+		if(err.data.error === "invalid_auth") {
+			return "The Token Is Invalid. Double Check And Try Again";
+		}
 		return `Unknown Error Encountered. Token May Be Invalid:\n${err}`;
 	});
 }

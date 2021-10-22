@@ -71,7 +71,9 @@ class DiscordManager {
 	}
 
 	static embedFromFile(file, templateEmbed) {
-		if(!templateEmbed instanceof Discord.MessageEmbed) throw new TypeError("Template Embed Required");
+		if(!templateEmbed instanceof Discord.MessageEmbed) {
+			throw new TypeError("Template Embed Required");
+		}
 
 		const result = {
 			embeds: [],
@@ -93,7 +95,9 @@ class DiscordManager {
 		} else {
 			fileEmbed.setTitle(file.name);
 			let serverURLText = `[Copy Saved on Server as: /${file.storedAs}]`;
-			if(process.env.SERVER_URL) serverURLText += `\n(${process.env.SERVER_URL}/${encodeURIComponent(file.storedAs)})`;
+			if(process.env.SERVER_URL) {
+				serverURLText += `\n(${process.env.SERVER_URL}/${encodeURIComponent(file.storedAs)})`;
+			}
 			result.embeds.push(fileEmbed.setDescription(`[File Too Large to Send](${file.original.url_private})${serverURLText}`));
 		}
 
@@ -103,7 +107,9 @@ class DiscordManager {
 	}
 
 	static syntaxTreeParseText(syntaxTree) {
-		if(syntaxTree.unparsedText.length === 0) return "[No Message Contents]";
+		if(syntaxTree.unparsedText.length === 0) {
+			return "[No Message Contents]";
+		}
 		let parsedText = syntaxTree.unparsedText;
 
 		// URL Slack to Discord Markdown Translation
@@ -168,7 +174,9 @@ class DiscordManager {
 
 		const targetData = await DiscordManager.locateChannel(syntaxTree);
 
-		if(parsedMessage.additionalEmbeds.length !== 0) mainEmbed.embeds[0].setFooter(`${mainEmbed.embeds[0].footer ? `${mainEmbed.embeds[0].footer}\n` : ""}↓ Message Includes ${parsedMessage.additionalEmbeds.length} Additional Attachment${parsedMessage.additionalEmbeds.length === 1 ? "" : "s"} Below ↓`);
+		if(parsedMessage.additionalEmbeds.length !== 0) {
+			mainEmbed.embeds[0].setFooter(`${mainEmbed.embeds[0].footer ? `${mainEmbed.embeds[0].footer}\n` : ""}↓ Message Includes ${parsedMessage.additionalEmbeds.length} Additional Attachment${parsedMessage.additionalEmbeds.length === 1 ? "" : "s"} Below ↓`);
+		}
 		const sentMessage = await targetData.target.send(mainEmbed);
 		const messageIDs = [];
 		await databaseManager.messageMap({
@@ -213,7 +221,9 @@ class DiscordManager {
 		const mainEmbed = DiscordManager.embedFromSyntaxTree(syntaxTree);
 		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
 		const originalMessageID = (await databaseManager.locateMessageMaps(syntaxTree.timestamp.toString())).find(map => map.PurelyText);
-		if(!originalMessageID) return console.warn(`Old Message Not Found For ${syntaxTree.timestamp}`);
+		if(!originalMessageID) {
+			return console.warn(`Old Message Not Found For ${syntaxTree.timestamp}`);
+		}
 		const originalMessage = await targetChannel.messages.fetch(originalMessageID.DiscordMessageID);
 		await originalMessage.edit(mainEmbed);
 	}
@@ -233,8 +243,12 @@ class DiscordManager {
 		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
 		const channelData = syntaxTree.parseData.channel;
 		const discordTopic = `${channelData.topic} | ${channelData.purpose || "Archive Channel"}`;
-		if(targetChannel.name !== channelData.name) await targetChannel.setName(channelData.name, "Channel name changed from Slack");
-		if(targetChannel.topic !== discordTopic) await targetChannel.setTopic(discordTopic, "Channel Topic changed from Slack");
+		if(targetChannel.name !== channelData.name) {
+			await targetChannel.setName(channelData.name, "Channel name changed from Slack");
+		}
+		if(targetChannel.topic !== discordTopic) {
+			await targetChannel.setTopic(discordTopic, "Channel Topic changed from Slack");
+		}
 	}
 
 	/**
@@ -272,7 +286,9 @@ class DiscordManager {
 			await databaseManager.tableMap(databaseManager.Tables.CHANNEL_MAP, channelData.id, targetData.channel.id);
 		}
 
-		if(syntaxTree.parseData.thread.id) targetData.thread = await this.locateThread(syntaxTree, targetData.channel);
+		if(syntaxTree.parseData.thread.id) {
+			targetData.thread = await this.locateThread(syntaxTree, targetData.channel);
+		}
 		targetData.id = targetData.channel.id;
 		targetData.target = targetData.thread || targetData.channel;
 
@@ -323,7 +339,9 @@ class DiscordManager {
 	static async textUpdate(channel, slackIdentifier, newText) {
 		let oldMessage = (await databaseManager.locateMessageMaps(slackIdentifier))
 			.find(rowResult => rowResult["PurelyText"]);
-		if(!oldMessage) console.warn(`Old Message Not Found For ${slackIdentifier}`);
+		if(!oldMessage) {
+			console.warn(`Old Message Not Found For ${slackIdentifier}`);
+		}
 		oldMessage = await channel.messages.fetch(oldMessage["DiscordMessageID"]);
 		let editedEmbed = new Discord.MessageEmbed(oldMessage.embeds[0]).setDescription(newText);
 		await oldMessage.edit(editedEmbed);

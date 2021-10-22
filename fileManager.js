@@ -94,10 +94,12 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
 			// console.log(`File: ${testPath} already exists.\nAppending number to path and trying again`);
 		} catch(err) {
 			if(!pendingDownloads.includes(testPath)) {
-				if(err.code === "ENOENT") return testFileName;
-				else console.warn("Unknown error while looking for a path to store download: ", err);
+				if(err.code === "ENOENT") {
+					return testFileName;
+				} else {
+					console.warn("Unknown error while looking for a path to store download: ", err);
+				}
 			}
-			// if(pendingDownloads.includes(testPath)) console.log(`Download named ${testPath} is already pending.\nAppending number to path and trying again`);
 		}
 		testFileName = `${fileName} (${copyCount}).${fileExtension}`;
 	}
@@ -168,7 +170,9 @@ async function completeDownload(saveTo, downloadFromURL, headers = {}, rejectOnR
 async function completeDownloadErrorHandler(err, unlinkLocation) {
 	// Blindly deletes the file asynchronously on error
 	try {
-		if(unlinkLocation) await fs.promises.unlink(unlinkLocation);
+		if(unlinkLocation) {
+			await fs.promises.unlink(unlinkLocation);
+		}
 	} catch(unlinkErr) {
 		throw new Error(`Download Failed and Unlink Failed: ${unlinkErr}`);
 	}

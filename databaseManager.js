@@ -105,7 +105,13 @@ function locateMessageMaps(SlackMessageID) {
  * @param {boolean} [data.textOnly = false] Whether this Discord Message ID should be the designated text node. This message will be the one edited when editing text if true
  * @return {Promise} Resolves after inserting the new row
  */
-function messageMap({ SlackMessageID, DiscordMessageID, SlackThreadID = "Main", DiscordThreadID = "Main", textOnly = false }) {
+function messageMap({
+						SlackMessageID,
+						DiscordMessageID,
+						SlackThreadID = "Main",
+						DiscordThreadID = "Main",
+						textOnly = false
+					}) {
 	return Promise.all([
 		new Promise((resolve, reject) => {
 			db.run("INSERT OR IGNORE INTO MessageMap VALUES (?, ?, ?, ?)", SlackMessageID, DiscordMessageID, DiscordThreadID, textOnly, err => {

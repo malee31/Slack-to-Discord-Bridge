@@ -113,7 +113,9 @@ async function discordSetup() {
 	DiscordSetup.setLoggingGuild(envConfig.DISCORD_GUILD_ID);
 	progressLog(`Selected [${DiscordSetup.getLoggingGuild().name}] As The Logging Server`);
 	progressLog("Testing Permissions on Server");
-	if(!DiscordSetup.getGuildMe().hasPermission("ADMINISTRATOR")) warningLog("The Bot Does Not Have ADMINISTRATOR Permissions.\nGrant The Bot ADMINISTRATOR Permissions Before The Next Step For An Easier Setup");
+	if(!DiscordSetup.getGuildMe().hasPermission("ADMINISTRATOR")) {
+		warningLog("The Bot Does Not Have ADMINISTRATOR Permissions.\nGrant The Bot ADMINISTRATOR Permissions Before The Next Step For An Easier Setup");
+	}
 	await anyKey("Press Enter To Check Permissions", DiscordSetup.testPerms);
 	progressLog("Discord Bot Has Been Successfully Set Up");
 }
@@ -139,11 +141,15 @@ async function slackSetup() {
 		validate: promptResult => SlackSetup.testOAuthToken(promptResult, true)
 	});
 	progressLog(`Using Bot User OAuth Token from [${SlackSetup.getAuth().user}] for Workspace [${SlackSetup.getAuth().team}]`);
-	if(SlackSetup.getAuth().team_id !== team.id) warningLog(`WARNING: Workspaces Don't Match!\nThe User OAuth Token Is For [${team.name}] While The Bot User OAuth Token Is For [${SlackSetup.getAuth().team}]\nFix this in the .env file later. As long as the Bot User OAuth token is correct, there is a chance that this will not affect the code (Worst case: Files will not be downloaded from Slack and the default png will be shown instead)`);
+	if(SlackSetup.getAuth().team_id !== team.id) {
+		warningLog(`WARNING: Workspaces Don't Match!\nThe User OAuth Token Is For [${team.name}] While The Bot User OAuth Token Is For [${SlackSetup.getAuth().team}]\nFix this in the .env file later. As long as the Bot User OAuth token is correct, there is a chance that this will not affect the code (Worst case: Files will not be downloaded from Slack and the default png will be shown instead)`);
+	}
 
 	let validSigningSecret = false;
 	while(validSigningSecret !== true) {
-		if(typeof validSigningSecret === "string") warningLog(validSigningSecret);
+		if(typeof validSigningSecret === "string") {
+			warningLog(validSigningSecret);
+		}
 		envConfig.SLACK_SIGNING_SECRET = await ask({
 			message: "Enter In The Signing Secret (Found on the main page): ",
 			validate: promptResult => /[\da-fA-F]+/.test(promptResult) || "The Signing Secret Must Only Contain Letters And Numbers"
@@ -164,7 +170,9 @@ async function slackSetup() {
 function saveEnv() {
 	let content = "";
 	for(const key in envConfig) {
-		if(content !== "") content += "\n";
+		if(content !== "") {
+			content += "\n";
+		}
 		content += `${key}=${envConfig[key].includes(" ") ? `"${envConfig[key]}"` : envConfig[key]}`;
 	}
 	try {

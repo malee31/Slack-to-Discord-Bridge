@@ -16,10 +16,14 @@ try {
 
 SlackHTTPServerEventAdapter.on("message", event => {
 	const subtype = event.subtype || "message";
-	if(!Array.isArray(testData[subtype])) testData[subtype] = [];
+	if(!Array.isArray(testData[subtype])) {
+		testData[subtype] = [];
+	}
 	testData[subtype].push(event);
 	testData.latest.unshift(event);
-	if(testData.latest.length > 10) testData.latest.pop();
+	if(testData.latest.length > 10) {
+		testData.latest.pop();
+	}
 });
 
 process.on('SIGINT', () => {

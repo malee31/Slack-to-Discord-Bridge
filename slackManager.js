@@ -120,12 +120,16 @@ module.exports = class SlackManager {
 		syntaxTree.parseData.channel = (await SlackManager.client.conversations.info({ channel: message.channel })).channel;
 
 		// Important Note: Downloads all files locally. Remember to delete them when you are done with fileManager.fileDelete(fileName)
-		if(message.subtype === "file_share") syntaxTree.attachments.files = await Promise.all(message.files.map(fileData => fileManager.fileDownload(fileData)));
+		if(message.subtype === "file_share") {
+			syntaxTree.attachments.files = await Promise.all(message.files.map(fileData => fileManager.fileDownload(fileData)));
+		}
 
 		syntaxTree.attachments.embeds = (message.attachments || [])
 			.map(unwrapAttachment);
 
-		if(message.subtype === "me_message") syntaxTree.additional.italicizeAll = true;
+		if(message.subtype === "me_message") {
+			syntaxTree.additional.italicizeAll = true;
+		}
 
 		// TODO: Look up references to @users and #channels and add them to the syntax tree and populate syntaxTree.parseData
 		this.events.emit("message", syntaxTree);
@@ -156,7 +160,9 @@ module.exports = class SlackManager {
 
 			syntaxTree.parseData.thread.id = message.thread_ts;
 			// Thread title will be unparsed
-			if(threadParent.text) syntaxTree.parseData.thread.title = threadParent.text;
+			if(threadParent.text) {
+				syntaxTree.parseData.thread.title = threadParent.text;
+			}
 		}
 
 		if(message.user) {
@@ -218,7 +224,9 @@ module.exports = class SlackManager {
  * @returns {string} String to use as an identifier when logging messages
  */
 function userIdentify(user = {}) {
-	if(!user.real_name || !user.id) return "Unknown Pupper";
+	if(!user.real_name || !user.id) {
+		return "Unknown Pupper";
+	}
 	return `${user.real_name}@${user.id}`;
 }
 

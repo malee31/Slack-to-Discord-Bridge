@@ -41,7 +41,9 @@ class SyntaxTreeBase {
 	// Helper methods that silently validate and set or ignore new values
 	// Set property as long as a string is passed in and ignore otherwise. More specific validation to be added
 	setIfString(propName, str) {
-		if(this[propName] !== undefined && typeof str === "string") this[propName] = str;
+		if(this[propName] !== undefined && typeof str === "string") {
+			this[propName] = str;
+		}
 	}
 }
 
