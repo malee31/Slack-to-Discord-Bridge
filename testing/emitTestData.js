@@ -1,8 +1,8 @@
 if(require.main !== module) return;
 
 require("dotenv").config();
-const SlackManager = require("../slackManager.js");
-const DiscordManager = require("../discordManager.js");
+const SlackManager = require("../Slack/slackManager.js");
+const DiscordManager = require("../Discord/discordManager.js");
 const testData = require("./testCases.json");
 const server = require("../fileServer.js")(SlackManager.SlackHTTPServerEventAdapter);
 const Set = require("prompt-set");

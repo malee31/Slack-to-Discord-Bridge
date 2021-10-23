@@ -1,5 +1,5 @@
-const databaseManager = require("./databaseManager.js");
-const fileManager = require("./fileManager.js");
+const databaseManager = require("../databaseManager.js");
+const fileManager = require("../fileManager.js");
 const Discord = require("discord.js");
 
 /**
@@ -14,7 +14,7 @@ class DiscordManager {
 	// Do not work with embeds (Also, apparently "gifv" is not real): ["gif"]
 	static attachableFormats = ["png", "jpg", "jpeg"];
 	// noinspection JSCheckFunctionSignatures
-	static client = new Discord.Client({ intents: require("./Intents.js") });
+	static client = new Discord.Client({ intents: require("../Intents.js") });
 	static LoggingGuild;
 
 	/**

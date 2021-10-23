@@ -1,5 +1,5 @@
-const fileManager = require("./fileManager.js");
-const SyntaxTree = require("./MessageSyntaxTree.js");
+const fileManager = require("../fileManager.js");
+const SyntaxTree = require("../MessageSyntaxTree.js");
 const EventEmitter = require('events');
 
 module.exports = class SlackManager {
@@ -131,7 +131,6 @@ module.exports = class SlackManager {
 			syntaxTree.additional.italicizeAll = true;
 		}
 
-		// TODO: Look up references to @users and #channels and add them to the syntax tree and populate syntaxTree.parseData
 		this.events.emit("message", syntaxTree);
 	}
 
@@ -184,7 +183,6 @@ module.exports = class SlackManager {
 	static async fetchTextDetails(syntaxTree) {
 		const text = syntaxTree.unparsedText;
 		if(!text) return;
-		// TODO: Parse and map channels
 		// Regex differs slightly from official regex defs_user_id in https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json
 		// Known Bugs:
 		// * Slow. Each mention slows down parsing significantly back in the MessageSyntaxTree assembly stage
@@ -212,7 +210,8 @@ module.exports = class SlackManager {
 		for(const slackChannel of slackChannels) {
 			syntaxTree.parseData.channels.push({
 				channelReference: `<#${slackChannel.channel.id}|${slackChannel.channel.name}>`,
-				plainText: `#${slackChannel.channel.name}`
+				plainText: `#${slackChannel.channel.name}`,
+				id: slackChannel.channel.id
 			});
 		}
 	}

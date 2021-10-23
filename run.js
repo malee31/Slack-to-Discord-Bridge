@@ -10,8 +10,8 @@
  */
 
 require("dotenv").config();
-const DiscordManager = require("./discordManager.js");
-const SlackManager = require("./slackManager.js");
+const DiscordManager = require("./Discord/discordManager.js");
+const SlackManager = require("./Slack/slackManager.js");
 
 // Initialize a server using the event adapter's request listener
 const server = require("./fileServer.js")(SlackManager.SlackHTTPServerEventAdapter);
