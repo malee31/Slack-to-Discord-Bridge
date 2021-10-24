@@ -47,7 +47,7 @@ module.exports.startup = new Promise((resolve) => {
 	db.on("open", () => {
 		console.log("=========== Database Opened ===========");
 		resolve(Promise.all([
-			dbPromisify("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL, PurelyText BOOLEAN NOT NULL)"),
+			dbPromisify("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL, SlackChannelID TEXT NOT NULL, DiscordChannelID TEXT NOT NULL, PurelyText BOOLEAN NOT NULL)"),
 			dbPromisify("CREATE TABLE IF NOT EXISTS FileMap (SlackFileID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE)"),
 			dbPromisify("CREATE TABLE IF NOT EXISTS ChannelMap (SlackChannelID TEXT NOT NULL UNIQUE, DiscordChannelID TEXT NOT NULL UNIQUE)"),
 			dbPromisify("CREATE TABLE IF NOT EXISTS ThreadMap (SlackThreadID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL UNIQUE)")
@@ -57,7 +57,8 @@ module.exports.startup = new Promise((resolve) => {
 
 function tableMap(tableName, SlackObjectID, DiscordObjectID) {
 	return new Promise((resolve, reject) => {
-		db.run(`INSERT OR IGNORE INTO ${tableName} VALUES (?, ?)`, SlackObjectID, DiscordObjectID, err => {
+		db.run(`INSERT OR IGNORE INTO ${tableName}
+                VALUES (?, ?)`, SlackObjectID, DiscordObjectID, err => {
 			if(err) reject(err);
 			resolve();
 		});
@@ -106,15 +107,17 @@ function locateMessageMaps(SlackMessageID) {
  * @return {Promise} Resolves after inserting the new row
  */
 function messageMap({
-						SlackMessageID,
-						DiscordMessageID,
-						SlackThreadID = "Main",
-						DiscordThreadID = "Main",
-						textOnly = false
-					}) {
+	SlackMessageID,
+	DiscordMessageID,
+	SlackThreadID = "Main",
+	DiscordThreadID = "Main",
+	SlackChannelID,
+	DiscordChannelID,
+	textOnly = false
+}) {
 	return Promise.all([
 		new Promise((resolve, reject) => {
-			db.run("INSERT OR IGNORE INTO MessageMap VALUES (?, ?, ?, ?)", SlackMessageID, DiscordMessageID, DiscordThreadID, textOnly, err => {
+			db.run("INSERT OR IGNORE INTO MessageMap VALUES (?, ?, ?, ?, ?, ?)", SlackMessageID, DiscordMessageID, DiscordThreadID, SlackChannelID, DiscordChannelID, textOnly, err => {
 				if(err) reject(err);
 				resolve();
 			});

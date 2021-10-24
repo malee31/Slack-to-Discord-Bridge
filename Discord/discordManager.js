@@ -1,4 +1,5 @@
 const databaseManager = require("../databaseManager.js");
+let databaseWrapper = require("../databaseWrapper.js");
 const fileManager = require("../fileManager.js");
 const Discord = require("discord.js");
 
@@ -49,7 +50,7 @@ class DiscordManager {
 		}
 
 		console.log("======= Creating SQLite3 Tables =======");
-		await databaseManager.startup;
+		databaseWrapper = await databaseWrapper.startup(DiscordManager.LoggingGuild);
 		console.log("======= SQLite3 Tables Created ========");
 
 		console.log("========== Discord Bot Ready ==========");
@@ -179,16 +180,14 @@ class DiscordManager {
 		}
 		const sentMessage = await targetData.target.send(mainEmbed);
 		const messageIDs = [];
-		await databaseManager.messageMap({
+		await databaseWrapper.messageMap({
 			SlackMessageID: syntaxTree.timestamp,
 			DiscordMessageID: sentMessage.id,
 			SlackThreadID: syntaxTree.parseData.thread.id,
 			DiscordThreadID: targetData.thread?.id,
+			SlackChannelID: syntaxTree.parseData.channel.id,
+			DiscordChannelID: targetData.channel.id,
 			textOnly: true
-		}).then(() => {
-			console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${sentMessage.id}`);
-		}).catch(err => {
-			console.warn(`MAP ERROR:\n${err}`)
 		});
 
 		for(const additionalData of parsedMessage.additionalEmbeds)
@@ -197,17 +196,15 @@ class DiscordManager {
 			);
 
 		await Promise.all(messageIDs.map(id =>
-			databaseManager.messageMap({
-				SlackMessageID: syntaxTree.timestamp.toString(),
+			databaseWrapper.messageMap({
+				SlackMessageID: syntaxTree.timestamp,
 				DiscordMessageID: id,
 				SlackThreadID: syntaxTree.parseData.thread.id,
-				DiscordThreadID: targetData.thread?.id
-			}).then(() => {
-				console.log(`Mapped Slack ${syntaxTree.timestamp} to Discord ${id}`);
-			}).catch(err => {
-				console.warn(`MAP ERROR:\n${err}`)
-			}))
-		);
+				DiscordThreadID: targetData.thread?.id,
+				SlackChannelID: syntaxTree.parseData.channel.id,
+				DiscordChannelID: targetData.channel.id,
+			})
+		));
 
 		// Clean-up downloaded files after sending
 		await Promise.all(
@@ -219,24 +216,15 @@ class DiscordManager {
 
 	static async handleChanges(syntaxTree) {
 		const mainEmbed = DiscordManager.embedFromSyntaxTree(syntaxTree);
-		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
-		const originalMessageID = (await databaseManager.locateMessageMaps(syntaxTree.timestamp.toString())).find(map => map.PurelyText);
-		if(!originalMessageID) {
-			return console.warn(`Old Message Not Found For ${syntaxTree.timestamp}`);
-		}
-		const originalMessage = await targetChannel.messages.fetch(originalMessageID.DiscordMessageID);
+		const originalMessage = await databaseWrapper.locateMessageMaps(syntaxTree.timestamp.toString(), { textOnly: true });
 		await originalMessage.edit(mainEmbed);
 	}
 
 	static async handleDeletes(syntaxTree) {
-		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
 		// TODO: Delete only what is necessary. Currently deletes all parts of a message even if only a portion is deleted from Slack
 		//  (Example: Deleting 1/3 files on Slack deletes all 3 and the text on Discord)
-		await Promise.all((await databaseManager.locateMessageMaps(syntaxTree.timestamp))
-			.map(async map => {
-				const message = await targetChannel.target.messages.fetch(map["DiscordMessageID"]);
-				await message.delete();
-			}));
+		const messages = await databaseWrapper.locateMessageMaps(syntaxTree.timestamp);
+		await Promise.all(messages.map(message => message.delete()));
 	}
 
 	static async handleChannelUpdates(syntaxTree) {
@@ -337,12 +325,7 @@ class DiscordManager {
 	 * @param {string} newText What to change the text to
 	 */
 	static async textUpdate(channel, slackIdentifier, newText) {
-		let oldMessage = (await databaseManager.locateMessageMaps(slackIdentifier))
-			.find(rowResult => rowResult["PurelyText"]);
-		if(!oldMessage) {
-			console.warn(`Old Message Not Found For ${slackIdentifier}`);
-		}
-		oldMessage = await channel.messages.fetch(oldMessage["DiscordMessageID"]);
+		let oldMessage = await databaseWrapper.locateMessageMaps(slackIdentifier, { textOnly: true });
 		let editedEmbed = new Discord.MessageEmbed(oldMessage.embeds[0]).setDescription(newText);
 		await oldMessage.edit(editedEmbed);
 	}
@@ -357,17 +340,15 @@ class DiscordManager {
 	 * @param {number} slackTs The timestamp of the pinned Slack message. Used with the channel ID to identify the message and find it
 	 */
 	static async setPin(pin = false, slackChannelID, slackUserID, slackTs) {
-		const targetChannel = await DiscordManager.locateChannel(slackChannelID);
 		const user = slackUserID ? (await DiscordManager.SlackClient.users.info({ user: slackUserID })).user : undefined;
-		const maps = await databaseManager.locateMessageMaps(DiscordManager.identify(slackChannelID, slackTs));
-		for(const map of maps) {
-			const selectedMessage = await targetChannel.messages.fetch(map["DiscordMessageID"]);
+		const messages = await databaseManager.locateMessageMaps(DiscordManager.identify(slackChannelID, slackTs));
+		await Promise.all(messages.map(message => {
 			if(pin) {
-				await selectedMessage.pin({ reason: `Pinned by ${DiscordManager.userIdentify(user)} at ${slackTs * 1000} Epoch Time` });
+				return message.pin({ reason: `Pinned by ${DiscordManager.userIdentify(user)} at ${slackTs * 1000} Epoch Time` });
 			} else {
-				await selectedMessage.unpin();
+				return message.unpin();
 			}
-		}
+		}));
 	}
 
 	/**
