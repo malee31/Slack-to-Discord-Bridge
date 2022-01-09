@@ -36,7 +36,7 @@ async function testToken(promptResult) {
 }
 
 async function testPerms() {
-	if(getGuildMe().hasPermission("ADMINISTRATOR")) {
+	if(getGuildMe().permissions.has("ADMINISTRATOR")) {
 		progressLog("Admin Permissions Detected. Proceeding Without Additional Tests");
 		return true;
 	}
@@ -48,7 +48,7 @@ async function testPerms() {
 		"VIEW_CHANNEL",
 		"ATTACH_FILES",
 		"READ_MESSAGE_HISTORY"
-	].filter(perm => !getGuildMe().hasPermission(perm));
+	].filter(perm => !getGuildMe().permissions.has(perm));
 	if(failedPerms.length !== 0) {
 		return `The Following Permissions Are Missing. Grant Admin Or Those Permissions And Press Enter To Check Again: [${failedPerms.join(", ")}]`;
 	}
@@ -67,5 +67,6 @@ function getLoggingGuild() {
 
 function getGuildMe() {
 	if(loggingGuild === undefined) throw new Error("Logging Guild Not Set");
+	console.log(loggingGuild.me);
 	return loggingGuild.me;
 }

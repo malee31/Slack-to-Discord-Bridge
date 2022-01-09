@@ -113,7 +113,7 @@ async function discordSetup() {
 	DiscordSetup.setLoggingGuild(envConfig.DISCORD_GUILD_ID);
 	progressLog(`Selected [${DiscordSetup.getLoggingGuild().name}] As The Logging Server`);
 	progressLog("Testing Permissions on Server");
-	if(!DiscordSetup.getGuildMe().hasPermission("ADMINISTRATOR")) {
+	if(!DiscordSetup.getGuildMe().permissions.has("ADMINISTRATOR")) {
 		warningLog("The Bot Does Not Have ADMINISTRATOR Permissions.\nGrant The Bot ADMINISTRATOR Permissions Before The Next Step For An Easier Setup");
 	}
 	await anyKey("Press Enter To Check Permissions", DiscordSetup.testPerms);

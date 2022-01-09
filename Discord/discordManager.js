@@ -1,5 +1,5 @@
 const databaseManager = require("../databaseManager.js");
-let databaseWrapper = require("../databaseWrapper.js");
+let databaseWrapper = require("./databaseWrapper.js");
 const fileManager = require("../fileManager.js");
 const Discord = require("discord.js");
 
