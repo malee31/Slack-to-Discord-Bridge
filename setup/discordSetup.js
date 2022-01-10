@@ -67,6 +67,5 @@ function getLoggingGuild() {
 
 function getGuildMe() {
 	if(loggingGuild === undefined) throw new Error("Logging Guild Not Set");
-	console.log(loggingGuild.me);
 	return loggingGuild.me;
 }

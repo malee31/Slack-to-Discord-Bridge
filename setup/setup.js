@@ -1,6 +1,5 @@
 require("dotenv").config();
 const prompts = require("prompts");
-const Set = require("prompt-set");
 const { progressLog, warningLog } = require("./logger.js");
 const DiscordSetup = require("./discordSetup.js");
 const SlackSetup = require("./slackSetup.js");
@@ -32,7 +31,7 @@ async function setup() {
  * Wrapper function for prompts that sets some defaults for the prompt object and only returns the response instead of an object
  * @param {Object} promptObj Object passed to the prompts function
  * @param {Object} [options] Options passed to the prompts function
- * @return {Promise<string|string[]>} Prompt response in the form of a string or array of strings depending on the prompt type
+ * @return {Promise<T>} Prompt response in the form of a string, array of strings, numbers, and more depending on the prompt type
  */
 function ask(promptObj, options) {
 	promptObj.name = "none";
@@ -80,6 +79,15 @@ async function fsSetup() {
 			message: "Server URL: ",
 			validate: promptResult => /https?:\/\/.+[^\/]$/.test(promptResult) || "Server URL must start with http:// or https://. Do not end the URL with a /"
 		});
+
+		envConfig.PORT = await ask({
+			message: "Port Used for Slack App (Leave Blank for Port 3000)",
+			default: 3000,
+			type: "number",
+			validate: promptResult => Math.floor(promptResult) === promptResult || "Port number must be a whole number"
+		});
+
+		process.env.PORT = envConfig.PORT;
 	}
 }
 
@@ -145,6 +153,18 @@ async function slackSetup() {
 		warningLog(`WARNING: Workspaces Don't Match!\nThe User OAuth Token Is For [${team.name}] While The Bot User OAuth Token Is For [${SlackSetup.getAuth().team}]\nFix this in the .env file later. As long as the Bot User OAuth token is correct, there is a chance that this will not affect the code (Worst case: Files will not be downloaded from Slack and the default png will be shown instead)`);
 	}
 
+	envConfig.DISABLE_CHANNEL_JOIN = await ask({
+		type: "confirm",
+		message: "Attempt to Join All Channels on Start?",
+		initial: true
+	}) ? "FALSE" : "TRUE";
+
+	envConfig.DISABLE_BOT_INFO_LOOKUP = await ask({
+		type: "confirm",
+		message: "Look Up Bot Info on Start? (Only Needed if the Bot Sends Messages to Slack. Default: False)",
+		initial: false
+	}) ? "FALSE" : "TRUE";
+
 	let validSigningSecret = false;
 	while(validSigningSecret !== true) {
 		if(typeof validSigningSecret === "string") {
@@ -168,13 +188,11 @@ async function slackSetup() {
  * Is synchronous
  */
 function saveEnv() {
-	let content = "";
-	for(const key in envConfig) {
-		if(content !== "") {
-			content += "\n";
-		}
-		content += `${key}=${envConfig[key].includes(" ") ? `"${envConfig[key]}"` : envConfig[key]}`;
-	}
+	const content = Object.keys(envConfig)
+		.filter(key => envConfig.hasOwnProperty(key))
+		.map(key => `${key}="${envConfig[key].toString()}"`)
+		.join("\n")
+
 	try {
 		fs.writeFileSync(path.resolve(__dirname, "../.env"), content);
 	} catch(e) {
