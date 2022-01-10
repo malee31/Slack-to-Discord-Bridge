@@ -17,6 +17,6 @@ serverMap.json
 testCases.json
 .env
 
-# Just in Case
+# Database files just in Case
 *.sql
 *.sqlite

@@ -8,7 +8,7 @@ const realExports = {
 	messageMap,
 	locateMessageMaps
 };
-module.exports = startup;
+module.exports = { startup };
 
 async function startup(loggingGuild) {
 	if(!guild) {

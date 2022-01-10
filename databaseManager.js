@@ -57,16 +57,18 @@ module.exports.startup = new Promise((resolve) => {
 
 function tableMap(tableName, SlackObjectID, DiscordObjectID) {
 	return new Promise((resolve, reject) => {
+		// @formatter:off (Ignore this comment, it's just to prevent the IDE from indenting this strangely)
 		db.run(`INSERT OR IGNORE INTO ${tableName}
                 VALUES (?, ?)`, SlackObjectID, DiscordObjectID, err => {
 			if(err) reject(err);
 			resolve();
 		});
+		// @formatter:on
 	});
 }
 
 function tableLocateMap(SelectProperty, tableName, WhereProperty, SlackObjectID) {
-	// WARNING: SQL Injection possible for all parameters except SlackObjectID. Do not take user input for this function other than it!
+	// WARNING: SQL Injection possible for all parameters except SlackObjectID. Do not take user input for this function other than that!
 	return new Promise((resolve, reject) => {
 		db.get(`SELECT ${SelectProperty} AS value
                 FROM ${tableName}
