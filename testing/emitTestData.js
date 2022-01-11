@@ -1,28 +1,12 @@
 if(require.main !== module) return;
 
 require("dotenv").config();
+const MainScript = require("../run.js");
 const SlackManager = require("../Slack/slackManager.js");
-const DiscordManager = require("../Discord/discordManager.js");
 const testData = require("./testCases.json");
-const server = require("../fileServer.js")(SlackManager.SlackHTTPServerEventAdapter);
 const Set = require("prompt-set");
 
-Promise.all([
-	SlackManager.start(),
-	DiscordManager.start(),
-	new Promise((resolve, reject) => {
-		server.listen(Number(process.env.PORT) || 3000, err => {
-			if(err) reject(err);
-			console.log(`========== Started Port ${server.address().port} ==========`);
-			resolve();
-		});
-	}),
-]).then(() => {
-	SlackManager.events.on("message", DiscordManager.handleMessages);
-	SlackManager.events.on("change", DiscordManager.handleChanges);
-	SlackManager.events.on("delete", DiscordManager.handleDeletes);
-	SlackManager.events.on("channel_update", DiscordManager.handleChannelUpdates);
-}).then(async() => {
+MainScript.then(async() => {
 	const args = process.argv.slice(2);
 	let selectedCases = [];
 	switch(selectMode(args)) {
@@ -49,7 +33,7 @@ Promise.all([
 	}
 
 	console.log("========== Emitting Complete ==========");
-	process.exit(0);
+	console.log("==== Terminate Anytime with CTRL+C ====");
 });
 
 function selectMode(args) {

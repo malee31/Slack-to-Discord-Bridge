@@ -33,4 +33,4 @@ process.on('SIGINT', () => {
 	process.exit(0);
 });
 
-server.listen(3000);
+server.listen(process.env.PORT || 3000);

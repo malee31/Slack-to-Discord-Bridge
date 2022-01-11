@@ -109,7 +109,7 @@ class DiscordManager {
 
 	static syntaxTreeParseText(syntaxTree) {
 		if(syntaxTree.unparsedText.length === 0) {
-			return "[No Message Contents]";
+			return "[No Message Content]";
 		}
 		let parsedText = syntaxTree.unparsedText;
 

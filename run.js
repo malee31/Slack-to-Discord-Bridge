@@ -44,7 +44,7 @@ function startUp() {
 }
 
 // Starts up the logger and links up event listeners
-startUp().then(() => {
+module.exports = startUp().then(() => {
 	console.log("======= All Services Started Up =======");
 	SlackManager.events.on("message", DiscordManager.handleMessages);
 	SlackManager.events.on("change", DiscordManager.handleChanges);
