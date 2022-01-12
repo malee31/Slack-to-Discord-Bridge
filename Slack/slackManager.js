@@ -98,8 +98,7 @@ module.exports = class SlackManager {
 		syntaxTree.deletedTimestamp = message.deleted_ts;
 		syntaxTree.timestamp = message.previous_message.ts;
 		if(message.previous_message.thread_ts) {
-			syntaxTree.parseData.thread.id = message.previous_message.thread_ts;
-			syntaxTree.parseData.thread.name = "Deleted Thread";
+			syntaxTree.threadId = message.previous_message.thread_ts;
 		}
 		this.events.emit("delete", syntaxTree);
 	}
@@ -150,6 +149,8 @@ module.exports = class SlackManager {
 		syntaxTree.parseData.channel.purpose = Boolean(originalChannel.is_archived);
 
 		if(message.thread_ts) {
+			// TODO: Save thread parents so that a look up is not needed. This API calls requires the bot to join channels
+			// Call is only needed to look up the main message's content and ID which can be looked up on Discord and SQL
 			const threadParent = (await SlackManager.client.conversations.history({
 				channel: originalChannel.id,
 				latest: message.thread_ts,

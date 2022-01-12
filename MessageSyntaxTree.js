@@ -85,6 +85,7 @@ class DeleteSyntaxTree extends SyntaxTreeBase {
 	action = "delete";
 	messageIdentifier = "";
 	deletedTimestamp = undefined;
+	threadId = undefined;
 }
 
 /**

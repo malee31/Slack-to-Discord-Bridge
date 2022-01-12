@@ -216,7 +216,7 @@ class DiscordManager {
 
 	static async handleChanges(syntaxTree) {
 		const mainEmbed = DiscordManager.embedFromSyntaxTree(syntaxTree);
-		const originalMessage = await databaseWrapper.locateMessageMaps(syntaxTree.timestamp.toString(), { textOnly: true });
+		const originalMessage = await databaseWrapper.locateMessageMaps(syntaxTree.timestamp.toString(), true);
 		await originalMessage.edit(mainEmbed);
 	}
 
@@ -325,7 +325,7 @@ class DiscordManager {
 	 * @param {string} newText What to change the text to
 	 */
 	static async textUpdate(channel, slackIdentifier, newText) {
-		let oldMessage = await databaseWrapper.locateMessageMaps(slackIdentifier, { textOnly: true });
+		let oldMessage = await databaseWrapper.locateMessageMaps(slackIdentifier, true);
 		let editedEmbed = new Discord.MessageEmbed(oldMessage.embeds[0]).setDescription(newText);
 		await oldMessage.edit(editedEmbed);
 	}

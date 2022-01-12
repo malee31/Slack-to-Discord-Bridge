@@ -32,7 +32,7 @@ async function messageMap(passthroughObj) {
 }
 
 // Will return an array of all maps unless the textOnly option is selected (In which case it will only return the one without an array)
-async function locateMessageMaps(SlackMessageID, { textOnly = false, messageLookup = true }) {
+async function locateMessageMaps(SlackMessageID,textOnly = false, messageLookup = true) {
 	const maps = await databaseManager.locateMessageMaps(SlackMessageID);
 	if(!maps) {
 		console.warn(`Message Map(s) Not Found For [${SlackMessageID}]`);
@@ -66,7 +66,7 @@ async function messageMapToMessage(map) {
 
 	// TODO: Safety checks
 	let channel = await guild.channels.fetch(map.DiscordChannelID);
-	if(map.DiscordThreadID === "Main") {
+	if(map.DiscordThreadID !== "Main") {
 		channel = await channel.threads.fetch(map.DiscordThreadID);
 	}
 

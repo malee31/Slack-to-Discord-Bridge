@@ -26,7 +26,7 @@ function fsMake(slackEvents) {
 		}
 
 		const fileName = decodeURIComponent(req.url.split("?")[0]);
-		const filePath = getRequestedPath(fileName, res);
+		const filePath = getRequestedPath(fileName, req, res);
 
 		if(!filePath) return;
 		if(filePath === fileManager.DOWNLOADS_FOLDER) {
@@ -52,7 +52,7 @@ function fsMake(slackEvents) {
 	});
 }
 
-function getRequestedPath(fileName, res) {
+function getRequestedPath(fileName, req, res) {
 	const filePath = path.resolve(fileManager.DOWNLOADS_FOLDER, fileName);
 	console.log(`[${new Date().toLocaleString()}] Accessing ${filePath} from ${req.url}`);
 	if(!filePath.startsWith(fileManager.DOWNLOADS_FOLDER)) {
