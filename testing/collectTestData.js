@@ -6,7 +6,8 @@ const SlackHTTPServerEventAdapter = (require("@slack/events-api")).createEventAd
 const server = require("../fileServer.js")(SlackHTTPServerEventAdapter);
 const TEST_CASE_PATH = require("path").resolve(__dirname, "testCases.json");
 
-// testData.latest will store the last 10 events. Newest event will be at index 0
+// For limiting the sizes of each categorie
+const ENTRY_LIMIT = 100;
 let testData = { latest: [] };
 try {
 	testData = JSON.parse(fs.readFileSync(TEST_CASE_PATH).toString());
@@ -19,10 +20,14 @@ SlackHTTPServerEventAdapter.on("message", event => {
 	if(!Array.isArray(testData[subtype])) {
 		testData[subtype] = [];
 	}
-	testData[subtype].push(event);
+
+	testData[subtype].unshift(event);
 	testData.latest.unshift(event);
-	if(testData.latest.length > 10) {
+	if(testData.latest.length > ENTRY_LIMIT) {
 		testData.latest.pop();
+	}
+	if(testData[subtype].length > ENTRY_LIMIT) {
+		testData[subtype].pop();
 	}
 });
 

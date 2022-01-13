@@ -1,4 +1,5 @@
 if(require.main !== module) return;
+// Set DEBUG_EMITTED to 1 to print all cases being emitted in JSON form
 
 require("dotenv").config();
 const MainScript = require("../run.js");
@@ -27,8 +28,11 @@ MainScript.then(async() => {
 	for(const testCase of selectedCases) {
 		const messageType = testCase.thread_ts ? "THREAD" : "NORMAL";
 		const subtype = testCase.subtype || "message";
-		console.log(`EMITTING SUBTYPE: [${messageType}] ${subtype}`);
 
+		console.log(`EMITTING SUBTYPE: [${messageType}] ${subtype}`);
+		if(process.env.DEBUG_EMITTED) {
+			console.log(testCase);
+		}
 		SlackManager.SlackHTTPServerEventAdapter.emit("message", testCase);
 	}
 
@@ -100,7 +104,6 @@ function addPairs(selectedCases, pairedArgs) {
 }
 
 async function promptCase() {
-
 	const caseType = await Set.Promptlet({
 		name: "caseType",
 		message: "Select the type of event to emit. Latest contains the newest ones added",
@@ -116,7 +119,7 @@ async function promptCase() {
 		autoTrim: false,
 		choices: testData[caseType].map((testCase, index) => {
 			return {
-				name: `[${index}] Content: ${testCase.text || testCase.message?.text || "[No Details]"}`,
+				name: `[${index}] Content: ${testCase.subtype ? `[${testCase.subtype}] ` : ""}${testCase.text || testCase.message?.text || "[No Details]"}`,
 				value: index
 			};
 		})
