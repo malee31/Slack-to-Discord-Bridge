@@ -50,7 +50,7 @@ async function locateMessageMaps(SlackMessageID,textOnly = false, messageLookup 
 
 	if(messageLookup) {
 		if(textOnly) {
-			result = messageMapToMessage(result);
+			result = messageMapToMessage(result[0]);
 		} else {
 			result = Promise.all(result.map(messageMapToMessage));
 		}

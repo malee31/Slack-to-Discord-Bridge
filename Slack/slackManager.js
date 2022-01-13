@@ -82,7 +82,7 @@ module.exports = class SlackManager {
 	}
 
 	static async onChange(message) {
-		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.ChangeSyntaxTree(), message);
+		const syntaxTree = await SlackManager.syntaxTreeFromBase(new SyntaxTree.ChangeSyntaxTree(), message);
 		await SlackManager.updateSyntaxTree(syntaxTree, message.message);
 		// Known bugs:
 		// * Does not handle file deletions. For those, delete the entire message instead of just the file itself in order to remove it
@@ -94,7 +94,7 @@ module.exports = class SlackManager {
 	}
 
 	static async onDelete(message) {
-		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.DeleteSyntaxTree(), message);
+		const syntaxTree = await SlackManager.syntaxTreeFromBase(new SyntaxTree.DeleteSyntaxTree(), message);
 		syntaxTree.deletedTimestamp = message.deleted_ts;
 		syntaxTree.timestamp = message.previous_message.ts;
 		if(message.previous_message.thread_ts) {
@@ -134,7 +134,7 @@ module.exports = class SlackManager {
 	}
 
 	static async onChannelUpdate(message) {
-		const syntaxTree = SlackManager.syntaxTreeFromBase(new SyntaxTree.ChannelSyntaxTree(), message);
+		const syntaxTree = await SlackManager.syntaxTreeFromBase(new SyntaxTree.ChannelSyntaxTree(), message);
 		this.events.emit("channel_update", syntaxTree);
 	}
 
@@ -165,8 +165,9 @@ module.exports = class SlackManager {
 			}
 		}
 
-		if(message.user) {
-			const user = (await SlackManager.client.users.info({ user: message.user })).user || { profile: {} };
+		const userId = message.user || message.message?.user;
+		if(userId) {
+			const user = (await SlackManager.client.users.info({ user: userId })).user || { profile: {} };
 			syntaxTree.setIfString("name", userIdentify(user));
 			syntaxTree.setIfString("color", user.color ? `#${user.color}` : undefined);
 			syntaxTree.setIfString("profilePic", user.profile.image_512);

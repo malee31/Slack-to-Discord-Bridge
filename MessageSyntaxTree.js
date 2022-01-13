@@ -91,7 +91,7 @@ class DeleteSyntaxTree extends SyntaxTreeBase {
 /**
  * Syntax Tree for content changes
  */
-class ChangeSyntaxTree extends SyntaxTreeBase {
+class ChangeSyntaxTree extends MessageSyntaxTree {
 	action = "edit";
 	newUnparsedText = "[No Message Contents]";
 	changeTimestamp = undefined;
