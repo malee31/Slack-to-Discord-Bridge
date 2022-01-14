@@ -6,7 +6,8 @@ const realExports = {
 	// In case the code attempts to start up a second time. A no-op that returns module exports
 	startup: () => realExports,
 	messageMap,
-	locateMessageMaps
+	locateMessageMaps,
+	initiated: true
 };
 module.exports = { startup };
 
@@ -15,11 +16,12 @@ async function startup(loggingGuild) {
 		guild = loggingGuild;
 	}
 
-	// Allow access to the actual module exports
-	module.exports = realExports;
-
 	await databaseManager.startup;
-	return realExports;
+
+	// Allow access to the actual module exports
+	Object.assign(module.exports, realExports);
+
+	return module.exports;
 }
 
 async function messageMap(passthroughObj) {
@@ -32,7 +34,7 @@ async function messageMap(passthroughObj) {
 }
 
 // Will return an array of all maps unless the textOnly option is selected (In which case it will only return the one without an array)
-async function locateMessageMaps(SlackMessageID,textOnly = false, messageLookup = true) {
+async function locateMessageMaps(SlackMessageID, textOnly = false, messageLookup = true) {
 	const maps = await databaseManager.locateMessageMaps(SlackMessageID);
 	if(!maps) {
 		console.warn(`Message Map(s) Not Found For [${SlackMessageID}]`);

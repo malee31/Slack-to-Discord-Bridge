@@ -1,6 +1,7 @@
 const fileManager = require("../fileManager.js");
 const SyntaxTree = require("../MessageSyntaxTree.js");
 const EventEmitter = require('events');
+const databaseWrapper = require("../Discord/databaseWrapper.js");
 
 module.exports = class SlackManager {
 	static SlackHTTPServerEventAdapter = (require("@slack/events-api")).createEventAdapter(process.env.SLACK_SIGNING_SECRET);
@@ -54,7 +55,6 @@ module.exports = class SlackManager {
 				return SlackManager.onChange(message);
 			case undefined:
 			case "me_message": // It's just regular message in italics more or less
-			case "thread_broadcast": // Is a message AND a thread... Oh no...
 			case "bot_message": // Might need a custom function to work properly. Use bots.info to search up user if needed
 			case "file_share":
 				return SlackManager.onMessage(message);
@@ -71,6 +71,9 @@ module.exports = class SlackManager {
 			case "channel_archive":
 			case "channel_unarchive":
 				// Reuse message feature? Should I port this over at all???
+				break;
+			case "thread_broadcast": // Is a message AND a thread... Oh no...
+				// TODO: Adapt thread_broadcast into a regular thread message or message (or both)
 				break;
 			case "channel_name":
 			case "channel_topic":
@@ -149,19 +152,17 @@ module.exports = class SlackManager {
 		syntaxTree.parseData.channel.purpose = Boolean(originalChannel.is_archived);
 
 		if(message.thread_ts) {
-			// TODO: Save thread parents so that a look up is not needed. This API calls requires the bot to join channels
-			// Call is only needed to look up the main message's content and ID which can be looked up on Discord and SQL
-			const threadParent = (await SlackManager.client.conversations.history({
-				channel: originalChannel.id,
-				latest: message.thread_ts,
-				inclusive: true,
-				limit: 1,
-			})).messages[0];
+			if(!databaseWrapper.initiated) {
+				throw new Error("Cannot Use Database Methods Before DiscordManager Starts Up");
+			}
+
+			const threadParentDiscord = await databaseWrapper.locateMessageMaps(message.thread_ts, true, true);
 
 			syntaxTree.parseData.thread.id = message.thread_ts;
-			// Thread title will be unparsed
-			if(threadParent.text) {
-				syntaxTree.parseData.thread.title = threadParent.text;
+
+			// Thread title will be not be parsed
+			if(threadParentDiscord.embeds[0]?.description) {
+				syntaxTree.parseData.thread.title = threadParentDiscord.embeds[0].description;
 			}
 		}
 
