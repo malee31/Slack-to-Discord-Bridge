@@ -72,8 +72,7 @@ class MessageSyntaxTree extends SyntaxTreeBase {
 	constructor() {
 		super();
 		this.parseData.thread = {
-			id: "",
-			title: "No Title"
+			id: ""
 		};
 	}
 }

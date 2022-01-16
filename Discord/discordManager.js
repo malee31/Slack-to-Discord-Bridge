@@ -283,6 +283,20 @@ class DiscordManager {
 		return targetData;
 	}
 
+	static async fakeMessage(threadID, syntaxTreeBase, syntaxTreeMessageSkeleton) {
+		// Share properties via shallow copy
+		Object.assign(syntaxTreeMessageSkeleton.parseData.channel, syntaxTreeBase.parseData.channel);
+
+		console.log(`Thread ${threadID} is missing. Creating fake main message...`);
+		syntaxTreeMessageSkeleton.name = "Unknown Thread Handler";
+		syntaxTreeMessageSkeleton.unparsedText = "[Thread Not Found: Some Messages May Be Missing]";
+		syntaxTreeMessageSkeleton.color = "#DD2020";
+		syntaxTreeMessageSkeleton.timestamp = threadID;
+		await DiscordManager.handleMessages(syntaxTreeMessageSkeleton);
+		console.log(`Missing Main Message Created For Thread ${threadID}. Proceeding...`);
+		return (await databaseManager.locateMessageMaps(threadID))[0].DiscordMessageID;
+	}
+
 	static async locateThread(syntaxTree, channel) {
 		// Note: Does NOT look things up by name unlike locateChannel.
 		const storedThreadID = await databaseManager.locateThreadMap(syntaxTree.parseData.thread.id);
@@ -294,10 +308,10 @@ class DiscordManager {
 			const boundMessageIDs = await databaseManager.locateMessageMaps(threadID);
 			const originalMessageID = boundMessageIDs
 				.find(messageMap => messageMap.PurelyText)
-				.DiscordMessageID;
+				?.DiscordMessageID || await DiscordManager.fakeMessage(threadID, syntaxTree, syntaxTree.parseData.thread.skeleton);
 
 			const originalMessage = await channel.messages.fetch(originalMessageID);
-			const originalContent = originalMessage.embeds[0].description || "No Text Content";
+			const originalContent = originalMessage.embeds[0]?.description || "No Text Content";
 
 			if(originalMessage.hasThread) {
 				targetThread = originalMessage.thread;

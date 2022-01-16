@@ -1,7 +1,6 @@
 const fileManager = require("../fileManager.js");
 const SyntaxTree = require("../MessageSyntaxTree.js");
 const EventEmitter = require('events');
-const databaseWrapper = require("../Discord/databaseWrapper.js");
 
 module.exports = class SlackManager {
 	static SlackHTTPServerEventAdapter = (require("@slack/events-api")).createEventAdapter(process.env.SLACK_SIGNING_SECRET);
@@ -152,18 +151,8 @@ module.exports = class SlackManager {
 		syntaxTree.parseData.channel.purpose = Boolean(originalChannel.is_archived);
 
 		if(message.thread_ts) {
-			if(!databaseWrapper.initiated) {
-				throw new Error("Cannot Use Database Methods Before DiscordManager Starts Up");
-			}
-
-			const threadParentDiscord = await databaseWrapper.locateMessageMaps(message.thread_ts, true, true);
-
 			syntaxTree.parseData.thread.id = message.thread_ts;
-
-			// Thread title will be not be parsed
-			if(threadParentDiscord.embeds[0]?.description) {
-				syntaxTree.parseData.thread.title = threadParentDiscord.embeds[0].description;
-			}
+			syntaxTree.parseData.thread.skeleton = new SyntaxTree.MessageSyntaxTree();
 		}
 
 		const userId = message.user || message.message?.user;
