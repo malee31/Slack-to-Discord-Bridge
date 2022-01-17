@@ -33,32 +33,25 @@ async function messageMap(passthroughObj) {
 	}
 }
 
-// Will return an array of all maps unless the textOnly option is selected (In which case it will only return the one without an array)
+// Will return an array of all maps. Selecting textOnly will return one or no results only
 async function locateMessageMaps(SlackMessageID, textOnly = false, messageLookup = true) {
-	const maps = await databaseManager.locateMessageMaps(SlackMessageID);
-	if(!maps) {
+	const maps = (await databaseManager.locateMessageMaps(SlackMessageID));
+
+	if(maps.length === 0) {
 		console.warn(`Message Map(s) Not Found For [${SlackMessageID}]`);
-		return;
 	}
 
-	let result = maps;
-	if(textOnly) {
-		const result = maps.find(map => map.PurelyText);
-		if(!result) {
-			console.warn(`Message Map(s) Not Found For [${SlackMessageID}] [TEXT ONLY]`);
-			return;
-		}
+	const results = maps
+		.filter(map => !textOnly || map["PurelyText"])
+		.map(map => !messageLookup ? map : messageMapToMessage(map).catch(err => {
+			console.warn(`Unable To Find Discord Message For ${map.DiscordMessageID} (${map.SlackMessageID})`)
+		}));
+
+	if(results.length === 0) {
+		console.warn(`Message Map(s) Not Found For [${SlackMessageID}] [TEXT ONLY]`);
 	}
 
-	if(messageLookup) {
-		if(textOnly) {
-			result = messageMapToMessage(result[0]);
-		} else {
-			result = Promise.all(result.map(messageMapToMessage));
-		}
-	}
-
-	return result;
+	return await Promise.all(results);
 }
 
 async function messageMapToMessage(map) {
@@ -66,11 +59,9 @@ async function messageMapToMessage(map) {
 		return;
 	}
 
-	// TODO: Safety checks
 	let channel = await guild.channels.fetch(map.DiscordChannelID);
 	if(map.DiscordThreadID !== "Main") {
 		channel = await channel.threads.fetch(map.DiscordThreadID);
 	}
-
 	return channel.messages.fetch(map.DiscordMessageID);
 }

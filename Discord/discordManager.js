@@ -15,7 +15,7 @@ class DiscordManager {
 	// Do not work with embeds (Also, apparently "gifv" is not real): ["gif"]
 	static attachableFormats = ["png", "jpg", "jpeg"];
 	// noinspection JSCheckFunctionSignatures
-	static client = new Discord.Client({ intents: require("../Intents.js") });
+	static client = new Discord.Client({ intents: require("./Intents.js") });
 	static LoggingGuild;
 
 	/**
@@ -215,16 +215,31 @@ class DiscordManager {
 	}
 
 	static async handleChanges(syntaxTree) {
+		const timestamp = syntaxTree.timestamp.toString();
 		const mainEmbed = DiscordManager.embedFromSyntaxTree(syntaxTree);
-		const originalMessage = await databaseWrapper.locateMessageMaps(syntaxTree.timestamp.toString(), true);
-		await originalMessage.edit(mainEmbed);
+		const originalMessageMaps = await databaseWrapper.locateMessageMaps(timestamp, true);
+
+		if(originalMessageMaps.length === 0) {
+			console.warn(`Unable to edit message: Original Message Not Found For ${timestamp}`);
+		} else if(originalMessageMaps.length >= 1) {
+			console.warn(`Odd Behavior Warning: Multiple Messages Will Be Overwritten For ${timestamp}`);
+		}
+
+		await Promise.all(originalMessageMaps.map(message => message.edit(mainEmbed)));
 	}
 
 	static async handleDeletes(syntaxTree) {
 		// TODO: Delete only what is necessary. Currently deletes all parts of a message even if only a portion is deleted from Slack
-		//  (Example: Deleting 1/3 files on Slack deletes all 3 and the text on Discord)
+		//  (Example: Deleting 1 of 3 files on Slack deletes all 3 + the message on Discord)
 		const messages = await databaseWrapper.locateMessageMaps(syntaxTree.timestamp);
-		await Promise.all(messages.map(message => message.delete()));
+		console.log(`Deleting ${messages.length} Messages`);
+		await Promise.all(messages
+			.map(message => message.delete()
+			.catch(err => {
+				console.warn(`Unable to Delete Message ${message.id} (${syntaxTree.timestamp}): `);
+				console.warn(err);
+			}))
+		);
 	}
 
 	static async handleChannelUpdates(syntaxTree) {
@@ -328,20 +343,6 @@ class DiscordManager {
 		}
 
 		return targetThread;
-	}
-
-	/**
-	 * Updates the text of a message already logged to Discord
-	 * @async
-	 * @memberOf module:discordManager.DiscordManager
-	 * @param {string} channel The Slack Channel id. Can be obtained through event.channel
-	 * @param {string} slackIdentifier The ID used for the Slack message associated with the Discord message
-	 * @param {string} newText What to change the text to
-	 */
-	static async textUpdate(channel, slackIdentifier, newText) {
-		let oldMessage = await databaseWrapper.locateMessageMaps(slackIdentifier, true);
-		let editedEmbed = new Discord.MessageEmbed(oldMessage.embeds[0]).setDescription(newText);
-		await oldMessage.edit(editedEmbed);
 	}
 
 	/**

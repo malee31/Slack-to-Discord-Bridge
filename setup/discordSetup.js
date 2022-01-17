@@ -1,6 +1,6 @@
 const { progressLog, warningLog } = require("./logger.js");
 const Discord = require("discord.js");
-const client = new Discord.Client({ intents: require("../Intents.js") });
+const client = new Discord.Client({ intents: require("../Discord/Intents.js") });
 let loggingGuild;
 
 module.exports = {
