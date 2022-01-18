@@ -41,17 +41,19 @@ async function locateMessageMaps(SlackMessageID, textOnly = false, messageLookup
 		console.warn(`Message Map(s) Not Found For [${SlackMessageID}]`);
 	}
 
+	// TODO: Improve error handling
 	const results = maps
 		.filter(map => !textOnly || map["PurelyText"])
 		.map(map => !messageLookup ? map : messageMapToMessage(map).catch(err => {
-			console.warn(`Unable To Find Discord Message For ${map.DiscordMessageID} (${map.SlackMessageID})`)
+			console.warn(`Unable To Find Discord Message For ${map.DiscordMessageID} (${map.SlackMessageID})`);
+			return false;
 		}));
 
 	if(results.length === 0) {
 		console.warn(`Message Map(s) Not Found For [${SlackMessageID}] [TEXT ONLY]`);
 	}
 
-	return await Promise.all(results);
+	return (await Promise.all(results)).filter(result => result !== false);
 }
 
 async function messageMapToMessage(map) {
@@ -62,6 +64,9 @@ async function messageMapToMessage(map) {
 	let channel = await guild.channels.fetch(map.DiscordChannelID);
 	if(map.DiscordThreadID !== "Main") {
 		channel = await channel.threads.fetch(map.DiscordThreadID);
+		if(channel.archived) {
+			await channel.setArchived(false, "Unarchived Thread for Incoming Slack Events");
+		}
 	}
 	return channel.messages.fetch(map.DiscordMessageID);
 }

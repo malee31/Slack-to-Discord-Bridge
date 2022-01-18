@@ -235,10 +235,9 @@ class DiscordManager {
 		console.log(`Deleting ${messages.length} Messages`);
 		await Promise.all(messages
 			.map(message => message.delete()
-			.catch(err => {
-				console.warn(`Unable to Delete Message ${message.id} (${syntaxTree.timestamp}): `);
-				console.warn(err);
-			}))
+				.catch(err => {
+					console.warn(`Unable to Delete Message ${message.id} (${syntaxTree.timestamp}): [${err.name}] ${err.message}`);
+				}))
 		);
 	}
 
