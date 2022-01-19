@@ -34,8 +34,9 @@ module.exports = {
 	locateMessageMaps,
 };
 
-// Starts up the database and sets it up if it does not already exist
-
+/**
+ * Starts up the database and sets it up if it does not already exist. Promise resolves once this is complete.
+ */
 module.exports.startup = new Promise((resolve) => {
 	const dbPromisify = query => new Promise((resolve, reject) => {
 		db.run(query, err => {
@@ -55,6 +56,13 @@ module.exports.startup = new Promise((resolve) => {
 	});
 });
 
+/**
+ * Inserts a new row into a table pairing the Slack and Discord IDs together if they are not duplicates
+ * @param {string} tableName Name of table to add to
+ * @param {string} SlackObjectID An ID from Slack's end
+ * @param {string} DiscordObjectID An ID from Discord's end
+ * @return {Promise} Resolves once the query completes
+ */
 function tableMap(tableName, SlackObjectID, DiscordObjectID) {
 	return new Promise((resolve, reject) => {
 		// @formatter:off (Ignore this comment, it's just to prevent the IDE from indenting this strangely)
@@ -67,8 +75,16 @@ function tableMap(tableName, SlackObjectID, DiscordObjectID) {
 	});
 }
 
+/**
+ * Helper function that returns all rows from a table with a specific name where a specific property has a specific value<br>
+ * WARNING: SQL Injection possible for all parameters except SlackObjectID. Do NOT take user input for this function for all properties except SlackObjectID
+ * @param {string} SelectProperty Property from table to return from each row. Use '*' to match all
+ * @param {string} tableName Table to search (Must contain property)
+ * @param  {string} WhereProperty Property to compare with value
+ * @param {string} SlackObjectID Value to find in table
+ * @return {Promise<Object[]>} Returns matching rows with the selected property
+ */
 function tableLocateMap(SelectProperty, tableName, WhereProperty, SlackObjectID) {
-	// WARNING: SQL Injection possible for all parameters except SlackObjectID. Do not take user input for this function other than that!
 	return new Promise((resolve, reject) => {
 		db.get(`SELECT ${SelectProperty} AS value
                 FROM ${tableName}
@@ -81,14 +97,29 @@ function tableLocateMap(SelectProperty, tableName, WhereProperty, SlackObjectID)
 	});
 }
 
+/**
+ * Returns the Discord channel id linked with the SlackChannelID passed into this function from the ChannelMap table
+ * @param {string} SlackChannelID Timestamp of the Slack channel
+ * @return {Promise<string>} Returns the matching Discord channel's ID if found
+ */
 function locateChannelMap(SlackChannelID) {
 	return tableLocateMap("DiscordChannelID", Tables.CHANNEL_MAP, "SlackChannelID", SlackChannelID);
 }
 
+/**
+ * Returns the Discord thread id equivalent from the ThreadMap table of the matching SlackThreadID
+ * @param {string} SlackThreadID Timestamp of the thread's main/original message
+ * @return {Promise<string>} Returns the matching Discord thread's ID if found
+ */
 function locateThreadMap(SlackThreadID) {
 	return tableLocateMap("DiscordThreadID", Tables.THREAD_MAP, "SlackThreadID", SlackThreadID);
 }
 
+/**
+ * Returns all rows from the MessageMap table with the matching SlackMessageID
+ * @param {string} SlackMessageID Timestamp of the Slack message
+ * @return {Promise<Object[]>} Array of rows with the matching SlackMessageID or an empty array
+ */
 function locateMessageMaps(SlackMessageID) {
 	return new Promise((resolve, reject) => {
 		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SlackMessageID, (err, res) => {
