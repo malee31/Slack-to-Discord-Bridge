@@ -62,15 +62,10 @@ module.exports = {
 
 	/**
 	 * Deletes a file from the downloads folder specifically
-	 * @async
 	 * @param {string} fileName Name of file to delete from the downloads folder
 	 * @returns {Promise<void>} Returns the promise from fs.promises.unlink
 	 */
-	fileDelete: async fileName => {
-		let fileDeletePath = path.resolve(DOWNLOADS_FOLDER, fileName);
-		// console.log(`Del: ${fileDeletePath}`);
-		return fs.promises.unlink(fileDeletePath);
-	},
+	fileDelete,
 	FAILED_DOWNLOAD_IMAGE_PATH
 }
 
@@ -117,29 +112,26 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
  */
 async function completeDownload(saveTo, downloadFromURL, headers = {}, rejectOnRedirect = false) {
 	return new Promise((resolve, reject) => {
-		https.get({
-			url: downloadFromURL,
+		https.get(downloadFromURL, {
 			headers: headers
 		})
 			.on("response", response => {
+				// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
 				if(response.statusCode >= 300 && response.statusCode < 400) {
-					// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
 					const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
-					if(!rejectOnRedirect) {
-						console.warn(`[HTTP ${response.statusCode}] Following Redirect to File at [${redirectURL}]\nNote that if this happens and fails a lot, the token may be invalid`);
-						resolve(completeDownload(saveTo, `${redirectURL}`, headers));
-					} else {
-						reject(new Error(`[HTTP ${response.statusCode}] Redirect Returned from [${downloadFromURL}] to [${redirectURL}]`))
+					if(rejectOnRedirect) {
+						return reject(new Error(`[HTTP ${response.statusCode}] Redirect Returned from [${downloadFromURL}] to [${redirectURL}]`));
 					}
-
-					return;
+					console.warn(`[HTTP ${response.statusCode}] Following Redirect to File at [${redirectURL}]\nNote that if this happens and fails a lot, the token may be invalid`);
+					return resolve(completeDownload(saveTo, `${redirectURL}`, headers));
 				}
 
 				if(response.statusCode !== 200) {
 					console.warn(`[HTTP ${response.statusCode}] [${response.statusMessage}] from [${downloadFromURL}]\n↑ ↑ ↑ Request Returned a Non-200 Status Code. Proceeding Anyways...`);
 				}
 
-				console.log(`Saving a File to ${saveTo}`);
+				console.log(`Saving a File to ${saveTo} from ${downloadFromURL}`);
+
 				const saveFile = fs.createWriteStream(saveTo);
 				saveFile
 					.on('finish', () => {
@@ -169,12 +161,11 @@ async function completeDownload(saveTo, downloadFromURL, headers = {}, rejectOnR
  */
 async function completeDownloadErrorHandler(err, unlinkLocation) {
 	// Blindly deletes the file asynchronously on error
-	try {
-		if(unlinkLocation) {
-			await fs.promises.unlink(unlinkLocation);
-		}
-	} catch(unlinkErr) {
-		throw new Error(`Download Failed and Unlink Failed: ${unlinkErr}`);
+	if(unlinkLocation) {
+		await fileDelete(unlinkLocation)
+			.catch(unlinkErr => {
+				throw new Error(`Download Failed and Unlink Failed: ${unlinkErr}`);
+			});
 	}
 	throw new Error(`Download Failed: ${err}`);
 }
@@ -187,4 +178,15 @@ async function completeDownloadErrorHandler(err, unlinkLocation) {
  */
 async function fileSize(filePath) {
 	return (await fs.promises.stat(filePath)).size / (1024 * 1024);
+}
+
+/**
+ * Deletes a file from the downloads folder specifically
+ * @param {string} fileName Name of file to delete from the downloads folder
+ * @returns {Promise<void>} Returns the promise from fs.promises.unlink
+ */
+function fileDelete(fileName) {
+	let fileDeletePath = path.resolve(DOWNLOADS_FOLDER, fileName);
+	// console.log(`Del: ${fileDeletePath}`);
+	return process.env.DISABLE_FILE_DELETION?.trim().toLowerCase() === "true" ? Promise.resolve() : fs.promises.unlink(fileDeletePath);
 }

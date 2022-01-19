@@ -102,8 +102,6 @@ class DiscordManager {
 			result.embeds.push(fileEmbed.setDescription(`[File Too Large to Send](${file.original.url_private})${serverURLText}`));
 		}
 
-		console.log(result)
-
 		return result;
 	}
 
