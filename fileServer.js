@@ -52,8 +52,16 @@ function fsMake(slackEvents) {
 	});
 }
 
+/**
+ * Takes in the file path and request data and resolves it to a file path in the downloads folder<br>
+ * May be disabled with environment variables
+ * @param {string} fileName Name of the file. Originates from req.url so it must start with a /
+ * @param {IncomingMessage} req Request object from http or any other server request
+ * @param {ServerResponse} res Response object from http or any other server request
+ * @return {string|boolean} Returns the absolute path to a file in the downloads folder or false if access should be denied
+ */
 function getRequestedPath(fileName, req, res) {
-	const filePath = path.resolve(fileManager.DOWNLOADS_FOLDER, fileName);
+	const filePath = path.resolve(fileManager.DOWNLOADS_FOLDER, "." + fileName);
 	console.log(`[${new Date().toLocaleString()}] Accessing ${filePath} from ${req.url}`);
 	if(!filePath.startsWith(fileManager.DOWNLOADS_FOLDER)) {
 		console.warn(`Attempt to access ${filePath} detected and denied`);
@@ -61,7 +69,7 @@ function getRequestedPath(fileName, req, res) {
 	}
 
 	if(process.env.DISABLE_FILE_SERVER?.trim().toLowerCase() === "true") {
-		console.warn(`File Server is Disabled. File Request Denied`);
+		console.warn("File Server is Disabled. File Request Denied");
 		res.writeHead(500, { "Content-Type": "text/plain" });
 		res.write(`The file server is set to private and disabled.\nYour files are most likely still stored on the server so ask the server owner for it if you need it!`);
 		res.end();
@@ -71,6 +79,11 @@ function getRequestedPath(fileName, req, res) {
 	return filePath;
 }
 
+/**
+ * Lists the names of all files in the downloads folder. Can be disabled with environment variables.
+ * @param {string} filePath Absolute path to a file in the downloads folder. May be a file that does not exist
+ * @param {ServerResponse} res Response object from http or any other server request
+ */
 function showFileList(filePath, res) {
 	if(process.env.DISABLE_FILE_SERVER_LIST?.trim().toLowerCase() !== "true") {
 		fs.readdir(filePath, (err, files) => {

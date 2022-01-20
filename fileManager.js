@@ -11,6 +11,19 @@ const FILE_NAME_ITERATOR_LIMIT = 200;
 const pendingDownloads = [];
 
 /**
+ * Data about a locally downloaded file
+ * @typedef FileData
+ * @property {string} path Absolute path to local file
+ * @property {string} storedAs The name of the local file
+ * @property {string} extension File extension of the file
+ * @property {number} size Size of the object in megabytes
+ * @property {string} title The original title of the file
+ * @property {string} name The original name of the file
+ * @property {Object} original The original metadata of the file (Slack File Object)
+ * @property {string} id The ID of the file object from Slack
+ */
+
+/**
  * Handles downloading and deleting files from folders (Especially the designated downloads folder)
  * @module fileManager
  */
@@ -25,7 +38,7 @@ module.exports = {
 	 * @param {Object} fileObj Slack file details object (Found in event.files[])
 	 * @param {string} [fileName] Name for file (Defaults to the name provided by Slack)
 	 * @param {string} [auth] Alternative token to use (in place of the environment variables)
-	 * @returns {Promise<{path: string, extension: (string|*), original: ({name}|*), size: *, name, title, storedAs: string}>} An object containing details on where the file is, what is is called, the original Slack file object, and more
+	 * @returns {Promise<FileData>} An object containing details on where the file is, what it is called, the original Slack file object, and more
 	 */
 	fileDownload: async(fileObj, fileName, auth) => {
 		fileName = (fileName || fileObj.name).replace(/\//g, " - ");
@@ -59,13 +72,11 @@ module.exports = {
 			id: fileObj.id
 		};
 	},
-
-	/**
-	 * Deletes a file from the downloads folder specifically
-	 * @param {string} fileName Name of file to delete from the downloads folder
-	 * @returns {Promise<void>} Returns the promise from fs.promises.unlink
-	 */
 	fileDelete,
+	/**
+	 * Absolute path of a default image to send when the download fails
+	 * @type {string}
+	 */
 	FAILED_DOWNLOAD_IMAGE_PATH
 }
 
@@ -183,7 +194,7 @@ async function fileSize(filePath) {
 /**
  * Deletes a file from the downloads folder specifically
  * @param {string} fileName Name of file to delete from the downloads folder
- * @returns {Promise<void>} Returns the promise from fs.promises.unlink
+ * @returns {Promise} Returns the promise from fs.promises.unlink
  */
 function fileDelete(fileName) {
 	let fileDeletePath = path.resolve(DOWNLOADS_FOLDER, fileName);

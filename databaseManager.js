@@ -14,6 +14,10 @@ const Tables = Object.freeze({
  * @module databaseManager
  */
 module.exports = {
+	/**
+	 * Immutable object containing the names of the SQL tables
+	 * @type Object
+	 */
 	Tables,
 	tableMap,
 	/**
