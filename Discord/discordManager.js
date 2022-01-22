@@ -9,13 +9,29 @@ const Discord = require("discord.js");
  * @see https://slack.dev/node-slack-sdk/web-api
  */
 
+/**
+ * Handles all things related to the Discord end of things. Most functions take in a specific subtype of SyntaxTree<br>
+ * Meant to be a static class (Do not initialize members of this class)
+ */
 class DiscordManager {
-	// Removed from attachable formats because audio formats auto-embed themselves (Wow flac files are huge!):
-	// Removed from attachable formats because video formats auto-embed themselves then fail to load (Still available via "Open Original" download link):
-	// Do not work with embeds (Also, apparently "gifv" is not real): ["gif"]
+	/**
+	 * Array containing a list of formats that Discord embeds consider attachable.<br>
+	 * Files with these extensions are sent in embeds instead of by themselves.<br>
+	 * Audio extensions removed from attachable formats because they automatically embed themselves (Wow flac files are huge!)<br>
+	 * Video formats removed from attachable formats because they automatically embed themselves then fail to load (Still available via "Open Original" download link though)<br>
+	 * Type gif was removed because they don't work in embeds for some reason. Also, gifv technically is not real.
+	 * @type {string[]}
+	 */
 	static attachableFormats = ["png", "jpg", "jpeg"];
-	// noinspection JSCheckFunctionSignatures
+	/**
+	 * The Discord bot client being used by the manager. Remember to call start() before using
+	 * @type {Discord.Client}
+	 */
 	static client = new Discord.Client({ intents: require("./Intents.js") });
+	/**
+	 * Discord Server/Guild to log messages into
+	 * @type {Discord.Guild}
+	 */
 	static LoggingGuild;
 
 	/**
@@ -57,8 +73,8 @@ class DiscordManager {
 	}
 
 	/**
-	 * Does not handle attachments. Only top level data (depth of 1) for a syntax tree
-	 * @param syntaxTree
+	 * Does not handle attachments. Only top level data (depth of 1) for a syntax tree AKA the main embed
+	 * @param {SyntaxTreeBase} syntaxTree A SyntaxTreeBase or anything extending it that can be used to create a blank embed (Sets colors, author, timestamp, and text)
 	 */
 	static embedFromSyntaxTree(syntaxTree) {
 		const parsedEmbed = new Discord.MessageEmbed();
@@ -71,6 +87,12 @@ class DiscordManager {
 		return { embeds: [parsedEmbed] };
 	}
 
+	/**
+	 * Converts a file object from a Syntax Tree into an embed
+	 * @param {FileData} file Data about the file to convert into an embed
+	 * @param {Discord.MessageEmbed} templateEmbed Blank embed that the file will be added onto. Set colors, timestamps, and more before passing it into this function
+	 * @return {{files: *[], embeds: Discord.MessageEmbed[]}} Final Discord message payload
+	 */
 	static embedFromFile(file, templateEmbed) {
 		if(!templateEmbed instanceof Discord.MessageEmbed) {
 			throw new TypeError("Template Embed Required");
@@ -105,6 +127,11 @@ class DiscordManager {
 		return result;
 	}
 
+	/**
+	 * Converts text from Slack Markdown to Discord Markdown
+	 * @param {SyntaxTreeBase} syntaxTree Syntax tree to fetch message from
+	 * @return {string} Parsed message. Returns a default string if there is no message
+	 */
 	static syntaxTreeParseText(syntaxTree) {
 		if(syntaxTree.unparsedText.length === 0) {
 			return "[No Message Content]";
@@ -158,6 +185,11 @@ class DiscordManager {
 		return parsedText;
 	}
 
+	/**
+	 * Handles sending messages to Discord
+	 * @param {MessageSyntaxTree} syntaxTree Syntax tree to parse and send
+	 * @return {Promise} Resolves when messages have been successfully sent
+	 */
 	static async handleMessages(syntaxTree) {
 		const mainEmbed = DiscordManager.embedFromSyntaxTree(syntaxTree);
 		const parsedMessage = {
@@ -212,6 +244,11 @@ class DiscordManager {
 		);
 	}
 
+	/**
+	 * Handles reflecting edits/changes on Discord
+	 * @param {ChangeSyntaxTree} syntaxTree Syntax tree with edits to parse and send. Mostly identical to MessageSyntaxTree
+	 * @return {Promise} Resolves when messages have been successfully sent/edited
+	 */
 	static async handleChanges(syntaxTree) {
 		const timestamp = syntaxTree.timestamp.toString();
 		const mainEmbed = DiscordManager.embedFromSyntaxTree(syntaxTree);
@@ -226,6 +263,11 @@ class DiscordManager {
 		await Promise.all(originalMessageMaps.map(message => message.edit(mainEmbed)));
 	}
 
+	/**
+	 * Handles reflecting message deletions on Discord. Safely ignores messages that cannot be found
+	 * @param {DeleteSyntaxTree} syntaxTree Syntax tree with information about what messages to delete
+	 * @return {Promise} Resolves when messages have been successfully deleted
+	 */
 	static async handleDeletes(syntaxTree) {
 		// TODO: Delete only what is necessary. Currently deletes all parts of a message even if only a portion is deleted from Slack
 		//  (Example: Deleting 1 of 3 files on Slack deletes all 3 + the message on Discord)
@@ -239,6 +281,11 @@ class DiscordManager {
 		);
 	}
 
+	/**
+	 * Handles reflecting channel metadata updates on Discord
+	 * @param {ChannelSyntaxTree} syntaxTree Syntax tree with channel metadata. It's literally the same as the base syntax tree class
+	 * @return {Promise} Resolves when channel data has been updated
+	 */
 	static async handleChannelUpdates(syntaxTree) {
 		const targetChannel = await DiscordManager.locateChannel(syntaxTree);
 		const channelData = syntaxTree.parseData.channel;
@@ -255,6 +302,8 @@ class DiscordManager {
 	 * Locates a channel given a Slack Channel ID. Will grab associated channel from the serverMap.json or search by name. If it does not exist, the bot will create a channel with a matching name and serverMap it
 	 * @async
 	 * @memberOf module:discordManager.DiscordManager
+	 * @param {SyntaxTreeBase} A syntax tree with data on what channel to look up
+	 * @return {Promise<{channel: Discord.TextChannel, id: string, thread: undefined | Discord.ThreadChannel, target: Discord.TextChannel | Discord.ThreadChannel}>} Resolves to an object containing what channel can/should be sent to
 	 */
 	static async locateChannel(syntaxTree) {
 		const channelData = syntaxTree.parseData.channel;
@@ -295,6 +344,14 @@ class DiscordManager {
 		return targetData;
 	}
 
+	/**
+	 * Creates and sends out a fake message and links it to a Slack Message. Used when creating threads without an existing starting point on the Discord end
+	 * @async
+	 * @param {string} threadID ID for the thread that the fake message is for
+	 * @param {MessageSyntaxTree} syntaxTreeBase Syntax tree for the next message in the thread
+	 * @param {MessageSyntaxTree} syntaxTreeMessageSkeleton An empty syntax tree to use for the fake message
+	 * @return {string} Returns the DiscordMessageID of the fake message (Now the starting point of a thread)
+	 */
 	static async fakeMessage(threadID, syntaxTreeBase, syntaxTreeMessageSkeleton) {
 		// Share properties via shallow copy
 		Object.assign(syntaxTreeMessageSkeleton.parseData.channel, syntaxTreeBase.parseData.channel);
@@ -309,6 +366,12 @@ class DiscordManager {
 		return (await databaseManager.locateMessageMaps(threadID))[0].DiscordMessageID;
 	}
 
+	/**
+	 * Finds a specific thread channel given information about it and the main channel it should be in. Creates one if it does not exist
+	 * @param {SyntaxTreeBase} syntaxTree Syntax tree containing the thread id to look up
+	 * @param {Discord.TextChannel} channel Discord channel to find or make thread channel in
+	 * @return {Discord.ThreadChannel} Returns the located thread channel
+	 */
 	static async locateThread(syntaxTree, channel) {
 		// Note: Does NOT look things up by name unlike locateChannel.
 		const storedThreadID = await databaseManager.locateThreadMap(syntaxTree.parseData.thread.id);
@@ -340,27 +403,6 @@ class DiscordManager {
 		}
 
 		return targetThread;
-	}
-
-	/**
-	 * Handles pinning and unpinning a logged message on the Discord side
-	 * @async
-	 * @memberOf module:discordManager.DiscordManager
-	 * @param {boolean} [pin = false] Pins the message if true and unpins it if false
-	 * @param {string} slackChannelID The Slack Channel id. Can be obtained through event.channel
-	 * @param {string} slackUserID The Slack user ID of the person pinning the message on Slack
-	 * @param {number} slackTs The timestamp of the pinned Slack message. Used with the channel ID to identify the message and find it
-	 */
-	static async setPin(pin = false, slackChannelID, slackUserID, slackTs) {
-		const user = slackUserID ? (await DiscordManager.SlackClient.users.info({ user: slackUserID })).user : undefined;
-		const messages = await databaseManager.locateMessageMaps(DiscordManager.identify(slackChannelID, slackTs));
-		await Promise.all(messages.map(message => {
-			if(pin) {
-				return message.pin({ reason: `Pinned by ${DiscordManager.userIdentify(user)} at ${slackTs * 1000} Epoch Time` });
-			} else {
-				return message.unpin();
-			}
-		}));
 	}
 
 	/**
