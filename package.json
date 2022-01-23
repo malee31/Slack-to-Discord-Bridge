@@ -33,5 +33,9 @@
 	"bugs": {
 		"url": "https://github.com/malee31/Slack-to-Discord-Bridge/issues"
 	},
-	"homepage": "https://github.com/malee31/Slack-to-Discord-Bridge#readme"
+	"homepage": "https://github.com/malee31/Slack-to-Discord-Bridge#readme",
+	"devDependencies": {
+		"docdash": "^1.2.0",
+		"jsdoc": "^3.6.7"
+	}
 }

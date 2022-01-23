@@ -1,16 +1,27 @@
 {
 	"source": {
 		"include": [],
+		"includePattern": ".+\\.js$",
 		"exclude": [
+			"node_modules",
+			"docs",
 			".git",
-			"node_modules"
-		],
-		"includePattern": ".+\\.js(x|doc)?$"
+			"testing",
+			"setup"
+		]
 	},
+	"plugins": [
+		"plugins/markdown"
+	],
 	"opts": {
 		"encoding": "utf8",
-		"template": "templates/default",
-		"destination": "./docs",
+		"readme": "./README.md",
+		"destination": "docs/",
+		"template": "node_modules/docdash",
 		"recurse": true
+	},
+	"docdash": {
+		"sort": true,
+		"search": true
 	}
 }

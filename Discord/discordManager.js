@@ -91,7 +91,7 @@ class DiscordManager {
 	 * Converts a file object from a Syntax Tree into an embed
 	 * @param {FileData} file Data about the file to convert into an embed
 	 * @param {Discord.MessageEmbed} templateEmbed Blank embed that the file will be added onto. Set colors, timestamps, and more before passing it into this function
-	 * @return {{files: *[], embeds: Discord.MessageEmbed[]}} Final Discord message payload
+	 * @return {Object} Final Discord message payload. Contains two arrays: embeds which should be sent first and files which should be sent after
 	 */
 	static embedFromFile(file, templateEmbed) {
 		if(!templateEmbed instanceof Discord.MessageEmbed) {
