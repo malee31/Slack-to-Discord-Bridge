@@ -1,9 +1,12 @@
 // Don't mind me lazily using class instances as a lazy way to deep clone objects :P
+/**
+ * Helper classes used as an intermediate in the bridging process between two services
+ * @module SyntaxTree
+ */
 
 /**
  * Base for bridge syntax trees
  */
-
 class SyntaxTreeBase {
 	// Where the message originates from. In the case of this project, it should always be set to "slack"
 	source = "Unknown";
@@ -50,27 +53,53 @@ class SyntaxTreeBase {
 /**
  * Class used between the original message and bridged message
  * Purpose: Deconstruct messages from whatever form they come in as into a common structure for the bridge to utilize
- * @class {MessageSyntaxTree}
+ * @class MessageSyntaxTree
+ * @extends {SyntaxTreeBase}
  */
 class MessageSyntaxTree extends SyntaxTreeBase {
+	/**
+	 * Intended action to be performed using the syntax tree data
+	 * @type {string}
+	 */
 	action = "send";
-	// Name of sender
+
+	/**
+	 * Name of the sender. Defaults to "Unknown Pupper"
+	 * @type {string}
+	 */
 	name = "Unknown Pupper";
-	// URL to sender's profile picture
+	/**
+	 * URL to sender's profile picture. Defaults to a link to gif profile pic of a dog
+	 * @type {string}
+	 */
 	profilePic = "https://media.giphy.com/media/S8aEKUGKXHl8WEsDD9/giphy.gif";
-	// The main content of the original message in unparsed form
+	/**
+	 * The main content of the original message in unparsed form. Defaults to "[No Message Contents]"
+	 * @type {string}
+ 	 */
 	unparsedText = "[No Message Contents]";
-	// Color for embeds
+	/**
+	 * Color to use for embeds. Defaults to a shade of blue ("#407ABA")
+	 * @type {string}
+	 */
 	color = "#407ABA";
-	// Files and Embeds
+	/**
+	 * Files and embeds' data
+	 * @type {Object}
+	 * @property {FileData[]} files Array of file data
+	 * @property {MessageSyntaxTree[]} embeds Array of additional embed data
+	 */
 	attachments = {
 		files: [],
-		// Embeds will come in the form of another MessageSyntaxTree instance
 		embeds: []
 	};
 
 	constructor() {
 		super();
+		/**
+		 * Additional property for thread id added
+		 * @type {string}
+		 */
 		this.parseData.thread = {
 			id: ""
 		};
@@ -79,32 +108,55 @@ class MessageSyntaxTree extends SyntaxTreeBase {
 
 /**
  * Syntax Tree for deletion events
+ * @class DeleteSyntaxTree
+ * @extends {SyntaxTreeBase}
  */
 class DeleteSyntaxTree extends SyntaxTreeBase {
 	action = "delete";
+	/**
+	 * An ID used to identify what message to delete
+	 * @type {string}
+	 */
 	messageIdentifier = "";
+	/**
+	 * Time of deletion
+	 * @type {number}
+	 */
 	deletedTimestamp = undefined;
+	/**
+	 * If applicable, the ID of the thread in which the message belongs to
+	 * @type {string|number}
+	 */
 	threadId = undefined;
 }
 
 /**
  * Syntax Tree for content changes
+ * @class ChangeSyntaxTree
+ * @extends {SyntaxTreeBase}
  */
 class ChangeSyntaxTree extends MessageSyntaxTree {
 	action = "edit";
+	/**
+	 * The text to replace the old content with
+	 * @type {string}
+	 */
 	newUnparsedText = "[No Message Contents]";
+	/**
+	 * Time of edit. Never used
+	 * @type {number}
+	 */
 	changeTimestamp = undefined;
-
-	// Files and Embeds
-	attachments = {
-		files: [],
-		// Embeds will come in the form of another MessageSyntaxTree instance
-		embeds: []
-	};
 }
 
+/**
+ * Class for channel data changes. Literally no different from a SyntaxTreeBase instance<br>
+ * Extending only to make a clearer name for its purpose
+ * @class ChannelSyntaxTree
+ * @extends {SyntaxTreeBase}
+ */
 class ChannelSyntaxTree extends SyntaxTreeBase {
-	// Literally no different from normal base. Just extending for the class name change
+	// Literally no changes
 }
 
 module.exports = {
