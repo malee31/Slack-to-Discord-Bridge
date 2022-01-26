@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>Global - Documentation</title>
+    <title>MessageSyntaxTree - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,7 +34,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">Global</h1>
+    <h1 class="page-title">MessageSyntaxTree</h1>
     
 
     
@@ -47,7 +47,9 @@
 <header>
     
         <h2>
+            <span class="ancestors"><a href="module-SyntaxTree.html">SyntaxTree</a>~</span>
         
+        MessageSyntaxTree
         </h2>
         
     
@@ -59,8 +61,22 @@
         
             
 
+    
+
+    <h4 class="name" id="MessageSyntaxTree"><span class="type-signature"></span>new MessageSyntaxTree<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
 <dl class="details">
 
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line53">line 53</a>
+    </li></ul></dd>
     
 
     
@@ -97,12 +113,53 @@
 
 
 
-            
 
-            
+<div class="description usertext">
+    <p>Class used between the original message and bridged message
+Purpose: Deconstruct messages from whatever form they come in as into a common structure for the bridge to utilize</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
         </div>
     
+
+    
+        <h3 class="subsection-title">Extends</h3>
+
+        
+
+
+    <ul>
+        <li>SyntaxTreeBase</li>
+    </ul>
+
 
     
 
@@ -117,18 +174,12 @@
     
 
     
-
-    
-        <h3 class="subsection-title">Methods</h3>
+        <h3 class="subsection-title">Members</h3>
 
         
             
+<h4 class="name" id="action"><span class="type-signature"></span>action<span class="type-signature"> :string</span></h4>
 
-    
-
-    <h4 class="name" id="unwrapAttachment"><span class="type-signature"></span>unwrapAttachment<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
 
 
 
@@ -138,7 +189,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Slack_slackManager.js.html">Slack/slackManager.js</a>, <a href="Slack_slackManager.js.html#line228">line 228</a>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line64">line 64</a>
     </li></ul></dd>
     
 
@@ -178,204 +229,29 @@
 
 
 <div class="description usertext">
-    <p>Convert an attachment into a MessageSyntaxTree instance
-TODO: A lot of testing and variations need to be implemented</p>
+    <p>Intended action to be performed using the syntax tree data</p>
 </div>
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
+    <h5>Type:</h5>
+    <ul>
+        <li>
             
-
-    
-
-    <h4 class="name" id="userIdentify"><span class="type-signature"></span>userIdentify<span class="signature">(user)</span><span class="type-signature"> &rarr; {string}</span></h4>
-
-    
-
-
-
-
-<dl class="details">
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Slack_slackManager.js.html">Slack/slackManager.js</a>, <a href="Slack_slackManager.js.html#line217">line 217</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-<div class="description usertext">
-    <p>Creates a more readable name for each user than their user ID</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>user</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Slack user object (Normally obtained through Slack's users.info endpoint)</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>String to use as an identifier when logging messages</p>
-</div>
-
-
-
-<dl class="param-type">
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
 <span class="param-type">string</span>
 
 
-    </dd>
-</dl>
-
-    
+        </li>
+    </ul>
 
 
 
-        
-    
 
-    
-        <h3 class="subsection-title">Type Definitions</h3>
+
 
         
-                
-<h4 class="name" id="FileData">FileData</h4>
+            
+<h4 class="name" id="attachments"><span class="type-signature"></span>attachments<span class="type-signature"> :Object</span></h4>
 
 
 
@@ -386,7 +262,7 @@ TODO: A lot of testing and variations need to be implemented</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line13">line 13</a>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line92">line 92</a>
     </li></ul></dd>
     
 
@@ -449,13 +325,13 @@ TODO: A lot of testing and variations need to be implemented</p>
 
         <tr>
             
-                <td class="name"><code>path</code></td>
+                <td class="name"><code>files</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">Array.&lt;<a href="global.html#FileData">FileData</a>></span>
 
 
             
@@ -465,20 +341,20 @@ TODO: A lot of testing and variations need to be implemented</p>
 
             
 
-            <td class="description last"><p>Absolute path to local file</p></td>
+            <td class="description last"><p>Array of file data</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>storedAs</code></td>
+                <td class="name"><code>embeds</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">Array.&lt;MessageSyntaxTree></span>
 
 
             
@@ -488,145 +364,7 @@ TODO: A lot of testing and variations need to be implemented</p>
 
             
 
-            <td class="description last"><p>The name of the local file</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>extension</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>File extension of the file</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>size</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Size of the object in megabytes</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>title</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The original title of the file</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>name</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The original name of the file</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>original</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The original metadata of the file (Slack File Object)</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>id</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The ID of the file object from Slack</p></td>
+            <td class="description last"><p>Array of additional embed data</p></td>
         </tr>
 
     
@@ -639,17 +377,323 @@ TODO: A lot of testing and variations need to be implemented</p>
 
 
 <div class="description usertext">
-    <p>Data about a locally downloaded file</p>
+    <p>Files and embeds' data</p>
 </div>
 
 
 
-
-
-
-
-
+    <h5>Type:</h5>
+    <ul>
+        <li>
             
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="color"><span class="type-signature"></span>color<span class="type-signature"> :string</span></h4>
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line85">line 85</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Color to use for embeds. Defaults to a shade of blue (&quot;#407ABA&quot;)</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="name"><span class="type-signature"></span>name<span class="type-signature"> :string</span></h4>
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line70">line 70</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Name of the sender. Defaults to &quot;Unknown Pupper&quot;</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="profilePic"><span class="type-signature"></span>profilePic<span class="type-signature"> :string</span></h4>
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line75">line 75</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>URL to sender's profile picture. Defaults to a link to gif profile pic of a dog</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="unparsedText"><span class="type-signature"></span>unparsedText<span class="type-signature"> :string</span></h4>
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line80">line 80</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>The main content of the original message in unparsed form. Defaults to &quot;[No Message Contents]&quot;</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+        
+    
+
+    
+
     
 
     

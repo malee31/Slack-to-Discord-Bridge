@@ -1,23 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <meta charset="utf-8">
-    <title>JSDoc: Source: fileManager.js</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
+    <title>fileManager.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-
 <body>
 
-<div id="main">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
 
-    <h1 class="page-title">Source: fileManager.js</h1>
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DiscordManager.html">DiscordManager</a><ul class='methods'><li data-type='method'><a href="DiscordManager.html#.embedFromFile">embedFromFile</a></li><li data-type='method'><a href="DiscordManager.html#.embedFromSyntaxTree">embedFromSyntaxTree</a></li><li data-type='method'><a href="DiscordManager.html#.fakeMessage">fakeMessage</a></li><li data-type='method'><a href="DiscordManager.html#.handleChanges">handleChanges</a></li><li data-type='method'><a href="DiscordManager.html#.handleChannelUpdates">handleChannelUpdates</a></li><li data-type='method'><a href="DiscordManager.html#.handleDeletes">handleDeletes</a></li><li data-type='method'><a href="DiscordManager.html#.handleMessages">handleMessages</a></li><li data-type='method'><a href="DiscordManager.html#.locateThread">locateThread</a></li><li data-type='method'><a href="DiscordManager.html#.syntaxTreeParseText">syntaxTreeParseText</a></li></ul></li><li><a href="module-SyntaxTree-ChangeSyntaxTree.html">ChangeSyntaxTree</a></li><li><a href="module-SyntaxTree-ChannelSyntaxTree.html">ChannelSyntaxTree</a></li><li><a href="module-SyntaxTree-DeleteSyntaxTree.html">DeleteSyntaxTree</a></li><li><a href="module-SyntaxTree-MessageSyntaxTree.html">MessageSyntaxTree</a></li><li><a href="module-SyntaxTree-SyntaxTreeBase.html">SyntaxTreeBase</a></li></ul><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a><ul class='methods'><li data-type='method'><a href="module-databaseManager.html#~locateChannelMap">locateChannelMap</a></li><li data-type='method'><a href="module-databaseManager.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseManager.html#~locateThreadMap">locateThreadMap</a></li><li data-type='method'><a href="module-databaseManager.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableLocateMap">tableLocateMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableMap">tableMap</a></li></ul></li><li><a href="module-databaseWrapper.html">databaseWrapper</a><ul class='methods'><li data-type='method'><a href="module-databaseWrapper.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMapToMessage">messageMapToMessage</a></li><li data-type='method'><a href="module-databaseWrapper.html#~startup">startup</a></li></ul></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a><ul class='methods'><li data-type='method'><a href="module-fileManager.html#.fileDownload">fileDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownload">completeDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownloadErrorHandler">completeDownloadErrorHandler</a></li><li data-type='method'><a href="module-fileManager.html#~fileDelete">fileDelete</a></li><li data-type='method'><a href="module-fileManager.html#~fileSize">fileSize</a></li><li data-type='method'><a href="module-fileManager.html#~getValidFileName">getValidFileName</a></li></ul></li><li><a href="module-fileServer.html">fileServer</a><ul class='methods'><li data-type='method'><a href="module-fileServer.html#~getRequestedPath">getRequestedPath</a></li><li data-type='method'><a href="module-fileServer.html#~showFileList">showFileList</a></li></ul></li><li><a href="module-Start.html">Start</a><ul class='methods'><li data-type='method'><a href="module-Start.html#~startUp">startUp</a></li></ul></li><li><a href="module-SyntaxTree.html">SyntaxTree</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Global</h3><ul><li><a href="global.html#unwrapAttachment">unwrapAttachment</a></li><li><a href="global.html#userIdentify">userIdentify</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">fileManager.js</h1>
+    
 
     
 
@@ -30,11 +48,26 @@
 const path = require("path");
 const fs = require("fs");
 
+const DEFAULT_TOKEN = process.env[process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE || "SLACK_BOT_USER_OAUTH_ACCESS_TOKEN"];
 const DOWNLOADS_FOLDER = path.resolve(__dirname, "downloads");
+const FAILED_DOWNLOAD_IMAGE_PATH = path.resolve(__dirname, "placeholders", "ERROR.png");
 // Arbitrary. Used as the max number of attempts getValidFileName has for finding an available path to download a file to
 // If the program doesn't crash or reject in-between the download and the deletion, this will most likely never be reached if kept over 10
 const FILE_NAME_ITERATOR_LIMIT = 200;
 const pendingDownloads = [];
+
+/**
+ * Data about a locally downloaded file
+ * @typedef FileData
+ * @property {string} path Absolute path to local file
+ * @property {string} storedAs The name of the local file
+ * @property {string} extension File extension of the file
+ * @property {number} size Size of the object in megabytes
+ * @property {string} title The original title of the file
+ * @property {string} name The original name of the file
+ * @property {Object} original The original metadata of the file (Slack File Object)
+ * @property {string} id The ID of the file object from Slack
+ */
 
 /**
  * Handles downloading and deleting files from folders (Especially the designated downloads folder)
@@ -50,22 +83,28 @@ module.exports = {
 	 * @async
 	 * @param {Object} fileObj Slack file details object (Found in event.files[])
 	 * @param {string} [fileName] Name for file (Defaults to the name provided by Slack)
-	 * @returns {Promise&lt;{path: string, extension: (string|*), original: ({name}|*), size: *, name, title, storedAs: string}>} An object containing details on where the file is, what is is called, the original Slack file object, and more
+	 * @param {string} [auth] Alternative token to use (in place of the environment variables)
+	 * @returns {Promise&lt;FileData>} An object containing details on where the file is, what it is called, the original Slack file object, and more
 	 */
-	fileDownload: async(fileObj, fileName) => {
+	fileDownload: async(fileObj, fileName, auth) => {
 		fileName = (fileName || fileObj.name).replace(/\//g, " - ");
 		let split = fileName.split(".");
-		let fileFormat = {extension: fileName.includes(".") ? split.pop() : "", name: split.join(".")};
+		let fileFormat = { extension: fileName.includes(".") ? split.pop() : "", name: split.join(".") };
 		fileName = await getValidFileName(DOWNLOADS_FOLDER, fileFormat.name, fileFormat.extension);
 
-		let finalDownloadPath = path.resolve(DOWNLOADS_FOLDER, fileName)
+		let finalDownloadPath = path.resolve(DOWNLOADS_FOLDER, fileName);
 		pendingDownloads.push(finalDownloadPath);
 
-		await completeDownload(finalDownloadPath, fileObj["url_private_download"], {
-			Authorization: `Bearer ${process.env.SLACK_BOT_USER_OAUTH_ACCESS_TOKEN}`
-		});
+		try {
+			await completeDownload(finalDownloadPath, fileObj["url_private_download"], {
+				Authorization: `Bearer ${auth || DEFAULT_TOKEN}`
+			}, true);
+		} catch(err) {
+			console.error(`Failed to Download File. Using Default File as Attachment. Reason: ${err}`);
+			finalDownloadPath = FAILED_DOWNLOAD_IMAGE_PATH;
+		}
 
-		// TODO: There is probably a way to get it from the headers while downloading the file
+		// fileObj.size has the size in bytes too but it isn't as accurate
 		const downloadSize = await fileSize(finalDownloadPath);
 
 		return {
@@ -75,21 +114,16 @@ module.exports = {
 			storedAs: fileName,
 			extension: fileFormat.extension,
 			size: downloadSize,
-			original: fileObj
+			original: fileObj,
+			id: fileObj.id
 		};
 	},
-
+	fileDelete,
 	/**
-	 * Deletes a file from the downloads folder specifically
-	 * @async
-	 * @param {string} fileName Name of file to delete from the downloads folder
-	 * @returns {Promise&lt;void>} Returns the promise from fs.promises.unlink
+	 * Absolute path of a default image to send when the download fails
+	 * @type {string}
 	 */
-	fileDelete: async fileName => {
-		let fileDeletePath = path.resolve(DOWNLOADS_FOLDER, fileName);
-		// console.log(`Del: ${fileDeletePath}`);
-		return fs.promises.unlink(fileDeletePath);
-	}
+	FAILED_DOWNLOAD_IMAGE_PATH
 }
 
 /**
@@ -107,15 +141,17 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
 	for(let copyCount = 1; copyCount &lt;= FILE_NAME_ITERATOR_LIMIT; copyCount++) {
 		let testPath = path.resolve(rootPath, testFileName);
 		try {
+			// console.log(`Testing ${testPath}`);
 			await fs.promises.access(testPath, fs.constants.F_OK);
 			// console.log(`File: ${testPath} already exists.\nAppending number to path and trying again`);
 		} catch(err) {
-			if(pendingDownloads.includes(testPath)) {
-				// console.log(`Download named ${testPath} is already pending.\nAppending number to path and trying again`);
-				continue;
+			if(!pendingDownloads.includes(testPath)) {
+				if(err.code === "ENOENT") {
+					return testFileName;
+				} else {
+					console.warn("Unknown error while looking for a path to store download: ", err);
+				}
 			}
-			if(err.code === "ENOENT") return testFileName;
-			else console.warn("Unknown error while looking for a path to store download: ", err);
 		}
 		testFileName = `${fileName} (${copyCount}).${fileExtension}`;
 	}
@@ -124,46 +160,92 @@ async function getValidFileName(rootPath, fileName, fileExtension) {
 
 /**
  * Downloads a file from a given URL and save it to a given location
+ * @async
  * @param {string} saveTo File save location (Absolute Path Only)
  * @param {string} downloadFromURL The URL to download from
  * @param {Object} [headers = {}] Optional http request headers
+ * @param {boolean} [rejectOnRedirect = false] Reject promise on redirects instead of following
  * @returns {Promise&lt;string>} Returns the path where the file was saved if successful
  */
-function completeDownload(saveTo, downloadFromURL, headers = {}) {
-	// console.log(`Sav: ${saveTo}`);
-	const saveFile = fs.createWriteStream(saveTo);
+async function completeDownload(saveTo, downloadFromURL, headers = {}, rejectOnRedirect = false) {
 	return new Promise((resolve, reject) => {
-		const request = https.get(downloadFromURL, {
+		https.get(downloadFromURL, {
 			headers: headers
-		}, response => {
-			response.pipe(saveFile);
-			saveFile.on('finish', async() => {
-				await saveFile.close();
-				pendingDownloads.splice(pendingDownloads.indexOf(saveTo), 1);
-				resolve(saveTo);
-			});
-		});
+		})
+			.on("response", response => {
+				// Redirect handling code. Recursively calls the completeDownload function until no longer redirected so an infinite loop is possible
+				if(response.statusCode >= 300 &amp;&amp; response.statusCode &lt; 400) {
+					const redirectURL = response.headers.location.startsWith("/") ? `${response.req.protocol}//${response.req.host}${response.headers.location}` : response.headers.location;
+					if(rejectOnRedirect) {
+						return reject(new Error(`[HTTP ${response.statusCode}] Redirect Returned from [${downloadFromURL}] to [${redirectURL}]`));
+					}
+					console.warn(`[HTTP ${response.statusCode}] Following Redirect to File at [${redirectURL}]\nNote that if this happens and fails a lot, the token may be invalid`);
+					return resolve(completeDownload(saveTo, `${redirectURL}`, headers));
+				}
 
-		request.on("error", async err => {
-			// Delete the file asynchronously on fail. Doesn't check the result
-			try {
-				await fs.promises.unlink(saveTo)
-			} catch(unlinkErr) {
-				reject(`Download Failed and Unlink Failed: ${unlinkErr}`);
-			}
-			reject(`Download Failed: ${err}`);
-		});
+				if(response.statusCode !== 200) {
+					console.warn(`[HTTP ${response.statusCode}] [${response.statusMessage}] from [${downloadFromURL}]\n↑ ↑ ↑ Request Returned a Non-200 Status Code. Proceeding Anyways...`);
+				}
+
+				console.log(`Saving a File to ${saveTo} from ${downloadFromURL}`);
+
+				const saveFile = fs.createWriteStream(saveTo);
+				saveFile
+					.on('finish', () => {
+						pendingDownloads.splice(pendingDownloads.indexOf(saveTo), 1);
+						resolve(saveTo);
+					}).on("error", err => completeDownloadErrorHandler(err, saveTo));
+
+				response
+					.pipe(saveFile)
+					.on("error", err => {
+						console.warn(`Unable to Pipe File Contents into File: ${err}`);
+						saveFile.end();
+						reject(completeDownloadErrorHandler(err, saveTo));
+					});
+			}).on("error",
+			err => completeDownloadErrorHandler(err)
+		);
 	});
+}
+
+/**
+ * Error handler for completeDownload. Tries to delete file on a failed download
+ * @async
+ * @param {Error} err Error from completeDownload
+ * @param {string} [unlinkLocation] Path of intended file to unlink
+ * @return {Promise} Throws errors through the Promise
+ */
+async function completeDownloadErrorHandler(err, unlinkLocation) {
+	// Blindly deletes the file asynchronously on error
+	if(unlinkLocation) {
+		await fileDelete(unlinkLocation)
+			.catch(unlinkErr => {
+				throw new Error(`Download Failed and Unlink Failed: ${unlinkErr}`);
+			});
+	}
+	throw new Error(`Download Failed: ${err}`);
 }
 
 /**
  * Returns the size of a file in megabytes
  * @async
  * @param {string} filePath Absolute path to file to check the size of
- * @returns {Promise&lt;number>} Size in megabytes
+ * @returns {Promise&lt;number>} Size in megabytes (Includes decimals)
  */
 async function fileSize(filePath) {
 	return (await fs.promises.stat(filePath)).size / (1024 * 1024);
+}
+
+/**
+ * Deletes a file from the downloads folder specifically
+ * @param {string} fileName Name of file to delete from the downloads folder
+ * @returns {Promise} Returns the promise from fs.promises.unlink
+ */
+function fileDelete(fileName) {
+	let fileDeletePath = path.resolve(DOWNLOADS_FOLDER, fileName);
+	// console.log(`Del: ${fileDeletePath}`);
+	return process.env.DISABLE_FILE_DELETION?.trim().toLowerCase() === "true" ? Promise.resolve() : fs.promises.unlink(fileDeletePath);
 }</code></pre>
         </article>
     </section>
@@ -171,19 +253,23 @@ async function fileSize(filePath) {
 
 
 
+    
+    
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a></li><li><a href="module-dataManager.html">dataManager</a></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a></li><li><a href="module-fileServer.html">fileServer</a></li><li><a href="module-Start.html">Start</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Classes</h3><ul><li><a href="module-discordManager.DiscordManager.html">DiscordManager</a></li></ul>
-</nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Jan 20 2021 16:44:29 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a> on Tue Jan 25 2022 17:04:22 GMT-0800 (Pacific Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>run.js - Documentation</title>
+    <title>SyntaxTreeBase - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,76 +34,356 @@
 
 <div id="main">
     
-    <h1 class="page-title">run.js</h1>
+    <h1 class="page-title">SyntaxTreeBase</h1>
     
 
     
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
- * @file run.js is the root file that starts everything up and handles everything.
- * See the{@link module:Start| run.js documentation} for more information. (Named the Start module for documentation purposes)
- * @author Marvin Lee
- */
+        <h2>
+            <span class="ancestors"><a href="module-SyntaxTree.html">SyntaxTree</a>~</span>
+        
+        SyntaxTreeBase
+        </h2>
+        
+            <div class="class-description usertext"><p>Base for bridge syntax trees</p></div>
+        
+    
+</header>
 
-/**
- * The root file for the project
- * @module Start
- */
+<article>
+    
+        <div class="container-overview">
+        
+            
 
-require("dotenv").config();
-const DiscordManager = require("./Discord/discordManager.js");
-const SlackManager = require("./Slack/slackManager.js");
+    
+    <h2>Constructor</h2>
+    
 
-// Initialize a server using the event adapter's request listener
-const server = require("./fileServer.js")(SlackManager.SlackHTTPServerEventAdapter);
+    <h4 class="name" id="SyntaxTreeBase"><span class="type-signature"></span>new SyntaxTreeBase<span class="signature">()</span><span class="type-signature"></span></h4>
 
-/**
- * Starts up the script by initializing all the necessary variables in all the JS files and completing start-up tasks
- * @returns {Promise&lt;Array>} Returns a Promise.all with an array of all the setup and start-up functions' results (Usually undefined)
- */
-function startUp() {
-	console.log("============= Starting Up =============");
-	console.log("============ Checking .env ============");
-	// if(process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_BOT_USER_OAUTH_ACCESS_TOKEN" &amp;&amp; process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_USER_OAUTH_ACCESS_TOKEN") {
-	// 	console.log("============== Bad .env ===============");
-	// 	console.error(`SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE not set to either SLACK_BOT_USER_OAUTH_ACCESS_TOKEN or SLACK_USER_OAUTH_ACCESS_TOKEN\nPlease set it properly and try again\nCurrent Value: ${process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE}`);
-	// 	process.exit(1);
-	// }
-	console.log("============ Checked  .env ============");
+    
 
-	return Promise.all([
-		SlackManager.start(),
-		DiscordManager.start(),
-		new Promise((resolve, reject) => {
-			server.listen(Number(process.env.PORT) || 3000, err => {
-				if(err) reject(err);
-				console.log(`========== Started Port ${server.address().port} ==========`);
-				resolve();
-			});
-		}),
-	]);
-}
 
-// Starts up the logger and links up event listeners
-module.exports = startUp().then(() => {
-	console.log("======= All Services Started Up =======");
-	SlackManager.events.on("message", DiscordManager.handleMessages);
-	SlackManager.events.on("change", DiscordManager.handleChanges);
-	SlackManager.events.on("delete", DiscordManager.handleDeletes);
-	SlackManager.events.on("channel_update", DiscordManager.handleChannelUpdates);
-	console.log("========== Start Up Complete ==========");
-}).catch(err => {
-	console.warn("⚠⚠ Failed Start-Up... Shutting Down ⚠⚠");
-	console.error(err);
-	process.exit(1);
-});</code></pre>
-        </article>
-    </section>
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line10">line 10</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        </div>
+    
+
+    
+
+    
+
+    
+    
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="additional"><span class="type-signature"></span>additional<span class="type-signature"></span></h4>
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line42">line 42</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>channelId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Channel ID from Slack</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>deletedTimestamp</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The timestamp of the message being deleted in delete events</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>thread</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Thread data if the message was sent in a thread</p>
+                <h6>Properties</h6>
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>timestamp</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Thread timestamp</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<div class="description usertext">
+    <p>Currently Used for</p>
+</div>
+
+
+
+
+
+
+
+
+        
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

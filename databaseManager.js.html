@@ -1,23 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <meta charset="utf-8">
-    <title>JSDoc: Source: databaseManager.js</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
+    <title>databaseManager.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-
 <body>
 
-<div id="main">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
 
-    <h1 class="page-title">Source: databaseManager.js</h1>
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DiscordManager.html">DiscordManager</a><ul class='methods'><li data-type='method'><a href="DiscordManager.html#.embedFromFile">embedFromFile</a></li><li data-type='method'><a href="DiscordManager.html#.embedFromSyntaxTree">embedFromSyntaxTree</a></li><li data-type='method'><a href="DiscordManager.html#.fakeMessage">fakeMessage</a></li><li data-type='method'><a href="DiscordManager.html#.handleChanges">handleChanges</a></li><li data-type='method'><a href="DiscordManager.html#.handleChannelUpdates">handleChannelUpdates</a></li><li data-type='method'><a href="DiscordManager.html#.handleDeletes">handleDeletes</a></li><li data-type='method'><a href="DiscordManager.html#.handleMessages">handleMessages</a></li><li data-type='method'><a href="DiscordManager.html#.locateThread">locateThread</a></li><li data-type='method'><a href="DiscordManager.html#.syntaxTreeParseText">syntaxTreeParseText</a></li></ul></li><li><a href="module-SyntaxTree-ChangeSyntaxTree.html">ChangeSyntaxTree</a></li><li><a href="module-SyntaxTree-ChannelSyntaxTree.html">ChannelSyntaxTree</a></li><li><a href="module-SyntaxTree-DeleteSyntaxTree.html">DeleteSyntaxTree</a></li><li><a href="module-SyntaxTree-MessageSyntaxTree.html">MessageSyntaxTree</a></li><li><a href="module-SyntaxTree-SyntaxTreeBase.html">SyntaxTreeBase</a></li></ul><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a><ul class='methods'><li data-type='method'><a href="module-databaseManager.html#~locateChannelMap">locateChannelMap</a></li><li data-type='method'><a href="module-databaseManager.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseManager.html#~locateThreadMap">locateThreadMap</a></li><li data-type='method'><a href="module-databaseManager.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableLocateMap">tableLocateMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableMap">tableMap</a></li></ul></li><li><a href="module-databaseWrapper.html">databaseWrapper</a><ul class='methods'><li data-type='method'><a href="module-databaseWrapper.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMapToMessage">messageMapToMessage</a></li><li data-type='method'><a href="module-databaseWrapper.html#~startup">startup</a></li></ul></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a><ul class='methods'><li data-type='method'><a href="module-fileManager.html#.fileDownload">fileDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownload">completeDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownloadErrorHandler">completeDownloadErrorHandler</a></li><li data-type='method'><a href="module-fileManager.html#~fileDelete">fileDelete</a></li><li data-type='method'><a href="module-fileManager.html#~fileSize">fileSize</a></li><li data-type='method'><a href="module-fileManager.html#~getValidFileName">getValidFileName</a></li></ul></li><li><a href="module-fileServer.html">fileServer</a><ul class='methods'><li data-type='method'><a href="module-fileServer.html#~getRequestedPath">getRequestedPath</a></li><li data-type='method'><a href="module-fileServer.html#~showFileList">showFileList</a></li></ul></li><li><a href="module-Start.html">Start</a><ul class='methods'><li data-type='method'><a href="module-Start.html#~startUp">startUp</a></li></ul></li><li><a href="module-SyntaxTree.html">SyntaxTree</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Global</h3><ul><li><a href="global.html#unwrapAttachment">unwrapAttachment</a></li><li><a href="global.html#userIdentify">userIdentify</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">databaseManager.js</h1>
+    
 
     
 
@@ -27,8 +45,15 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>const sqlite = require('sqlite3');
+sqlite.verbose();
 const path = require("path");
 const db = new sqlite.Database(path.resolve(__dirname, "messageMap.sqlite3"));
+const Tables = Object.freeze({
+	MESSAGE_MAP: "MessageMap",
+	FILE_MAP: "FileMap",
+	THREAD_MAP: "ThreadMap",
+	CHANNEL_MAP: "ChannelMap"
+});
 
 /**
  * Helper functions for managing the SQLite database
@@ -36,49 +61,152 @@ const db = new sqlite.Database(path.resolve(__dirname, "messageMap.sqlite3"));
  */
 module.exports = {
 	/**
+	 * Immutable object containing the names of the SQL tables
+	 * @type Object
+	 */
+	Tables,
+	tableMap,
+	/**
 	 * Stores the ID pairs for Slack Messages and Discord Messages (Warning: The function is very much fire and forget. It may also be asynchronous so changes won't be made instantly. Use the callback if you need something to run after it finished or to check to see if it is successful)
 	 * @param {string} SMID ID for the Slack Message. There is no proper format for it as long as it is unique so this program uses ChannelID/TimeStamp format but you may change it however you like
 	 * @param {string} DMID ID for the Discord Message. Get it from the message.id property
 	 * @param {boolean} [textOnly = false] Whether or not this specific Discord Message ID is the one containing the text fields from Slack (Used when looking up which message to edit on message_changed)
-	 * @param {function} [callback] Callback that is passed to db.run AKA IDBDatabase.run. Use if you would like to check if the operation is successful or not or to do something after it finishes
+	 * @returns {Promise} Resolves when new map is successfully added
 	 */
 	messageMap,
+	locateChannelMap,
+	locateThreadMap,
 	/**
 	 * Looks up all the rows associated with the given Slack Message ID and returns it
 	 * @param {string} SMID Slack Message ID to search for
 	 * @returns {Promise&lt;Object[]>} Returns an array of all the matching rows. Access the values of the rows using the column title as an object key
 	 */
-	locateMaps,
-	/**
-	 * Simply prints/dumps the entire database's contents into the console. Use for testing purposes when unable to check the database directly
-	 */
-	dataDump
+	locateMessageMaps,
 };
 
-// Starts up the database and sets it up if it does not already exist
-db.on("open", () => {
-	console.log("=========== Database Opened ===========");
-	db.run("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL, PurelyText BOOLEAN NOT NULL)");
+/**
+ * Starts up the database and sets it up if it does not already exist. Promise resolves once this is complete.
+ */
+module.exports.startup = new Promise((resolve) => {
+	const dbPromisify = query => new Promise((resolve, reject) => {
+		db.run(query, err => {
+			if(err) reject(err);
+			resolve();
+		})
+	});
+
+	db.on("open", () => {
+		console.log("=========== Database Opened ===========");
+		resolve(Promise.all([
+			dbPromisify("CREATE TABLE IF NOT EXISTS MessageMap (SlackMessageID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL, SlackChannelID TEXT NOT NULL, DiscordChannelID TEXT NOT NULL, PurelyText BOOLEAN NOT NULL)"),
+			dbPromisify("CREATE TABLE IF NOT EXISTS FileMap (SlackFileID TEXT NOT NULL, DiscordMessageID TEXT NOT NULL UNIQUE)"),
+			dbPromisify("CREATE TABLE IF NOT EXISTS ChannelMap (SlackChannelID TEXT NOT NULL UNIQUE, DiscordChannelID TEXT NOT NULL UNIQUE)"),
+			dbPromisify("CREATE TABLE IF NOT EXISTS ThreadMap (SlackThreadID TEXT NOT NULL UNIQUE, DiscordThreadID TEXT NOT NULL UNIQUE)")
+		]));
+	});
 });
 
-function messageMap(SMID, DMID, textOnly = false, callback) {
-	db.run("INSERT INTO MessageMap VALUES (?, ?, ?)", SMID, DMID, textOnly, callback);
+/**
+ * Inserts a new row into a table pairing the Slack and Discord IDs together if they are not duplicates
+ * @param {string} tableName Name of table to add to
+ * @param {string} SlackObjectID An ID from Slack's end
+ * @param {string} DiscordObjectID An ID from Discord's end
+ * @return {Promise} Resolves once the query completes
+ */
+function tableMap(tableName, SlackObjectID, DiscordObjectID) {
+	return new Promise((resolve, reject) => {
+		// @formatter:off (Ignore this comment, it's just to prevent the IDE from indenting this strangely)
+		db.run(`INSERT OR IGNORE INTO ${tableName}
+                VALUES (?, ?)`, SlackObjectID, DiscordObjectID, err => {
+			if(err) reject(err);
+			resolve();
+		});
+		// @formatter:on
+	});
 }
 
-function locateMaps(SMID) {
+/**
+ * Helper function that returns all rows from a table with a specific name where a specific property has a specific value&lt;br>
+ * WARNING: SQL Injection possible for all parameters except SlackObjectID. Do NOT take user input for this function for all properties except SlackObjectID
+ * @param {string} SelectProperty Property from table to return from each row. Use '*' to match all
+ * @param {string} tableName Table to search (Must contain property)
+ * @param  {string} WhereProperty Property to compare with value
+ * @param {string} SlackObjectID Value to find in table
+ * @return {Promise&lt;Object[]>} Returns matching rows with the selected property
+ */
+function tableLocateMap(SelectProperty, tableName, WhereProperty, SlackObjectID) {
 	return new Promise((resolve, reject) => {
-		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SMID, (err, res) => {
+		db.get(`SELECT ${SelectProperty} AS value
+                FROM ${tableName}
+                WHERE ${WhereProperty} = ?`, SlackObjectID,
+			(err, res) => {
+				if(err) reject(err);
+				resolve((res || {}).value);
+			}
+		);
+	});
+}
+
+/**
+ * Returns the Discord channel id linked with the SlackChannelID passed into this function from the ChannelMap table
+ * @param {string} SlackChannelID Timestamp of the Slack channel
+ * @return {Promise&lt;string>} Returns the matching Discord channel's ID if found
+ */
+function locateChannelMap(SlackChannelID) {
+	return tableLocateMap("DiscordChannelID", Tables.CHANNEL_MAP, "SlackChannelID", SlackChannelID);
+}
+
+/**
+ * Returns the Discord thread id equivalent from the ThreadMap table of the matching SlackThreadID
+ * @param {string} SlackThreadID Timestamp of the thread's main/original message
+ * @return {Promise&lt;string>} Returns the matching Discord thread's ID if found
+ */
+function locateThreadMap(SlackThreadID) {
+	return tableLocateMap("DiscordThreadID", Tables.THREAD_MAP, "SlackThreadID", SlackThreadID);
+}
+
+/**
+ * Returns all rows from the MessageMap table with the matching SlackMessageID
+ * @param {string} SlackMessageID Timestamp of the Slack message
+ * @return {Promise&lt;Object[]>} Array of rows with the matching SlackMessageID or an empty array
+ */
+function locateMessageMaps(SlackMessageID) {
+	return new Promise((resolve, reject) => {
+		db.all("SELECT * FROM MessageMap WHERE SlackMessageID = ?", SlackMessageID, (err, res) => {
 			if(err) reject(err);
-			resolve(res);
+			resolve(res || []);
 		});
 	});
 }
 
-function dataDump() {
-	console.log("DUMPING DATABASE DATA:");
-	db.each("SELECT * FROM MessageMap", (err, data) => {
-		console.log(JSON.stringify(data));
-	});
+/**
+ * Add a new entry to the database to link together Discord Message IDs with Slack Message IDs
+ * @param {Object} data Object containing all the keys to add to the table. All properties are mandatory
+ * @param {string} data.SlackMessageID Slack Message ID to map
+ * @param {string} data.DiscordMessageID Discord Message ID to map
+ * @param {string} [data.DiscordThreadID = "Main"] Discord Message Thread Channel ID if used
+ * @param {string} [data.SlackThreadID = "Main"] Slack Message Thread Channel ID if used
+ * @param {boolean} [data.textOnly = false] Whether this Discord Message ID should be the designated text node. This message will be the one edited when editing text if true
+ * @return {Promise} Resolves after inserting the new row
+ */
+function messageMap({
+	SlackMessageID,
+	DiscordMessageID,
+	SlackThreadID = "Main",
+	DiscordThreadID = "Main",
+	SlackChannelID,
+	DiscordChannelID,
+	textOnly = false
+}) {
+	return Promise.all([
+		new Promise((resolve, reject) => {
+			db.run("INSERT OR IGNORE INTO MessageMap VALUES (?, ?, ?, ?, ?, ?)", SlackMessageID, DiscordMessageID, DiscordThreadID, SlackChannelID, DiscordChannelID, textOnly, err => {
+				if(err) reject(err);
+				resolve();
+			});
+		}),
+		tableMap(Tables.THREAD_MAP, SlackThreadID, DiscordThreadID)
+	]);
 }</code></pre>
         </article>
     </section>
@@ -86,19 +214,23 @@ function dataDump() {
 
 
 
+    
+    
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a></li><li><a href="module-dataManager.html">dataManager</a></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a></li><li><a href="module-fileServer.html">fileServer</a></li><li><a href="module-Start.html">Start</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Classes</h3><ul><li><a href="module-discordManager.DiscordManager.html">DiscordManager</a></li></ul>
-</nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Jan 20 2021 16:44:29 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a> on Tue Jan 25 2022 17:04:22 GMT-0800 (Pacific Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+
 </body>
 </html>

@@ -1,23 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <meta charset="utf-8">
-    <title>JSDoc: Class: DiscordManager</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
+    <title>DiscordManager - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-
 <body>
 
-<div id="main">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
 
-    <h1 class="page-title">Class: DiscordManager</h1>
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DiscordManager.html">DiscordManager</a><ul class='methods'><li data-type='method'><a href="DiscordManager.html#.embedFromFile">embedFromFile</a></li><li data-type='method'><a href="DiscordManager.html#.embedFromSyntaxTree">embedFromSyntaxTree</a></li><li data-type='method'><a href="DiscordManager.html#.fakeMessage">fakeMessage</a></li><li data-type='method'><a href="DiscordManager.html#.handleChanges">handleChanges</a></li><li data-type='method'><a href="DiscordManager.html#.handleChannelUpdates">handleChannelUpdates</a></li><li data-type='method'><a href="DiscordManager.html#.handleDeletes">handleDeletes</a></li><li data-type='method'><a href="DiscordManager.html#.handleMessages">handleMessages</a></li><li data-type='method'><a href="DiscordManager.html#.locateThread">locateThread</a></li><li data-type='method'><a href="DiscordManager.html#.syntaxTreeParseText">syntaxTreeParseText</a></li></ul></li><li><a href="module-SyntaxTree-ChangeSyntaxTree.html">ChangeSyntaxTree</a></li><li><a href="module-SyntaxTree-ChannelSyntaxTree.html">ChannelSyntaxTree</a></li><li><a href="module-SyntaxTree-DeleteSyntaxTree.html">DeleteSyntaxTree</a></li><li><a href="module-SyntaxTree-MessageSyntaxTree.html">MessageSyntaxTree</a></li><li><a href="module-SyntaxTree-SyntaxTreeBase.html">SyntaxTreeBase</a></li></ul><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a><ul class='methods'><li data-type='method'><a href="module-databaseManager.html#~locateChannelMap">locateChannelMap</a></li><li data-type='method'><a href="module-databaseManager.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseManager.html#~locateThreadMap">locateThreadMap</a></li><li data-type='method'><a href="module-databaseManager.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableLocateMap">tableLocateMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableMap">tableMap</a></li></ul></li><li><a href="module-databaseWrapper.html">databaseWrapper</a><ul class='methods'><li data-type='method'><a href="module-databaseWrapper.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMapToMessage">messageMapToMessage</a></li><li data-type='method'><a href="module-databaseWrapper.html#~startup">startup</a></li></ul></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a><ul class='methods'><li data-type='method'><a href="module-fileManager.html#.fileDownload">fileDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownload">completeDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownloadErrorHandler">completeDownloadErrorHandler</a></li><li data-type='method'><a href="module-fileManager.html#~fileDelete">fileDelete</a></li><li data-type='method'><a href="module-fileManager.html#~fileSize">fileSize</a></li><li data-type='method'><a href="module-fileManager.html#~getValidFileName">getValidFileName</a></li></ul></li><li><a href="module-fileServer.html">fileServer</a><ul class='methods'><li data-type='method'><a href="module-fileServer.html#~getRequestedPath">getRequestedPath</a></li><li data-type='method'><a href="module-fileServer.html#~showFileList">showFileList</a></li></ul></li><li><a href="module-Start.html">Start</a><ul class='methods'><li data-type='method'><a href="module-Start.html#~startUp">startUp</a></li></ul></li><li><a href="module-SyntaxTree.html">SyntaxTree</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Global</h3><ul><li><a href="global.html#unwrapAttachment">unwrapAttachment</a></li><li><a href="global.html#userIdentify">userIdentify</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">DiscordManager</h1>
+    
 
     
 
@@ -28,87 +46,29 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>DiscordManager<span class="signature">(SlackWebAPIClient)</span><span class="type-signature"></span></h2>
+        <h2>
+        DiscordManager
+        </h2>
+        
+            <div class="class-description usertext"><p>Handles all things related to the Discord end of things. Most functions take in a specific subtype of SyntaxTree<br>
+Meant to be a static class (Do not initialize members of this class)</p></div>
         
     
 </header>
 
 <article>
-    <div class="container-overview">
     
+        <div class="container-overview">
         
-
-    
-
-    
-    <h4 class="name" id="DiscordManager"><span class="type-signature"></span>new DiscordManager<span class="signature">(SlackWebAPIClient)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    A class that manages parsing from Slack to Discord formats and sending out to channels
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>SlackWebAPIClient</code></td>
             
 
-            <td class="type">
-            
-                
-<span class="param-type">WebClient</span>
+    
+    <h2>Constructor</h2>
+    
 
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The Slack web client that allows interaction with their api</td>
-        </tr>
+    <h4 class="name" id="DiscordManager"><span class="type-signature"></span>new DiscordManager<span class="signature">()</span><span class="type-signature"></span></h4>
 
     
-    </tbody>
-</table>
-
-
 
 
 
@@ -116,34 +76,34 @@
 <dl class="details">
 
     
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line17">line 17</a>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line16">line 16</a>
     </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
     
 
     
@@ -172,8 +132,53 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        </div>
     
-    </div>
+
+    
+
+    
+
+    
+    
+    
+
+     
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="attachableFormats"><span class="type-signature"></span>attachableFormats<span class="type-signature"> :Array.&lt;string></span></h4>
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line25">line 25</a>
+    </li></ul></dd>
+    
 
     
 
@@ -187,6 +192,201 @@
 
     
 
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Array containing a list of formats that Discord embeds consider attachable.<br>
+Files with these extensions are sent in embeds instead of by themselves.<br>
+Audio extensions removed from attachable formats because they automatically embed themselves (Wow flac files are huge!)<br>
+Video formats removed from attachable formats because they automatically embed themselves then fail to load (Still available via &quot;Open Original&quot; download link though)<br>
+Type gif was removed because they don't work in embeds for some reason. Also, gifv technically is not real.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array.&lt;string></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="client"><span class="type-signature"></span>client<span class="type-signature"> :Discord.Client</span></h4>
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line30">line 30</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>The Discord bot client being used by the manager. Remember to call start() before using</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Discord.Client</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="LoggingGuild"><span class="type-signature"></span>LoggingGuild<span class="type-signature"> :Discord.Guild</span></h4>
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line35">line 35</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Discord Server/Guild to log messages into</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Discord.Guild</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+        
     
 
     
@@ -197,17 +397,62 @@
 
     
 
-    
-    <h4 class="name" id="attachmentEmbeds"><span class="type-signature">(async) </span>attachmentEmbeds<span class="signature">(embedArr, slackFiles)</span><span class="type-signature"> &rarr; {Promise.&lt;Array.&lt;Object>>}</span></h4>
-    
+    <h4 class="name" id=".embedFromFile"><span class="type-signature">(static) </span>embedFromFile<span class="signature">(file, templateEmbed)</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
     
 
 
 
-<div class="description">
-    Parses the array of Slack files attached to a message by downloading them and adding ones that are under 8MB as embeds and those over 8MB as linksNotes: Discord auto-embeds ["mp3", "ogg", "wav", "flac"] formats and ["gif"] does not like to be embedded for some odd reason.Video formats such as ["mov", "webm", "mp4"] will auto-embed but sometimes fail to load but the original can still be downloaded from the "See Original" link
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line96">line 96</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Converts a file object from a Syntax Tree into an embed</p>
 </div>
+
+
 
 
 
@@ -242,13 +487,13 @@
 
         <tr>
             
-                <td class="name"><code>embedArr</code></td>
+                <td class="name"><code>file</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;MessageEmbed></span>
+<span class="param-type"><a href="global.html#FileData">FileData</a></span>
 
 
             
@@ -258,20 +503,20 @@
 
             
 
-            <td class="description last">Array to add file embeds onto. Assumed to have at least 1 embed inside it before the function is called</td>
+            <td class="description last"><p>Data about the file to convert into an embed</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>slackFiles</code></td>
+                <td class="name"><code>templateEmbed</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;Object></span>
+<span class="param-type">Discord.MessageEmbed</span>
 
 
             
@@ -281,57 +526,13 @@
 
             
 
-            <td class="description last">Array of Objects from a Slack message event that includes their download URLs. Passed to fileManager.fileDownload. Can be obtained through event.files</td>
+            <td class="description last"><p>Blank embed that the file will be added onto. Set colors, timestamps, and more before passing it into this function</p></td>
         </tr>
 
     
     </tbody>
 </table>
 
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line116">line 116</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
 
 
 
@@ -351,1539 +552,131 @@
 
         
 <div class="param-desc">
-    Array of objects containing details on where the file is, what is is called, the original Slack file object, and more. Originates from resolving fileManager.fileDownload on all files
+    <p>Final Discord message payload. Contains two arrays: embeds which should be sent first and files which should be sent after</p>
 </div>
 
 
 
-<dl>
+<dl class="param-type">
     <dt>
         Type
     </dt>
     <dd>
         
-<span class="param-type">Promise.&lt;Array.&lt;Object>></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="delete"><span class="type-signature">(async) </span>delete<span class="signature">(channel, slackIdentifier)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Deletes messages associated with a given Slack message ID
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>channel</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">TextChannel</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The Discord text channel where the message-to-be-deleted is</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>slackIdentifier</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The ID used for the Slack message associated with the Discord message</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line195">line 195</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="embedSender"><span class="type-signature">(async) </span>embedSender<span class="signature">(discordChannel, discordEmbeds, mapTo<span class="signature-attributes">opt</span>, canHaveText)</span><span class="type-signature"> &rarr; {Promise.&lt;Array.&lt;Message>>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Handles sending out all the embeds into a Discord channel and storing their IDs in the SQLite database
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-        <th>Default</th>
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>discordChannel</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">TextChannel</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last">The Discord text channel where the messages/embeds will be logged to</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>discordEmbeds</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;MessageEmbed></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last">Array of Discord embeds to send out</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>mapTo</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last">The ID used for the Slack message associated with the Discord messages. Use if the message ids should be kept in the database for future edits and deletions</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>canHaveText</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    true
-                
-                </td>
-            
-
-            <td class="description last">Whether or not to mark the first embed as the embed to edit if text changes. Assumes first embed in array is the one with text from the Slack message</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line211">line 211</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Array of the Discord messages sent to the channel and their details. Originates from TextChannel.send
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Promise.&lt;Array.&lt;Message>></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="identify"><span class="type-signature"></span>identify<span class="signature">(channel, ts)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Use on a Slack event to generate an id for messages that SHOULD be unique (No official documentation found)
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>channel</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The Slack Channel id. Can be obtained through event.channel</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>ts</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The timestamp of the Slack message</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line253">line 253</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="locateChannel"><span class="type-signature">(async) </span>locateChannel<span class="signature">(slackChannelID)</span><span class="type-signature"> &rarr; {Promise.&lt;GuildChannel>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Locates a channel given a Slack Channel ID. Will grab associated channel from the serverMap.json or search by name. If it does not exist, the bot will create a channel with a matching name and serverMap it
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>slackChannelID</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The Slack Channel id. Can be obtained through event.channel</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line71">line 71</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Promise.&lt;GuildChannel></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="setPin"><span class="type-signature">(async) </span>setPin<span class="signature">(pin<span class="signature-attributes">opt</span>, slackChannelID, slackUserID, slackTs)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Handles pinning and unpinning a logged message on the Discord side
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-        <th>Default</th>
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>pin</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    false
-                
-                </td>
-            
-
-            <td class="description last">Pins the message if true and unpins it if false</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>slackChannelID</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last">The Slack Channel id. Can be obtained through event.channel</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>slackUserID</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last">The Slack user ID of the person pinning the message on Slack</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>slackTs</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last">The timestamp of the pinned Slack message. Used with the channel ID to identify the message and find it</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line234">line 234</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="slackTextParse"><span class="type-signature">(async) </span>slackTextParse<span class="signature">(text)</span><span class="type-signature"> &rarr; {Promise.&lt;string>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Converts Slack markdown to Discord markdown. Has some acceptable edge cases
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>text</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Slack text to convert</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line262">line 262</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Resulting text with Discord markdown
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Promise.&lt;string></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="start"><span class="type-signature">(async) </span>start<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Starts up the Discord Bot responsible for logging messages, locates the logging guild, and loads the serverMap.json to (dataManager.js).load()
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line31">line 31</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="textUpdate"><span class="type-signature">(async) </span>textUpdate<span class="signature">(channel, slackIdentifier, newText)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Updates the text of a message already logged to Discord
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>channel</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The Slack Channel id. Can be obtained through event.channel</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>slackIdentifier</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The ID used for the Slack message associated with the Discord message</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>newText</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">What to change the text to</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line180">line 180</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="userIdentify"><span class="type-signature"></span>userIdentify<span class="signature">(user)</span><span class="type-signature"> &rarr; {string}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Creates a more readable name for each user than their user ID
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>user</code></td>
-            
-
-            <td class="type">
-            
-                
 <span class="param-type">Object</span>
 
 
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".embedFromSyntaxTree"><span class="type-signature">(static) </span>embedFromSyntaxTree<span class="signature">(syntaxTree)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line79">line 79</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Does not handle attachments. Only top level data (depth of 1) for a syntax tree AKA the main embed</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>syntaxTree</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">SyntaxTreeBase</span>
+
+
             
             </td>
 
@@ -1891,7 +684,7 @@
 
             
 
-            <td class="description last">User object obtained through the Slack users.info endpoint</td>
+            <td class="description last"><p>A SyntaxTreeBase or anything extending it that can be used to create a blank embed (Sets colors, author, timestamp, and text)</p></td>
         </tr>
 
     
@@ -1903,36 +696,37 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".fakeMessage"><span class="type-signature">(async, static) </span>fakeMessage<span class="signature">(threadID, syntaxTreeBase, syntaxTreeMessageSkeleton)</span><span class="type-signature"> &rarr; {string}</span></h4>
+
+    
+
+
+
+
 <dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line318">line 318</a>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line355">line 355</a>
     </li></ul></dd>
     
 
@@ -1941,7 +735,144 @@
     
 
     
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
 </dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Creates and sends out a fake message and links it to a Slack Message. Used when creating threads without an existing starting point on the Discord end</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>threadID</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>ID for the thread that the fake message is for</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>syntaxTreeBase</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MessageSyntaxTree</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Syntax tree for the next message in the thread</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>syntaxTreeMessageSkeleton</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MessageSyntaxTree</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>An empty syntax tree to use for the fake message</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
 
 
 
@@ -1961,12 +892,12 @@
 
         
 <div class="param-desc">
-    String to use as their username when logging messages
+    <p>Returns the DiscordMessageID of the fake message (Now the starting point of a thread)</p>
 </div>
 
 
 
-<dl>
+<dl class="param-type">
     <dt>
         Type
     </dt>
@@ -1981,6 +912,975 @@
     
 
 
+
+        
+            
+
+    
+
+    <h4 class="name" id=".handleChanges"><span class="type-signature">(async, static) </span>handleChanges<span class="signature">(syntaxTree)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line252">line 252</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Handles reflecting edits/changes on Discord</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>syntaxTree</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">ChangeSyntaxTree</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Syntax tree with edits to parse and send. Mostly identical to MessageSyntaxTree</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Resolves when messages have been successfully sent/edited</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".handleChannelUpdates"><span class="type-signature">(async, static) </span>handleChannelUpdates<span class="signature">(syntaxTree)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line289">line 289</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Handles reflecting channel metadata updates on Discord</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>syntaxTree</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">ChannelSyntaxTree</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Syntax tree with channel metadata. It's literally the same as the base syntax tree class</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Resolves when channel data has been updated</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".handleDeletes"><span class="type-signature">(async, static) </span>handleDeletes<span class="signature">(syntaxTree)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line271">line 271</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Handles reflecting message deletions on Discord. Safely ignores messages that cannot be found</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>syntaxTree</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">DeleteSyntaxTree</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Syntax tree with information about what messages to delete</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Resolves when messages have been successfully deleted</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".handleMessages"><span class="type-signature">(async, static) </span>handleMessages<span class="signature">(syntaxTree)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line193">line 193</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Handles sending messages to Discord</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>syntaxTree</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MessageSyntaxTree</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Syntax tree to parse and send</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Resolves when messages have been successfully sent</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".locateThread"><span class="type-signature">(async, static) </span>locateThread<span class="signature">(syntaxTree, channel)</span><span class="type-signature"> &rarr; {Discord.ThreadChannel}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line375">line 375</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Finds a specific thread channel given information about it and the main channel it should be in. Creates one if it does not exist</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>syntaxTree</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">SyntaxTreeBase</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Syntax tree containing the thread id to look up</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>channel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Discord.TextChannel</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Discord channel to find or make thread channel in</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Returns the located thread channel</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Discord.ThreadChannel</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".syntaxTreeParseText"><span class="type-signature">(static) </span>syntaxTreeParseText<span class="signature">(syntaxTree)</span><span class="type-signature"> &rarr; {string}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line135">line 135</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Converts text from Slack Markdown to Discord Markdown</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>syntaxTree</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">SyntaxTreeBase</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Syntax tree to fetch message from</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Parsed message. Returns a default string if there is no message</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -1997,19 +1897,23 @@
 
 
 
+    
+    
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a></li><li><a href="module-dataManager.html">dataManager</a></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a></li><li><a href="module-fileServer.html">fileServer</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Classes</h3><ul><li><a href="DiscordManager.html">DiscordManager</a></li></ul>
-</nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Mon Jan 18 2021 13:56:40 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a> on Tue Jan 25 2022 17:04:22 GMT-0800 (Pacific Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+
 </body>
 </html>

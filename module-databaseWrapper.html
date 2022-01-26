@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>fileServer - Documentation</title>
+    <title>databaseWrapper - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,7 +34,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">fileServer</h1>
+    <h1 class="page-title">databaseWrapper</h1>
     
 
     
@@ -57,7 +57,7 @@
         <div class="container-overview">
         
             
-                <div class="description usertext"><p>Creates the simple file server for downloads and adds in the Slack events listener to the server</p></div>
+                <div class="description usertext"><p>Wrapper for database functions, provides safety checks to some functions and automatically looks up the object linked to an ID for others</p></div>
             
 
             
@@ -71,7 +71,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileServer.js.html">fileServer.js</a>, <a href="fileServer.js.html#line13">line 13</a>
+        <a href="Discord_databaseWrapper.js.html">Discord/databaseWrapper.js</a>, <a href="Discord_databaseWrapper.js.html#line1">line 1</a>
     </li></ul></dd>
     
 
@@ -118,55 +118,6 @@
 
 
 
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>slackEvents</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">SlackEventAdapter</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>The event adapter for Slack from <a href="https://slack.dev/node-slack-sdk/reference/events-api">require("@slack/events-api").createEventAdapter</a></p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
 
 
 
@@ -204,18 +155,12 @@
     
 
     
-
-    
-        <h3 class="subsection-title">Methods</h3>
+        <h3 class="subsection-title">Members</h3>
 
         
             
+<h4 class="name" id="~realExports"><span class="type-signature">(inner, constant) </span>realExports<span class="type-signature"> :any</span></h4>
 
-    
-
-    <h4 class="name" id="~getRequestedPath"><span class="type-signature">(inner) </span>getRequestedPath<span class="signature">(fileName, req, res)</span><span class="type-signature"> &rarr; {string|boolean}</span></h4>
-
-    
 
 
 
@@ -225,7 +170,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileServer.js.html">fileServer.js</a>, <a href="fileServer.js.html#line63">line 63</a>
+        <a href="Discord_databaseWrapper.js.html">Discord/databaseWrapper.js</a>, <a href="Discord_databaseWrapper.js.html#line12">line 12</a>
     </li></ul></dd>
     
 
@@ -265,8 +210,90 @@
 
 
 <div class="description usertext">
-    <p>Takes in the file path and request data and resolves it to a file path in the downloads folder<br>
-May be disabled with environment variables</p>
+    <p>The actual exports of the file. Exports are assigned to module.exports after startup is completed</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">any</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="~locateMessageMaps"><span class="type-signature">(async, inner) </span>locateMessageMaps<span class="signature">(SlackMessageID, textOnly<span class="signature-attributes">opt</span>, messageLookup<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Array.&lt;Object>|Array.&lt;Discord.Message>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_databaseWrapper.js.html">Discord/databaseWrapper.js</a>, <a href="Discord_databaseWrapper.js.html#line63">line 63</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Will return an array of all maps. Selecting textOnly will return one or no results only</p>
 </div>
 
 
@@ -292,7 +319,11 @@ May be disabled with environment variables</p>
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -304,7 +335,7 @@ May be disabled with environment variables</p>
 
         <tr>
             
-                <td class="name"><code>fileName</code></td>
+                <td class="name"><code>SlackMessageID</code></td>
             
 
             <td class="type">
@@ -317,56 +348,100 @@ May be disabled with environment variables</p>
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last"><p>Name of the file. Originates from req.url so it must start with a /</p></td>
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The id of a Slack message to look up</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>req</code></td>
+                <td class="name"><code>textOnly</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">IncomingMessage</span>
+<span class="param-type">boolean</span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last"><p>Request object from http or any other server request</p></td>
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Whether to filter out message maps that don't contain the main text content</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>res</code></td>
+                <td class="name"><code>messageLookup</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">ServerResponse</span>
+<span class="param-type">boolean</span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last"><p>Response object from http or any other server request</p></td>
+            
+                <td class="default">
+                
+                    <code>true</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Whether to automatically look up the message map on Discord</p></td>
         </tr>
 
     
@@ -392,7 +467,7 @@ May be disabled with environment variables</p>
 
         
 <div class="param-desc">
-    <p>Returns the absolute path to a file in the downloads folder or false if access should be denied</p>
+    <p>Array of maps or Discord message objects. May be empty</p>
 </div>
 
 
@@ -403,10 +478,10 @@ May be disabled with environment variables</p>
     </dt>
     <dd>
         
-<span class="param-type">string</span>
+<span class="param-type">Array.&lt;Object></span>
 |
 
-<span class="param-type">boolean</span>
+<span class="param-type">Array.&lt;Discord.Message></span>
 
 
     </dd>
@@ -421,7 +496,7 @@ May be disabled with environment variables</p>
 
     
 
-    <h4 class="name" id="~showFileList"><span class="type-signature">(inner) </span>showFileList<span class="signature">(filePath, res)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~messageMap"><span class="type-signature">(async, inner) </span>messageMap<span class="signature">(passthroughObj)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
 
     
 
@@ -433,7 +508,7 @@ May be disabled with environment variables</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileServer.js.html">fileServer.js</a>, <a href="fileServer.js.html#line87">line 87</a>
+        <a href="Discord_databaseWrapper.js.html">Discord/databaseWrapper.js</a>, <a href="Discord_databaseWrapper.js.html#line46">line 46</a>
     </li></ul></dd>
     
 
@@ -473,7 +548,7 @@ May be disabled with environment variables</p>
 
 
 <div class="description usertext">
-    <p>Lists the names of all files in the downloads folder. Can be disabled with environment variables.</p>
+    <p>Wrapper for databaseManager.messageMap. Adds error handling to messageMap to prevent the program from crashing after being unable to add an entry</p>
 </div>
 
 
@@ -511,13 +586,13 @@ May be disabled with environment variables</p>
 
         <tr>
             
-                <td class="name"><code>filePath</code></td>
+                <td class="name"><code>passthroughObj</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">Object</span>
 
 
             
@@ -527,30 +602,7 @@ May be disabled with environment variables</p>
 
             
 
-            <td class="description last"><p>Absolute path to a file in the downloads folder. May be a file that does not exist</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>res</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">ServerResponse</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Response object from http or any other server request</p></td>
+            <td class="description last"><p>Object to pass to databaseManager.messageMap</p></td>
         </tr>
 
     
@@ -572,6 +624,344 @@ May be disabled with environment variables</p>
 
 
 
+<h5>Returns:</h5>
+
+        
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise.&lt;void></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~messageMapToMessage"><span class="type-signature">(async, inner) </span>messageMapToMessage<span class="signature">(map)</span><span class="type-signature"> &rarr; {Message|undefined}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_databaseWrapper.js.html">Discord/databaseWrapper.js</a>, <a href="Discord_databaseWrapper.js.html#line91">line 91</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Converts a Message Map into a Discord Message object</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>map</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Message map to look up</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Resolves to the located message or nothing if not found</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Message</span>
+|
+
+<span class="param-type">undefined</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~startup"><span class="type-signature">(async, inner) </span>startup<span class="signature">(loggingGuild)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Discord_databaseWrapper.js.html">Discord/databaseWrapper.js</a>, <a href="Discord_databaseWrapper.js.html#line28">line 28</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>A function that resolves once the database and DiscordManager have successfully started up. Duplicate calls will result in no-ops<br>
+Must be called before using any other function exported by this file (Other functions are inaccessible until this resolves)</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>loggingGuild</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Discord.Guild</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Discord server/guild object</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Resolves once startup is complete and functions become accessible</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 

@@ -1,23 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <meta charset="utf-8">
-    <title>JSDoc: Source: fileServer.js</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
+    <title>fileServer.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-
 <body>
 
-<div id="main">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
 
-    <h1 class="page-title">Source: fileServer.js</h1>
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DiscordManager.html">DiscordManager</a><ul class='methods'><li data-type='method'><a href="DiscordManager.html#.embedFromFile">embedFromFile</a></li><li data-type='method'><a href="DiscordManager.html#.embedFromSyntaxTree">embedFromSyntaxTree</a></li><li data-type='method'><a href="DiscordManager.html#.fakeMessage">fakeMessage</a></li><li data-type='method'><a href="DiscordManager.html#.handleChanges">handleChanges</a></li><li data-type='method'><a href="DiscordManager.html#.handleChannelUpdates">handleChannelUpdates</a></li><li data-type='method'><a href="DiscordManager.html#.handleDeletes">handleDeletes</a></li><li data-type='method'><a href="DiscordManager.html#.handleMessages">handleMessages</a></li><li data-type='method'><a href="DiscordManager.html#.locateThread">locateThread</a></li><li data-type='method'><a href="DiscordManager.html#.syntaxTreeParseText">syntaxTreeParseText</a></li></ul></li><li><a href="module-SyntaxTree-ChangeSyntaxTree.html">ChangeSyntaxTree</a></li><li><a href="module-SyntaxTree-ChannelSyntaxTree.html">ChannelSyntaxTree</a></li><li><a href="module-SyntaxTree-DeleteSyntaxTree.html">DeleteSyntaxTree</a></li><li><a href="module-SyntaxTree-MessageSyntaxTree.html">MessageSyntaxTree</a></li><li><a href="module-SyntaxTree-SyntaxTreeBase.html">SyntaxTreeBase</a></li></ul><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a><ul class='methods'><li data-type='method'><a href="module-databaseManager.html#~locateChannelMap">locateChannelMap</a></li><li data-type='method'><a href="module-databaseManager.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseManager.html#~locateThreadMap">locateThreadMap</a></li><li data-type='method'><a href="module-databaseManager.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableLocateMap">tableLocateMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableMap">tableMap</a></li></ul></li><li><a href="module-databaseWrapper.html">databaseWrapper</a><ul class='methods'><li data-type='method'><a href="module-databaseWrapper.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMapToMessage">messageMapToMessage</a></li><li data-type='method'><a href="module-databaseWrapper.html#~startup">startup</a></li></ul></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a><ul class='methods'><li data-type='method'><a href="module-fileManager.html#.fileDownload">fileDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownload">completeDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownloadErrorHandler">completeDownloadErrorHandler</a></li><li data-type='method'><a href="module-fileManager.html#~fileDelete">fileDelete</a></li><li data-type='method'><a href="module-fileManager.html#~fileSize">fileSize</a></li><li data-type='method'><a href="module-fileManager.html#~getValidFileName">getValidFileName</a></li></ul></li><li><a href="module-fileServer.html">fileServer</a><ul class='methods'><li data-type='method'><a href="module-fileServer.html#~getRequestedPath">getRequestedPath</a></li><li data-type='method'><a href="module-fileServer.html#~showFileList">showFileList</a></li></ul></li><li><a href="module-Start.html">Start</a><ul class='methods'><li data-type='method'><a href="module-Start.html#~startUp">startUp</a></li></ul></li><li><a href="module-SyntaxTree.html">SyntaxTree</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Global</h3><ul><li><a href="global.html#unwrapAttachment">unwrapAttachment</a></li><li><a href="global.html#userIdentify">userIdentify</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">fileServer.js</h1>
+    
 
     
 
@@ -47,52 +65,25 @@ module.exports = fsMake;
 
 function fsMake(slackEvents) {
 	return http.createServer((req, res) => {
+		// Default Slack endpoint for all Slack events
 		if(req.url === "/slack/events") {
 			slackEvents.requestListener()(req, res);
 			return;
 		}
 
-		const filePath = path.resolve(fileManager.DOWNLOADS_FOLDER, `.${decodeURIComponent(req.url.split("?")[0])}`);
-		console.log(`[${new Date().toLocaleString()}] Accessing ${filePath} from ${req.url}`);
-		if(!filePath.startsWith(fileManager.DOWNLOADS_FOLDER)) {
-			console.warn(`Attempt to access ${filePath} detected and denied`);
-			return;
-		}
-		if(process.env.DISABLE_FILE_SERVER?.trim().toLowerCase() === "true") {
-			console.warn(`File Server is Disabled. File Request Denied`);
-			res.writeHead(500, {"Content-Type": "text/plain"});
-			res.write(`The file server is set to private and disabled.\nYour files are most likely still stored on the server so ask the server owner for it if you need it!`);
-			res.end();
-			return;
-		}
+		const fileName = decodeURIComponent(req.url.split("?")[0]);
+		const filePath = getRequestedPath(fileName, req, res);
+
+		if(!filePath) return;
 		if(filePath === fileManager.DOWNLOADS_FOLDER) {
-			if(process.env.DISABLE_FILE_SERVER_LIST?.trim().toLowerCase() !== "true") {
-				fs.readdir(filePath, (err, files) => {
-					if(err) {
-						console.warn("Error Reading Downloads Folder");
-						res.writeHead(500, {"Content-Type": "text/plain"});
-						res.write(`Error Reading Downloads Folder: \n${err}`);
-						res.end();
-						return;
-					}
-					res.writeHead(200, {"Content-Type": "text/plain"});
-					res.write(`Download Folder Contents:\n`);
-					files.forEach(file => {
-						res.write(`${file}\n`);
-					});
-					res.end();
-				});
-			} else {
-				res.writeHead(200, {"Content-Type": "text/plain"});
-				res.write("List of files stored on the server will not be listed because DISABLE_FILE_SERVER_LIST is set to TRUE.\nEach specific file is still accessible through their respective urls");
-				res.end();
-			}
+			showFileList(filePath, res);
 			return;
 		}
+
 		fs.readFile(filePath, (err, data) => {
 			if(err) {
 				console.warn(`Error reading file from downloads: ${err}`);
-				res.writeHead(200, {"Content-Type": "text/plain"});
+				res.writeHead(200, { "Content-Type": "text/plain" });
 				res.write(`Error reading file from downloads (${filePath}): \n${err}`);
 				res.end();
 				return;
@@ -105,6 +96,63 @@ function fsMake(slackEvents) {
 			res.end(data, "UTF-8");
 		});
 	});
+}
+
+/**
+ * Takes in the file path and request data and resolves it to a file path in the downloads folder&lt;br>
+ * May be disabled with environment variables
+ * @param {string} fileName Name of the file. Originates from req.url so it must start with a /
+ * @param {IncomingMessage} req Request object from http or any other server request
+ * @param {ServerResponse} res Response object from http or any other server request
+ * @return {string|boolean} Returns the absolute path to a file in the downloads folder or false if access should be denied
+ */
+function getRequestedPath(fileName, req, res) {
+	const filePath = path.resolve(fileManager.DOWNLOADS_FOLDER, "." + fileName);
+	console.log(`[${new Date().toLocaleString()}] Accessing ${filePath} from ${req.url}`);
+	if(!filePath.startsWith(fileManager.DOWNLOADS_FOLDER)) {
+		console.warn(`Attempt to access ${filePath} detected and denied`);
+		return false;
+	}
+
+	if(process.env.DISABLE_FILE_SERVER?.trim().toLowerCase() === "true") {
+		console.warn("File Server is Disabled. File Request Denied");
+		res.writeHead(500, { "Content-Type": "text/plain" });
+		res.write(`The file server is set to private and disabled.\nYour files are most likely still stored on the server so ask the server owner for it if you need it!`);
+		res.end();
+		return false;
+	}
+
+	return filePath;
+}
+
+/**
+ * Lists the names of all files in the downloads folder. Can be disabled with environment variables.
+ * @param {string} filePath Absolute path to a file in the downloads folder. May be a file that does not exist
+ * @param {ServerResponse} res Response object from http or any other server request
+ */
+function showFileList(filePath, res) {
+	if(process.env.DISABLE_FILE_SERVER_LIST?.trim().toLowerCase() !== "true") {
+		fs.readdir(filePath, (err, files) => {
+			if(err) {
+				console.warn("Error Reading Downloads Folder");
+				res.writeHead(500, { "Content-Type": "text/plain" });
+				res.write(`Error Reading Downloads Folder: \n${err}`);
+				res.end();
+				return;
+			}
+
+			res.writeHead(200, { "Content-Type": "text/plain" });
+			res.write(`Download Folder Contents:\n`);
+			files.forEach(file => {
+				res.write(`${file}\n`);
+			});
+			res.end();
+		});
+	} else {
+		res.writeHead(200, { "Content-Type": "text/plain" });
+		res.write("List of files stored on the server will not be listed because DISABLE_FILE_SERVER_LIST is set to TRUE.\nEach specific file is still accessible through their respective urls");
+		res.end();
+	}
 }</code></pre>
         </article>
     </section>
@@ -112,19 +160,23 @@ function fsMake(slackEvents) {
 
 
 
+    
+    
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a></li><li><a href="module-dataManager.html">dataManager</a></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a></li><li><a href="module-fileServer.html">fileServer</a></li><li><a href="module-Start.html">Start</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Classes</h3><ul><li><a href="module-discordManager.DiscordManager.html">DiscordManager</a></li></ul>
-</nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Jan 20 2021 16:44:29 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a> on Tue Jan 25 2022 17:04:22 GMT-0800 (Pacific Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+
 </body>
 </html>

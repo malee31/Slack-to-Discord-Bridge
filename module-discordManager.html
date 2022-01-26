@@ -1,23 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <meta charset="utf-8">
-    <title>JSDoc: Module: discordManager</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
+    <title>discordManager - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-
 <body>
 
-<div id="main">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
 
-    <h1 class="page-title">Module: discordManager</h1>
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DiscordManager.html">DiscordManager</a><ul class='methods'><li data-type='method'><a href="DiscordManager.html#.embedFromFile">embedFromFile</a></li><li data-type='method'><a href="DiscordManager.html#.embedFromSyntaxTree">embedFromSyntaxTree</a></li><li data-type='method'><a href="DiscordManager.html#.fakeMessage">fakeMessage</a></li><li data-type='method'><a href="DiscordManager.html#.handleChanges">handleChanges</a></li><li data-type='method'><a href="DiscordManager.html#.handleChannelUpdates">handleChannelUpdates</a></li><li data-type='method'><a href="DiscordManager.html#.handleDeletes">handleDeletes</a></li><li data-type='method'><a href="DiscordManager.html#.handleMessages">handleMessages</a></li><li data-type='method'><a href="DiscordManager.html#.locateThread">locateThread</a></li><li data-type='method'><a href="DiscordManager.html#.syntaxTreeParseText">syntaxTreeParseText</a></li></ul></li><li><a href="module-SyntaxTree-ChangeSyntaxTree.html">ChangeSyntaxTree</a></li><li><a href="module-SyntaxTree-ChannelSyntaxTree.html">ChannelSyntaxTree</a></li><li><a href="module-SyntaxTree-DeleteSyntaxTree.html">DeleteSyntaxTree</a></li><li><a href="module-SyntaxTree-MessageSyntaxTree.html">MessageSyntaxTree</a></li><li><a href="module-SyntaxTree-SyntaxTreeBase.html">SyntaxTreeBase</a></li></ul><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a><ul class='methods'><li data-type='method'><a href="module-databaseManager.html#~locateChannelMap">locateChannelMap</a></li><li data-type='method'><a href="module-databaseManager.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseManager.html#~locateThreadMap">locateThreadMap</a></li><li data-type='method'><a href="module-databaseManager.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableLocateMap">tableLocateMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableMap">tableMap</a></li></ul></li><li><a href="module-databaseWrapper.html">databaseWrapper</a><ul class='methods'><li data-type='method'><a href="module-databaseWrapper.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMapToMessage">messageMapToMessage</a></li><li data-type='method'><a href="module-databaseWrapper.html#~startup">startup</a></li></ul></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a><ul class='methods'><li data-type='method'><a href="module-fileManager.html#.fileDownload">fileDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownload">completeDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownloadErrorHandler">completeDownloadErrorHandler</a></li><li data-type='method'><a href="module-fileManager.html#~fileDelete">fileDelete</a></li><li data-type='method'><a href="module-fileManager.html#~fileSize">fileSize</a></li><li data-type='method'><a href="module-fileManager.html#~getValidFileName">getValidFileName</a></li></ul></li><li><a href="module-fileServer.html">fileServer</a><ul class='methods'><li data-type='method'><a href="module-fileServer.html#~getRequestedPath">getRequestedPath</a></li><li data-type='method'><a href="module-fileServer.html#~showFileList">showFileList</a></li></ul></li><li><a href="module-Start.html">Start</a><ul class='methods'><li data-type='method'><a href="module-Start.html#~startUp">startUp</a></li></ul></li><li><a href="module-SyntaxTree.html">SyntaxTree</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Global</h3><ul><li><a href="global.html#unwrapAttachment">unwrapAttachment</a></li><li><a href="global.html#userIdentify">userIdentify</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">discordManager</h1>
+    
 
     
 
@@ -35,25 +53,15 @@
 </header>
 
 <article>
-    <div class="container-overview">
     
-        
-            <div class="description">A module for converting Slack messages to Discord messages and sending them out to channels</div>
-        
-
+        <div class="container-overview">
         
             
+                <div class="description usertext"><p>A module for converting Slack messages to Discord messages and sending them out to channels</p></div>
+            
 
-
-
-
-
-
-
-
-
-
-
+            
+                
 
 
 
@@ -61,34 +69,34 @@
 <dl class="details">
 
     
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discordManager.js.html">discordManager.js</a>, <a href="discordManager.js.html#line335">line 335</a>
+        <a href="Discord_discordManager.js.html">Discord/discordManager.js</a>, <a href="Discord_discordManager.js.html#line419">line 419</a>
     </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
     
 
     
@@ -117,26 +125,32 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+            
         
-    
-    </div>
-
+        </div>
     
 
     
 
     
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="module-discordManager.DiscordManager.html">DiscordManager</a></dt>
-            <dd></dd>
-        </dl>
-    
 
     
-
     
+    
+
+     
 
     
 
@@ -154,19 +168,23 @@
 
 
 
+    
+    
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a></li><li><a href="module-dataManager.html">dataManager</a></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a></li><li><a href="module-fileServer.html">fileServer</a></li><li><a href="module-Start.html">Start</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Classes</h3><ul><li><a href="module-discordManager.DiscordManager.html">DiscordManager</a></li></ul>
-</nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Jan 20 2021 16:44:29 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a> on Tue Jan 25 2022 17:04:22 GMT-0800 (Pacific Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+
 </body>
 </html>

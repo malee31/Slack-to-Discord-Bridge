@@ -1,23 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <meta charset="utf-8">
-    <title>JSDoc: Module: fileManager</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
+    <title>fileManager - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-
 <body>
 
-<div id="main">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
 
-    <h1 class="page-title">Module: fileManager</h1>
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DiscordManager.html">DiscordManager</a><ul class='methods'><li data-type='method'><a href="DiscordManager.html#.embedFromFile">embedFromFile</a></li><li data-type='method'><a href="DiscordManager.html#.embedFromSyntaxTree">embedFromSyntaxTree</a></li><li data-type='method'><a href="DiscordManager.html#.fakeMessage">fakeMessage</a></li><li data-type='method'><a href="DiscordManager.html#.handleChanges">handleChanges</a></li><li data-type='method'><a href="DiscordManager.html#.handleChannelUpdates">handleChannelUpdates</a></li><li data-type='method'><a href="DiscordManager.html#.handleDeletes">handleDeletes</a></li><li data-type='method'><a href="DiscordManager.html#.handleMessages">handleMessages</a></li><li data-type='method'><a href="DiscordManager.html#.locateThread">locateThread</a></li><li data-type='method'><a href="DiscordManager.html#.syntaxTreeParseText">syntaxTreeParseText</a></li></ul></li><li><a href="module-SyntaxTree-ChangeSyntaxTree.html">ChangeSyntaxTree</a></li><li><a href="module-SyntaxTree-ChannelSyntaxTree.html">ChannelSyntaxTree</a></li><li><a href="module-SyntaxTree-DeleteSyntaxTree.html">DeleteSyntaxTree</a></li><li><a href="module-SyntaxTree-MessageSyntaxTree.html">MessageSyntaxTree</a></li><li><a href="module-SyntaxTree-SyntaxTreeBase.html">SyntaxTreeBase</a></li></ul><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a><ul class='methods'><li data-type='method'><a href="module-databaseManager.html#~locateChannelMap">locateChannelMap</a></li><li data-type='method'><a href="module-databaseManager.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseManager.html#~locateThreadMap">locateThreadMap</a></li><li data-type='method'><a href="module-databaseManager.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableLocateMap">tableLocateMap</a></li><li data-type='method'><a href="module-databaseManager.html#~tableMap">tableMap</a></li></ul></li><li><a href="module-databaseWrapper.html">databaseWrapper</a><ul class='methods'><li data-type='method'><a href="module-databaseWrapper.html#~locateMessageMaps">locateMessageMaps</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMap">messageMap</a></li><li data-type='method'><a href="module-databaseWrapper.html#~messageMapToMessage">messageMapToMessage</a></li><li data-type='method'><a href="module-databaseWrapper.html#~startup">startup</a></li></ul></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a><ul class='methods'><li data-type='method'><a href="module-fileManager.html#.fileDownload">fileDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownload">completeDownload</a></li><li data-type='method'><a href="module-fileManager.html#~completeDownloadErrorHandler">completeDownloadErrorHandler</a></li><li data-type='method'><a href="module-fileManager.html#~fileDelete">fileDelete</a></li><li data-type='method'><a href="module-fileManager.html#~fileSize">fileSize</a></li><li data-type='method'><a href="module-fileManager.html#~getValidFileName">getValidFileName</a></li></ul></li><li><a href="module-fileServer.html">fileServer</a><ul class='methods'><li data-type='method'><a href="module-fileServer.html#~getRequestedPath">getRequestedPath</a></li><li data-type='method'><a href="module-fileServer.html#~showFileList">showFileList</a></li></ul></li><li><a href="module-Start.html">Start</a><ul class='methods'><li data-type='method'><a href="module-Start.html#~startUp">startUp</a></li></ul></li><li><a href="module-SyntaxTree.html">SyntaxTree</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Global</h3><ul><li><a href="global.html#unwrapAttachment">unwrapAttachment</a></li><li><a href="global.html#userIdentify">userIdentify</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">fileManager</h1>
+    
 
     
 
@@ -35,25 +53,15 @@
 </header>
 
 <article>
-    <div class="container-overview">
     
-        
-            <div class="description">Handles downloading and deleting files from folders (Especially the designated downloads folder)</div>
-        
-
+        <div class="container-overview">
         
             
+                <div class="description usertext"><p>Handles downloading and deleting files from folders (Especially the designated downloads folder)</p></div>
+            
 
-
-
-
-
-
-
-
-
-
-
+            
+                
 
 
 
@@ -61,34 +69,34 @@
 <dl class="details">
 
     
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line11">line 11</a>
+        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line26">line 26</a>
     </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
     
 
     
@@ -117,10 +125,21 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+            
         
-    
-    </div>
-
+        </div>
     
 
     
@@ -128,8 +147,10 @@
     
 
     
-
     
+    
+
+     
 
     
 
@@ -138,13 +159,58 @@
 
         
             
-<h4 class="name" id="~DOWNLOADS_FOLDER"><span class="type-signature">(inner, constant) </span>DOWNLOADS_FOLDER<span class="type-signature"> :string</span></h4>
+<h4 class="name" id=".FAILED_DOWNLOAD_IMAGE_PATH"><span class="type-signature">(static) </span>FAILED_DOWNLOAD_IMAGE_PATH<span class="type-signature"> :string</span></h4>
 
 
 
 
-<div class="description">
-    Absolute path to the folder for downloaded files
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line80">line 80</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Absolute path of a default image to send when the download fails</p>
 </div>
 
 
@@ -163,36 +229,21 @@
 
 
 
+
+        
+            
+<h4 class="name" id="~DOWNLOADS_FOLDER"><span class="type-signature">(inner, constant) </span>DOWNLOADS_FOLDER<span class="type-signature"> :string</span></h4>
+
+
+
+
+
 <dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line16">line 16</a>
+        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line31">line 31</a>
     </li></ul></dd>
     
 
@@ -201,7 +252,51 @@
     
 
     
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
 </dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Absolute path to the folder for downloaded files</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
 
 
 
@@ -219,75 +314,9 @@
 
     
 
-    
-    <h4 class="name" id=".fileDelete"><span class="type-signature">(async, static) </span>fileDelete<span class="signature">(fileName)</span><span class="type-signature"> &rarr; {Promise.&lt;void>}</span></h4>
-    
+    <h4 class="name" id=".fileDownload"><span class="type-signature">(async, static) </span>fileDownload<span class="signature">(fileObj, fileName<span class="signature-attributes">opt</span>, auth<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Promise.&lt;<a href="global.html#FileData">FileData</a>>}</span></h4>
 
     
-
-
-
-<div class="description">
-    Deletes a file from the downloads folder specifically
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fileName</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Name of file to delete from the downloads folder</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
 
 
 
@@ -295,33 +324,9 @@
 <dl class="details">
 
     
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line60">line 60</a>
+        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line43">line 43</a>
     </li></ul></dd>
     
 
@@ -330,65 +335,41 @@
     
 
     
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
 </dl>
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Returns the promise from fs.promises.unlink
+<div class="description usertext">
+    <p>Downloads a file from a Slack file object. File name may change if a file by the same name already exists according to getValidFileName</p>
 </div>
 
 
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Promise.&lt;void></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id=".fileDownload"><span class="type-signature">(async, static) </span>fileDownload<span class="signature">(fileObj, fileName<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Promise.&lt;{path: string, extension: (string|*), original: ({name}|*), size: *, name, title, storedAs: string}>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Downloads a file from a Slack file object. File name may change if a file by the same name already exists according to getValidFileName
-</div>
 
 
 
@@ -449,7 +430,7 @@
 
             
 
-            <td class="description last">Slack file details object (Found in event.files[])</td>
+            <td class="description last"><p>Slack file details object (Found in event.files[])</p></td>
         </tr>
 
     
@@ -482,57 +463,46 @@
 
             
 
-            <td class="description last">Name for file (Defaults to the name provided by Slack)</td>
+            <td class="description last"><p>Name for file (Defaults to the name provided by Slack)</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>auth</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Alternative token to use (in place of the environment variables)</p></td>
         </tr>
 
     
     </tbody>
 </table>
 
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line27">line 27</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
 
 
 
@@ -552,18 +522,18 @@
 
         
 <div class="param-desc">
-    An object containing details on where the file is, what is is called, the original Slack file object, and more
+    <p>An object containing details on where the file is, what it is called, the original Slack file object, and more</p>
 </div>
 
 
 
-<dl>
+<dl class="param-type">
     <dt>
         Type
     </dt>
     <dd>
         
-<span class="param-type">Promise.&lt;{path: string, extension: (string|*), original: ({name}|*), size: *, name, title, storedAs: string}></span>
+<span class="param-type">Promise.&lt;<a href="global.html#FileData">FileData</a>></span>
 
 
     </dd>
@@ -573,24 +543,67 @@
 
 
 
-
-
         
             
 
     
 
-    
-    <h4 class="name" id="~completeDownload"><span class="type-signature">(inner) </span>completeDownload<span class="signature">(saveTo, downloadFromURL, headers<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Promise.&lt;string>}</span></h4>
-    
+    <h4 class="name" id="~completeDownload"><span class="type-signature">(async, inner) </span>completeDownload<span class="signature">(saveTo, downloadFromURL, headers<span class="signature-attributes">opt</span>, rejectOnRedirect<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Promise.&lt;string>}</span></h4>
 
     
 
 
 
-<div class="description">
-    Downloads a file from a given URL and save it to a given location
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line124">line 124</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Downloads a file from a given URL and save it to a given location</p>
 </div>
+
+
 
 
 
@@ -657,7 +670,7 @@
                 </td>
             
 
-            <td class="description last">File save location (Absolute Path Only)</td>
+            <td class="description last"><p>File save location (Absolute Path Only)</p></td>
         </tr>
 
     
@@ -692,7 +705,7 @@
                 </td>
             
 
-            <td class="description last">The URL to download from</td>
+            <td class="description last"><p>The URL to download from</p></td>
         </tr>
 
     
@@ -726,62 +739,57 @@
             
                 <td class="default">
                 
-                    {}
+                    <code>{}</code>
                 
                 </td>
             
 
-            <td class="description last">Optional http request headers</td>
+            <td class="description last"><p>Optional http request headers</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>rejectOnRedirect</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Reject promise on redirects instead of following</p></td>
         </tr>
 
     
     </tbody>
 </table>
 
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line104">line 104</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
 
 
 
@@ -801,12 +809,12 @@
 
         
 <div class="param-desc">
-    Returns the path where the file was saved if successful
+    <p>Returns the path where the file was saved if successful</p>
 </div>
 
 
 
-<dl>
+<dl class="param-type">
     <dt>
         Type
     </dt>
@@ -822,6 +830,205 @@
 
 
 
+        
+            
+
+    
+
+    <h4 class="name" id="~completeDownloadErrorHandler"><span class="type-signature">(async, inner) </span>completeDownloadErrorHandler<span class="signature">(err, unlinkLocation<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line173">line 173</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Error handler for completeDownload. Tries to delete file on a failed download</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>err</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Error</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Error from completeDownload</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>unlinkLocation</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Path of intended file to unlink</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Throws errors through the Promise</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
 
 
         
@@ -829,17 +1036,220 @@
 
     
 
-    
-    <h4 class="name" id="~fileSize"><span class="type-signature">(async, inner) </span>fileSize<span class="signature">(filePath)</span><span class="type-signature"> &rarr; {Promise.&lt;number>}</span></h4>
-    
+    <h4 class="name" id="~fileDelete"><span class="type-signature">(inner) </span>fileDelete<span class="signature">(fileName)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
 
     
 
 
 
-<div class="description">
-    Returns the size of a file in megabytes
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line199">line 199</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Deletes a file from the downloads folder specifically</p>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fileName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Name of file to delete from the downloads folder</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Returns the promise from fs.promises.unlink</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~fileSize"><span class="type-signature">(async, inner) </span>fileSize<span class="signature">(filePath)</span><span class="type-signature"> &rarr; {Promise.&lt;number>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line190">line 190</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Returns the size of a file in megabytes</p>
+</div>
+
+
 
 
 
@@ -890,57 +1300,13 @@
 
             
 
-            <td class="description last">Absolute path to file to check the size of</td>
+            <td class="description last"><p>Absolute path to file to check the size of</p></td>
         </tr>
 
     
     </tbody>
 </table>
 
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line137">line 137</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
 
 
 
@@ -960,12 +1326,12 @@
 
         
 <div class="param-desc">
-    Size in megabytes
+    <p>Size in megabytes (Includes decimals)</p>
 </div>
 
 
 
-<dl>
+<dl class="param-type">
     <dt>
         Type
     </dt>
@@ -981,24 +1347,69 @@
 
 
 
-
-
         
             
 
     
 
-    
     <h4 class="name" id="~getValidFileName"><span class="type-signature">(async, inner) </span>getValidFileName<span class="signature">(rootPath, fileName, fileExtension)</span><span class="type-signature"> &rarr; {Promise.&lt;string>}</span></h4>
-    
 
     
 
 
 
-<div class="description">
-    Checks if a specified file name is available in a given folder path. If not, a number in parentheses will be appended to itIf 'image.png' does not already exist, inputting 'image.png' into this function will return 'image.png'If 'image.png' already exists, inputting 'image.png' into this function will return 'image (1).png' instead
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line93">line 93</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description usertext">
+    <p>Checks if a specified file name is available in a given folder path. If not, a number in parentheses will be appended to it
+If 'image.png' does not already exist, inputting 'image.png' into this function will return 'image.png'
+If 'image.png' already exists, inputting 'image.png' into this function will return 'image (1).png' instead</p>
 </div>
+
+
 
 
 
@@ -1049,7 +1460,7 @@
 
             
 
-            <td class="description last">The location of the folder to check (Absolute Path Only)</td>
+            <td class="description last"><p>The location of the folder to check (Absolute Path Only)</p></td>
         </tr>
 
     
@@ -1072,7 +1483,7 @@
 
             
 
-            <td class="description last">Name to give the file</td>
+            <td class="description last"><p>Name to give the file</p></td>
         </tr>
 
     
@@ -1095,57 +1506,13 @@
 
             
 
-            <td class="description last">File extension</td>
+            <td class="description last"><p>File extension</p></td>
         </tr>
 
     
     </tbody>
 </table>
 
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="fileManager.js.html">fileManager.js</a>, <a href="fileManager.js.html#line77">line 77</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
 
 
 
@@ -1165,12 +1532,12 @@
 
         
 <div class="param-desc">
-    Returns a file name that isn't already being used in the folder
+    <p>Returns a file name that isn't already being used in the folder</p>
 </div>
 
 
 
-<dl>
+<dl class="param-type">
     <dt>
         Type
     </dt>
@@ -1183,8 +1550,6 @@
 </dl>
 
     
-
-
 
 
 
@@ -1201,19 +1566,23 @@
 
 
 
+    
+    
 </div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-databaseManager.html">databaseManager</a></li><li><a href="module-dataManager.html">dataManager</a></li><li><a href="module-discordManager.html">discordManager</a></li><li><a href="module-fileManager.html">fileManager</a></li><li><a href="module-fileServer.html">fileServer</a></li><li><a href="module-Start.html">Start</a></li></ul><h3>Externals</h3><ul><li><a href="external-SlackEventAdapter.html">SlackEventAdapter</a></li><li><a href="external-WebClient.html">WebClient</a></li></ul><h3>Classes</h3><ul><li><a href="module-discordManager.DiscordManager.html">DiscordManager</a></li></ul>
-</nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Wed Jan 20 2021 16:44:29 GMT-0800 (Pacific Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.10</a> on Tue Jan 25 2022 17:04:22 GMT-0800 (Pacific Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+
 </body>
 </html>

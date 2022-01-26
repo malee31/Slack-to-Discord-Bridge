@@ -3,7 +3,7 @@
 <head>
     
     <meta charset="utf-8">
-    <title>run.js - Documentation</title>
+    <title>SyntaxTree - Documentation</title>
     
     
     <script src="scripts/prettify/prettify.js"></script>
@@ -34,76 +34,155 @@
 
 <div id="main">
     
-    <h1 class="page-title">run.js</h1>
+    <h1 class="page-title">SyntaxTree</h1>
     
 
     
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
- * @file run.js is the root file that starts everything up and handles everything.
- * See the{@link module:Start| run.js documentation} for more information. (Named the Start module for documentation purposes)
- * @author Marvin Lee
- */
+        
+            
+        
+    
+</header>
 
-/**
- * The root file for the project
- * @module Start
- */
+<article>
+    
+        <div class="container-overview">
+        
+            
+                <div class="description usertext"><p>Helper classes used as an intermediate in the bridging process between two services</p></div>
+            
 
-require("dotenv").config();
-const DiscordManager = require("./Discord/discordManager.js");
-const SlackManager = require("./Slack/slackManager.js");
+            
+                
 
-// Initialize a server using the event adapter's request listener
-const server = require("./fileServer.js")(SlackManager.SlackHTTPServerEventAdapter);
 
-/**
- * Starts up the script by initializing all the necessary variables in all the JS files and completing start-up tasks
- * @returns {Promise&lt;Array>} Returns a Promise.all with an array of all the setup and start-up functions' results (Usually undefined)
- */
-function startUp() {
-	console.log("============= Starting Up =============");
-	console.log("============ Checking .env ============");
-	// if(process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_BOT_USER_OAUTH_ACCESS_TOKEN" &amp;&amp; process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE !== "SLACK_USER_OAUTH_ACCESS_TOKEN") {
-	// 	console.log("============== Bad .env ===============");
-	// 	console.error(`SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE not set to either SLACK_BOT_USER_OAUTH_ACCESS_TOKEN or SLACK_USER_OAUTH_ACCESS_TOKEN\nPlease set it properly and try again\nCurrent Value: ${process.env.SLACK_DOWNLOAD_ACCESS_TOKEN_CHOICE}`);
-	// 	process.exit(1);
-	// }
-	console.log("============ Checked  .env ============");
 
-	return Promise.all([
-		SlackManager.start(),
-		DiscordManager.start(),
-		new Promise((resolve, reject) => {
-			server.listen(Number(process.env.PORT) || 3000, err => {
-				if(err) reject(err);
-				console.log(`========== Started Port ${server.address().port} ==========`);
-				resolve();
-			});
-		}),
-	]);
-}
 
-// Starts up the logger and links up event listeners
-module.exports = startUp().then(() => {
-	console.log("======= All Services Started Up =======");
-	SlackManager.events.on("message", DiscordManager.handleMessages);
-	SlackManager.events.on("change", DiscordManager.handleChanges);
-	SlackManager.events.on("delete", DiscordManager.handleDeletes);
-	SlackManager.events.on("channel_update", DiscordManager.handleChannelUpdates);
-	console.log("========== Start Up Complete ==========");
-}).catch(err => {
-	console.warn("⚠⚠ Failed Start-Up... Shutting Down ⚠⚠");
-	console.error(err);
-	process.exit(1);
-});</code></pre>
-        </article>
-    </section>
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="MessageSyntaxTree.js.html">MessageSyntaxTree.js</a>, <a href="MessageSyntaxTree.js.html#line2">line 2</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+        
+        </div>
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Classes</h3>
+
+        <dl>
+            <dt><a href="module-SyntaxTree-ChangeSyntaxTree.html">ChangeSyntaxTree</a></dt>
+            <dd></dd>
+        
+            <dt><a href="module-SyntaxTree-ChannelSyntaxTree.html">ChannelSyntaxTree</a></dt>
+            <dd></dd>
+        
+            <dt><a href="module-SyntaxTree-DeleteSyntaxTree.html">DeleteSyntaxTree</a></dt>
+            <dd></dd>
+        
+            <dt><a href="module-SyntaxTree-MessageSyntaxTree.html">MessageSyntaxTree</a></dt>
+            <dd></dd>
+        
+            <dt><a href="module-SyntaxTree-SyntaxTreeBase.html">SyntaxTreeBase</a></dt>
+            <dd></dd>
+        </dl>
+    
+    
+    
+
+     
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 
