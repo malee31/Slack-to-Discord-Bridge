@@ -5,6 +5,22 @@ Slack to Discord Bridge
 
 This repository contains the source code for a Slack App that listens to a Slack Workspace public channels and forwards all of its messages and files to a Discord server as a back-up or archive.
 
+## Features
+The following images show off common usages and subset of what the bot is capable of!
+
+### Basic Message Support
+![Basic message sent through Slack](visuals/Slack.png)
+![Basic message carried over to Discord](visuals/Discord.png)
+
+### Message Edits and Deletions
+![Basic Slack message edit](visuals/Slack-Edit.png)
+![Basic Slack message edit carried over to Discord](visuals/Discord-Edit.png)
+
+### Thread Support
+![Basic Slack thread with a file upload](visuals/Slack-Thread.png)
+![Basic Slack thread with a file upload carried over to Discord](visuals/Discord-Thread.png)
+
+
 # Basic Set-Up
 
 To start setting this project up, clone this repository and run `npm install` to install the dependencies required to run.<br>
