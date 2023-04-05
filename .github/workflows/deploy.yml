@@ -1,0 +1,31 @@
+# Builds documentation as a static site and deploys it to GitHub Pages
+name: Deploy Documentation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Documentation
+        run: npm run jsdoc
+
+      - name: Copy Over Demo Images
+        run: cp -r visuals/ docs/
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        with:
+          branch: gh-pages
+          folder: docs
