@@ -12,7 +12,7 @@ class SyntaxTreeBase {
 	source = "Unknown";
 	// Message Timestamp in seconds (Not milliseconds! Add that to additional if it is needed or just calculate it yourself)
 	timestamp = 0;
-	// What action to reflect. Examples: "send", "edit", "pin", "delete"
+	// Type of action to reflect. Examples: "send", "edit", "pin", "delete"
 	action = "none";
 
 	// Data fetched to assist with plugging holes in message while parsing

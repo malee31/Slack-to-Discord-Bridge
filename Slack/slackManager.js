@@ -148,7 +148,7 @@ module.exports = class SlackManager {
 		syntaxTree.parseData.channel.id = originalChannel.id;
 		syntaxTree.parseData.channel.topic = originalChannel.topic.value;
 		syntaxTree.parseData.channel.purpose = originalChannel.purpose.value;
-		syntaxTree.parseData.channel.purpose = Boolean(originalChannel.is_archived);
+		syntaxTree.parseData.channel.archived = Boolean(originalChannel.is_archived);
 
 		if(message.thread_ts) {
 			syntaxTree.parseData.thread.id = message.thread_ts;
